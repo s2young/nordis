@@ -9,8 +9,8 @@ var express     = require('express'),
 
 process.env.sApp = 'agewize';
 
-var exp_app = express(); //Express application, which is used by the server.
-var server = exp_app.listen(App.hAppSettings[process.env.sApp].nPort); // Express-based web application server instance.
+var exp_app = express();
+exp_app.listen(App.hAppSettings[process.env.sApp].nPort);
 
 // Some shared variables.
 var sSessionKey = process.env.sApp+'.sid'; // What we call the express session key. Can be whatever we want.
@@ -41,9 +41,8 @@ var configureExpress = function(){
         .set('view engine','html')
         .engine('html', Template.compile)
         .set('views',process.env.sViewPath)
-        .use(Middleware.parseSession)
         .use(function(req,res,next){
-            req.hData.Stripe = App.hOptions.Stripe;
+            console.log('hey there');
             next();
         });
 };
@@ -51,7 +50,7 @@ var configureExpress = function(){
  * This function defines all route paths supported in the app.
  */
 var configureRoutes = function(){
-    exp_app.get('*', function (req, res) {
+    exp_app.get('/', function (req, res) {
         render(req,res,null,'index');
     });
 };

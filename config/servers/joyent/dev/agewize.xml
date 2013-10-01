@@ -19,7 +19,7 @@
                 <envvar name="NORDIS_ENV_ROOT_NODE_DIR" value="/home/prod/nordis"/>
             </method_environment>
         </method_context>
-        <exec_method type="method" name="start" exec="node /home/prod/nordis/apps/web/engage/web/agewize.js" timeout_seconds="60"/>
+        <exec_method type="method" name="start" exec="node /home/prod/nordis/apps/web/agewize.js" timeout_seconds="60"/>
         <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
         <property_group name="startd" type="framework">
             <propval name="duration" type="astring" value="child"/>

@@ -52,7 +52,7 @@ var configureExpress = function(){
  * This function defines all route paths supported in the app.
  */
 var configureRoutes = function(){
-    exp_app.get('/', function (req, res) {
+    exp_app.get('*', function (req, res) {
         render(req,res,null,'index');
     });
 };

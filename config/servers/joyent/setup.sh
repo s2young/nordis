@@ -142,6 +142,7 @@
             ;;
             *)
                 svcadm disable $SERVICE
+                svccfg delete $SERVICE
                 svccfg import /home/prod/nordis/config/servers/joyent/$SERVER/$SERVICE.xml
                 svcadm enable $SERVICE
             ;;

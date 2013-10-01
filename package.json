@@ -1,0 +1,37 @@
+{
+  "author": "Stuart Young",
+  "name": "nordis",
+  "description": "Framework for rapid web application development using Express, doT, Redis and MySql.",
+  "version": "0.0.1",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/s2young/metac.git"
+  },
+  "engines": {
+      "node": "latest",
+      "npm": "latest"
+  },
+  "scripts": {
+      "start": "npm install iconv -g"
+  },
+  "dependencies": {
+      "connect":"latest",
+      "connect-redis":"latest",
+      "generic-pool":"latest",
+      "mysql":"2.0.0-alpha9",
+      "validator":"latest",
+      "imap":"latest",
+      "express":"latest",
+      "oauth":"latest",
+      "async":"latest",
+      "winston":"latest",
+      "redis":"latest",
+      "nodemailer":"latest",
+      "mailparser":"latest",
+      "dot":"latest",
+      "moment":"latest",
+      "cookie":"latest",
+      "request":"latest"
+  }
+}
+

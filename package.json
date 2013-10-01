@@ -12,26 +12,26 @@
       "npm": "latest"
   },
   "scripts": {
-      "start": "npm install iconv -g"
+      "preinstall": "npm install iconv -g"
   },
   "dependencies": {
-      "connect":"latest",
-      "connect-redis":"latest",
-      "generic-pool":"latest",
-      "mysql":"2.0.0-alpha9",
-      "validator":"latest",
-      "imap":"latest",
-      "express":"latest",
-      "oauth":"latest",
-      "async":"latest",
-      "winston":"latest",
-      "redis":"latest",
-      "nodemailer":"latest",
-      "mailparser":"latest",
-      "dot":"latest",
-      "moment":"latest",
-      "cookie":"latest",
-      "request":"latest"
+      "async":"latest"
+      ,"connect":"latest"
+      ,"connect-redis":"latest"
+      ,"cookie":"latest"
+      ,"dot":"latest"
+      ,"express":"latest"
+      ,"generic-pool":"latest"
+      ,"imap":"latest"
+      ,"mailparser":"latest"
+      ,"moment":"latest"
+      ,"mysql":"2.0.0-alpha9"
+      ,"nodemailer":"latest"
+      ,"oauth":"latest"
+      ,"redis":"latest"
+      ,"request":"latest"
+      ,"validator":"latest"
+      ,"winston":"latest"
   }
 }
 

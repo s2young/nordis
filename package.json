@@ -5,7 +5,7 @@
   "version": "0.0.1",
   "repository": {
       "type": "git",
-      "url": "https://github.com/s2young/metac.git"
+      "url": "https://github.com/s2young/nordis.git"
   },
   "engines": {
       "node": "latest",

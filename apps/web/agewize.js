@@ -27,7 +27,7 @@ var oSessionStore = new RStore({
  */
 var configureExpress = function(){
     exp_app
-//        .use(express.bodyParser())
+        .use(express.bodyParser())
         .use(oCookieParser)
         .use(express.session({
             store: oSessionStore,

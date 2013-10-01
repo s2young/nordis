@@ -19,7 +19,6 @@ module.exports.hSettings = {
             Redis:{
                 sWriteServer:'127.0.0.1',
                 nWritePort:6379,
-                nDb:2,
                 nMaxConnections:2000,
                 nTimeoutMilliseconds:30000,
                 nReapIntervalMilliseconds:5000,

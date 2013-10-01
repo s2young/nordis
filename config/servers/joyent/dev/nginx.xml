@@ -13,7 +13,7 @@
         <method_context>
             <method_credential user="root" group="root"/>
         </method_context>
-        <exec_method type="method" name="start" exec="/usr/local/nginx/sbin/nginx -c /home/prod/goba-core/config/servers/joyent/dev/nginx.conf" timeout_seconds="60"/>
+        <exec_method type="method" name="start" exec="/usr/local/nginx/sbin/nginx -c /home/prod/nordis/config/servers/joyent/dev/nginx.conf" timeout_seconds="60"/>
         <exec_method type="method" name="restart" exec="/usr/local/nginx/sbin/nginx -s restart" timeout_seconds="60"/>
         <exec_method type="method" name="stop" exec="/usr/local/nginx/sbin/nginx -s quit" timeout_seconds="60"/>
         <property_group name="startd" type="framework">
@@ -21,7 +21,7 @@
             <propval name="ignore_error" type="astring" value="core,signal"/>
         </property_group>
         <property_group name="application" type="application">
-            <propval name="config_file" type="astring" value="/home/prod/goba-core/config/servers/joyent/dev/nginx.conf"/>
+            <propval name="config_file" type="astring" value="/home/prod/nordis/config/servers/joyent/dev/nginx.conf"/>
         </property_group>
         <stability value="Evolving"/>
         <template>

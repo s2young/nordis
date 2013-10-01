@@ -1,0 +1,23 @@
+
+        <script type="text/javascript">
+            window.sCID = 'agewize.sid';
+        </script>
+        <script src="/assets/js/moderniz.js"></script>
+        <script>
+            Modernizr.load([
+                {load: '//ajax.googleapis.com/ajax/libs/angularjs/1.1.4/angular.min.js'}
+                ,{
+                    load: [
+                        '//ajax.googleapis.com/ajax/libs/angularjs/1.1.4/angular-cookies.min.js'
+                        ,'//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.5.0/ui-bootstrap-tpls.js'
+                    ]
+                },{
+                    load: ['/assets/js/nordis.angular.1.1.8.js']
+                    ,complete:function(){
+                        angular.bootstrap($('body'), ['nordis']);
+                    }
+                }
+            ]);
+        </script>
+    </body>
+</html>

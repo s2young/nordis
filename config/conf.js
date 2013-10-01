@@ -39,7 +39,7 @@ module.exports.hSettings = {
         }
         ,hAppSettings:{
             agewize:{
-                nPort:3000,
+                nPort:2000,
                 nSessionLength:864000
             }
         }

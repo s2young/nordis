@@ -1,12 +1,9 @@
 var express     = require('express'),
     async       = require('async'),
-    fs          = require('fs'),
     RStore      = require('connect-redis')(express),
     App         = require(process.env.NORDIS_ENV_ROOT_NODE_DIR+'/lib/Core/AppConfig'),
     Base        = require(process.env.NORDIS_ENV_ROOT_NODE_DIR+'/lib/Core/Base'),
     Collection  = require(process.env.NORDIS_ENV_ROOT_NODE_DIR+'/lib/Core/Collection'),
-    User        = require(process.env.NORDIS_ENV_ROOT_NODE_DIR+'/lib/Model/User'),
-    Platform    = require(process.env.NORDIS_ENV_ROOT_NODE_DIR+'/lib/Model/User/Platform'),
     Template    = require(process.env.NORDIS_ENV_ROOT_NODE_DIR+'/lib/Utils/Template'),
     Middleware  = require(process.env.NORDIS_ENV_ROOT_NODE_DIR+'/lib/Utils/Middleware');
 

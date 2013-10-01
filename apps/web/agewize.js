@@ -20,7 +20,7 @@ var oSessionStore = new RStore({
     host:App.hOptions.Redis.sWriteServer,
     port:App.hOptions.Redis.nWritePort,
     ttl:App.hAppSettings[process.env.sApp].nSessionLength
-}); // Single instance of express session storage, for use by both socket.io and express.
+});
 
 /**
  * Set up ExpressJS, the web server framework we use.

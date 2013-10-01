@@ -14,7 +14,7 @@ module.exports.hSettings = {
                 sPass:'zat{blos0Fru',
                 nMaxConnections:2000,
                 nTimeoutMilliseconds:10000,
-                bDebugMode:false
+                bDebugMode:true
             },
             Redis:{
                 sWriteServer:'127.0.0.1',
@@ -22,7 +22,7 @@ module.exports.hSettings = {
                 nMaxConnections:2000,
                 nTimeoutMilliseconds:30000,
                 nReapIntervalMilliseconds:5000,
-                bDebugMode:false
+                bDebugMode:true
             },
             Email:{
                 oQuickMail:{

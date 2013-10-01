@@ -27,6 +27,19 @@ var oSessionStore = new RStore({
  */
 var configureExpress = function(){
     exp_app
+//        .use(express.bodyParser())
+//        .use(oCookieParser)
+//        .use(express.session({
+//            store: oSessionStore,
+//            secret: sSessionSecret,
+//            key: sSessionKey,
+//            maxAge  : new Date(Date.now() + (App.hAppSettings[process.env.sApp].nSessionLength * 1000)),
+//            expires : new Date(Date.now() + (App.hAppSettings[process.env.sApp].nSessionLength * 1000)),
+//            cookie:{httpOnly:true}
+//        }))
+        .set('view engine','html')
+        .engine('html', Template.compile)
+        .set('views',process.env.sViewPath)
         .use(function(req,res,next){
             console.log('hey there');
             next();
@@ -37,8 +50,7 @@ var configureExpress = function(){
  */
 var configureRoutes = function(){
     exp_app.get('/', function (req, res) {
-        //render(req,res,null,'index');
-        res.end('hello world');
+        render(req,res,null,'index');
     });
 };
 

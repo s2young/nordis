@@ -6,14 +6,11 @@
   "repository": {
       "type": "git",
       "url": "https://github.com/s2young/nordis.git"
-  },
-  "engines": {
-      "node": "latest",
-      "npm": "latest"
-  },
-  "scripts": {
-      "preinstall": "npm install iconv -g"
-  },
+  }
+  ,"engines": {
+      "node": ">=0.10.3",
+      "npm": ">=1.2.1"
+  }
   "dependencies": {
       "async":"latest"
       ,"generic-pool":"latest"

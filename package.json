@@ -1,7 +1,7 @@
 {
   "author": "Stuart Young",
   "name": "nordis",
-  "description": "Framework for rapid web application development using Express, doT, Redis and MySql.",
+  "description": "Framework for rapid nodejs application development using Redis and MySql.",
   "version": "0.0.1",
   "repository": {
       "type": "git",
@@ -16,20 +16,12 @@
   },
   "dependencies": {
       "async":"latest"
-      ,"connect":"latest"
-      ,"connect-redis":"latest"
-      ,"cookie":"latest"
-      ,"dot":"latest"
-      ,"express":"latest"
       ,"generic-pool":"latest"
       ,"imap":"latest"
       ,"mailparser":"latest"
-      ,"moment":"latest"
       ,"mysql":"2.0.0-alpha9"
       ,"nodemailer":"latest"
-      ,"oauth":"latest"
       ,"redis":"latest"
-      ,"request":"latest"
       ,"validator":"latest"
       ,"winston":"latest"
   }

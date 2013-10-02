@@ -11,7 +11,7 @@
       "node": ">=0.10.3",
       "npm": ">=1.2.1"
   }
-  "dependencies": {
+  ,"dependencies": {
       "async":"latest"
       ,"generic-pool":"latest"
       ,"imap":"latest"

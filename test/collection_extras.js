@@ -3,7 +3,18 @@ var async       = require('async'),
     Collection  = require('./../lib/Collection'),
     App         = require('./../lib/AppConfig');
 
-var nTestSize = 1;
+/**
+ * This test shows the creation of a user and a number of friends. Once the friends are created, we can look up the user and his friends in a single transaction.
+ *
+ * The test's setUp method creates a primary user and then creates n number of friends (where n = nTestSize, a variable you can change). The friend creation code is broken down so that
+ * the writes can be crudely benchmarked. This test will print out the average write time for all User records created during the test.
+ *
+ * The tearDown method shows how to remove records and collections of records when using Redis as the primary source.
+ *
+ * @type {number}
+ */
+
+var nTestSize = 1000;
 var oRedisClient;
 var nStartingMemory;
 module.exports = {
@@ -62,7 +73,7 @@ module.exports = {
                         }
                     });
                 };
-                var q = async.queue(createFriend,10);
+                var q = async.queue(createFriend,1000);
                 q.drain = cb;
 
                 for (var n = 0; n < nTestSize; n++) {
@@ -88,24 +99,16 @@ module.exports = {
             ,function(cb){
                 // Lookup the user's friends and the user objects associated with those friend records so we can remove them.
                 oSelf.oUser.loadExtras({cFriends:{hExtras:{oFriendUser:true}}},function(err){
-                    if (err)
+                    if (err) {
                         cb(err);
-                    else {
-                        var delFriendUser = function(oUser,cback){
-                            if (oUser instanceof Base) {
-                                oUser.delete(cback);
-                            } else
-                                cback();
-                        };
-                        var q = async.queue(delFriendUser,100);
-                        q.drain = cb;
-
-                        while (oSelf.oUser.cFriends.next()) {
-                            if (oSelf.oUser.cFriends.getCurrent().oFriendUser)
-                                q.push(oSelf.oUser.cFriends.getCurrent().oFriendUser);
+                    } else {
+                        var deleteItem = function(oItem,callback) {
+                            if (oItem.oFriendUser)
+                                oItem.oFriendUser.delete(callback);
                             else
-                                q.push({});
-                        }
+                                callback();
+                        };
+                        async.forEachLimit(oSelf.oUser.cFriends.aObjects,100,deleteItem,cb);
                     }
                 });
             }
@@ -117,7 +120,7 @@ module.exports = {
                 // And finally the oUser.
                 oSelf.oUser.delete(cb);
             }
-        ],callback)
+        ],callback);
     }
     ,addFriend:function(test){
         var oSelf = this;

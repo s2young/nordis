@@ -24,7 +24,7 @@ module.exports.hSettings = {
     global: {
         nSeedID:1000000
         ,aEmergencyEmails:['s2.d.young@gmail.com']
-        ,sLogLevel:'warn'
+        ,sLogLevel:'debug'
         ,hOptions:{
             MySql:{
                 sSchema:'nordis',
@@ -65,8 +65,6 @@ module.exports.hSettings = {
                 ,nClass:1
                 ,hExtras:{
                     nPoints:{sType:'Increment'}
-                    ,nStatic:{sType:'Number'}
-                    ,sBlob:{sType:'String'}
                     ,cFriends:{
                         sType:'Collection'
                         ,sClass:'Friend'
@@ -91,6 +89,7 @@ module.exports.hSettings = {
                     oUser:{
                         sType:'Object'
                         ,sClass:'User'
+                        ,aKey:['nUserID','nID']
                         ,fnQuery:function(oSelf,App){
                             return {nID:oSelf.get('nUserID')}
                         }

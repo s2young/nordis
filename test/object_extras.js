@@ -52,7 +52,7 @@ module.exports = {
         ],function(err){ App.wrapTest(err,test); })
 
     }
-    ,lookupUseOnly:function(test){
+    ,lookupUserOnly:function(test){
         var oSelf = this;
         test.expect(1);
 
@@ -128,7 +128,6 @@ module.exports = {
                 },callback);
             }
             ,function(oUser,callback){
-                console.log(oUser.oReferringUser);
                 test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
                 test.equal(oUser.oReferringUser.get('nID'),null);
                 callback();

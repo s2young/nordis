@@ -52,7 +52,13 @@ new Collection({sClass:'User',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cC
     cColl.forEach(function(oItem,nIndex){
         // Do something with each item if you please.
     });
-})
+});
+
+Benchmarks:
+
+Various unit tests include the option to increase the 'nTestSize' variable and increase test iterations. The tests print
+out some crude benchmarks for things like write and read times for MySql & Redis. Don't read much, if anything, into these
+tests. They might provide you some ballpark idea of the differences in performance in various scenarios, but not much more.
 
 
 

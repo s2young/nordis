@@ -63,7 +63,7 @@ module.exports = {
                 },callback);
             }
             ,function(oUser,callback){
-                console.log('Lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms\n');
+                console.log(oUser.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms\n');
                 test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
                 callback();
             }
@@ -71,7 +71,7 @@ module.exports = {
     }
     ,lookupUserAndExtras:function(test){
         var oSelf = this;
-        test.expect(3);
+        test.expect(4);
         var nStart;
         async.waterfall([
             function(callback) {
@@ -89,9 +89,10 @@ module.exports = {
                 },callback);
             }
             ,function(oUser,callback){
-                console.log('Lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms\n');
+                console.log(oUser.sSource+' lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms\n');
                 test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
                 test.equal(oUser.oReferringUser.get('nID'),oSelf.oUser.get('nReferringUserID'));
+                test.equal(oUser.sSource,'Redis');
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); });
@@ -124,5 +125,19 @@ module.exports = {
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); });
+    }
+    ,lookupUserViaMySqlOnly:function(test){
+        var oSelf = this;
+        // Here is how to look up a user and specify that the data come only from MySql.
+        test.expect(2);
+
+        var nStart= new Date().getTime();
+        Base.lookup({sClass:'User',hQuery:{nID:oSelf.oUser.get('nID')},sSource:'MySql'},function(err,oUser){
+            console.log(oUser.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms\n');
+            test.equal(oUser.sSource,'MySql');
+            test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
+            App.wrapTest(err,test);
+        });
+
     }
 };

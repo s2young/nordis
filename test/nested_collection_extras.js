@@ -9,15 +9,15 @@ var async       = require('async'),
  * @type {number}
  */
 
-var nTestSize = 10;
+var nTestSize = 1;
 
 module.exports = {
     setUp:function(callback) {
         var oSelf = this;
 
-        if (nTestSize < 3)
-            throw('nTestSize must be at least 3.');
-        else
+        if (nTestSize < 2) {
+            App.error('nTestSize must be at least 2.');
+        } else
             async.series([
                 function(cb) {
                     oSelf.oUser = Base.lookup({sClass:'User'});
@@ -59,9 +59,9 @@ module.exports = {
                                     cb(null,null);
                             }
                             ,function(oFriendOfFriend,cb){
-                                if (oFriendOfFriend)
+                                if (oFriendOfFriend) {
                                     oFriendUser.setExtra('cFriends',oFriendOfFriend,cb);
-                                else
+                                } else
                                     cb();
                             }
                         ],callback);
@@ -70,7 +70,7 @@ module.exports = {
                     var q = async.queue(createFriend,1000);
                     q.drain = cb;
 
-                    for (var n = 0; n < nTestSize; n++) {
+                    for (var n = 1; n <= nTestSize; n++) {
                         q.push(n);
                     }
                 }
@@ -141,12 +141,19 @@ module.exports = {
                 },cb);
             }
             ,function(o,cb){
+
+                oSelf.oUser.cFriends.forEach(function(oFriend,nIndex){
+                    if (nIndex == 0)
+                        console.log(oFriend.oFriendUser.get('sName')+' ('+oFriend.oFriendUser.get('nID')+') has '+oFriend.oFriendUser.cFriends.nTotal+' friend(s).');
+                });
+
                 test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);
                 // The first user has no friends because there was no one before him.
                 test.equal(oSelf.oUser.cFriends.first().oFriendUser.cFriends.nTotal,0);
                 // The second user should have a friend.
                 test.equal(oSelf.oUser.cFriends.getItem(1).oFriendUser.cFriends.nTotal,1);
                 test.equal(oSelf.oUser.cFriends.getItem(oSelf.oUser.cFriends.nTotal-1).oFriendUser.cFriends.nTotal,1);
+
                 cb();
             }
         ],function(err){App.wrapTest(err,test)});

@@ -39,7 +39,6 @@ module.exports = {
         var q = async.queue(setStuff,1);
         q.drain = function(err){
             var nTotalTime = (new Date().getTime() - nStart);3
-            console.log('done setting stuff.');
             oSelf.oUser.loadExtras({nPoints:true},function(err){
                 test.equal(oSelf.oUser.nPoints,nTestSize);
                 console.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per increment;\n');

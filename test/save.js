@@ -26,7 +26,7 @@ module.exports = {
                 callback(err);
             else
                 cColl.delete(callback);
-        })
+        });
     }
     ,lookupViaRedis:function(test){
         test.expect(nTestSize*2);
@@ -60,24 +60,30 @@ module.exports = {
         }
     }
     ,lookupViaMySql:function(test){
-        test.expect(nTestSize*2);
+        test.expect((nTestSize*2));
 
         var nTotalTime = 0;
         var nTotalTime2 = 0;
         var lookupUser = function(n,cb) {
-            var nStart = new Date().getTime();
-            Base.lookup({sClass:'User',sSource:'MySql',hQuery:{sEmail:'test'+n+'@test.com'}},function(err,oUser){
-                nTotalTime += (new Date().getTime()-nStart);
-                test.equal(oUser.get('sEmail'),'test'+n+'@test.com');
+            var nStart;
+            async.waterfall([
+                function(callback){
+                    nStart = new Date().getTime();
+                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:{sEmail:'test'+n+'@test.com'}},callback);
+                }
+                ,function(oUser,callback){
+                    nTotalTime += (new Date().getTime()-nStart);
+                    test.equal(oUser.get('sEmail'),'test'+n+'@test.com');
 
-                // Look up via primary key.
-                var nStart2 = new Date().getTime();
-                Base.lookup({sClass:'User',sSource:'MySql',hQuery:{nID:oUser.get('nID')}},function(err,oUser2){
-                    nTotalTime2 += (new Date().getTime()-nStart2);
-                    test.equal(oUser2.get('sEmail'),'test'+n+'@test.com');
-                    cb();
-                });
-            });
+                    nStart = new Date().getTime();
+                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:{nID:oUser.get('nID')}},callback);
+                }
+                ,function(oUser,callback) {
+                    nTotalTime2 += (new Date().getTime()-nStart);
+                    test.equal(oUser.get('sEmail'),'test'+n+'@test.com');
+                    callback();
+                }
+            ],cb);
         };
         var q = async.queue(lookupUser,10);
         q.drain = function(err){
@@ -90,11 +96,10 @@ module.exports = {
             q.push(n);
         }
     }
-    ,lookupViaWhereClause:function(test){
+    ,lookupViaWhereClause:function(test) {
         test.expect(1);
-        // You can use complicated where clauses to lookup objects, but Redis won't be used.
-        Base.lookup({sClass:'User',hQuery:{sWhere:'sName=\'TestUser\' AND sEmail=\'test1@test.com\''}},function(err,oUser){
-            if (oUser) test.equal(oUser.get('sEmail'),'test1@test.com');
+        Base.lookup({sClass:'User',hQuery:{sWhere:'sName=\'TestUser\' AND sEmail=\'test0@test.com\''}},function(err,oUser){
+            if (oUser) test.equal(oUser.get('sEmail'),'test0@test.com');
             App.wrapTest(err,test);
         });
     }

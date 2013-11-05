@@ -147,14 +147,6 @@ module.exports = {
                 // The second user should have a friend.
                 test.equal(oSelf.oUser.cFriends.getItem(1).oFriendUser.cFriends.nTotal,1);
                 test.equal(oSelf.oUser.cFriends.getItem(oSelf.oUser.cFriends.nTotal-1).oFriendUser.cFriends.nTotal,1);
-
-                // Print out some friendships for giggles.
-                while (oSelf.oUser.cFriends.next()) {
-                    if (oSelf.oUser.cFriends.getItem().oFriendUser.cFriends.nTotal) {
-                        console.log(oSelf.oUser.cFriends.getItem().oFriendUser.cFriends.first().oUser.get('sName')+' is friends with '+oSelf.oUser.cFriends.getItem().oFriendUser.cFriends.first().oFriendUser.get('sName'));
-                    }
-                }
-
                 cb();
             }
         ],function(err){App.wrapTest(err,test)});

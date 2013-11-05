@@ -24,7 +24,7 @@ module.exports.hSettings = {
     global: {
         nSeedID:1000000
         ,aEmergencyEmails:['s2.d.young@gmail.com']
-        ,sLogLevel:'debug'
+        ,sLogLevel:'warn'
         ,hOptions:{
             MySql:{
                 sSchema:'nordis',
@@ -33,7 +33,7 @@ module.exports.hSettings = {
                 nMaxConnections:2000,
                 nTimeoutMilliseconds:10000,
                 bDebugMode:false,
-                bSkip:true
+                bSkip:false
             },
             Redis:{
                 sWriteServer:'127.0.0.1',

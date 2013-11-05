@@ -3,7 +3,7 @@ var async       = require('async'),
     Collection  = require('./../lib/Collection'),
     App         = require('./../lib/AppConfig');
 
-var nTestSize = 1000;
+var nTestSize = 10;
 module.exports = {
     setUp:function(callback) {
         var oSelf = this;

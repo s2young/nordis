@@ -3,7 +3,7 @@ var async       = require('async'),
     Collection  = require('./../lib/Collection'),
     App         = require('./../lib/AppConfig');
 
-var nTestSize = 1000;
+var nTestSize = 10;
 module.exports = {
     setUp:function(callback) {
         var oSelf = this;
@@ -26,7 +26,6 @@ module.exports = {
     }
     ,tearDown:function(callback) {
         var oSelf = this;
-
         async.parallel([
             function(cb){
                 oSelf.oUser.delete(cb);
@@ -39,7 +38,6 @@ module.exports = {
     ,saveReferringUser:function(test) {
         var oSelf = this;
         test.expect(1);
-
         async.series([
             function(callback) {
                 // This will both save the oFriend and set the oUser.nReferringUserID
@@ -50,12 +48,10 @@ module.exports = {
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); })
-
     }
     ,lookupUserOnly:function(test){
         var oSelf = this;
         test.expect(1);
-
         var nStart;
         async.waterfall([
             function(callback) {
@@ -71,13 +67,11 @@ module.exports = {
                 test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); })
-
+        ],function(err){ App.wrapTest(err,test); });
     }
     ,lookupUserAndExtras:function(test){
         var oSelf = this;
         test.expect(3);
-
         var nStart;
         async.waterfall([
             function(callback) {
@@ -86,7 +80,6 @@ module.exports = {
             }
             ,function(oUser,callback) {
                 test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.get('nID'));
-
                 nStart = new Date().getTime();
                 // Lookup user by primary key (nID) and request some extras.
                 Base.lookup({
@@ -101,14 +94,12 @@ module.exports = {
                 test.equal(oUser.oReferringUser.get('nID'),oSelf.oUser.get('nReferringUserID'));
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); })
-
+        ],function(err){ App.wrapTest(err,test); });
     }
     ,deleteReferringUser:function(test){
         // What if the referring user is removed?  The references to it in the referred user should also be removed.
         var oSelf = this;
         test.expect(3);
-
         async.waterfall([
             function(callback) {
                 // Add the friend as the referring user.
@@ -132,6 +123,6 @@ module.exports = {
                 test.equal(oUser.oReferringUser.get('nID'),null);
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); })
+        ],function(err){ App.wrapTest(err,test); });
     }
 };

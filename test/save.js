@@ -50,7 +50,7 @@ module.exports = {
         };
         var q = async.queue(lookupUser,10);
         q.drain = function(err){
-            console.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup via email;\n');
+            console.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup via email;');
             console.log('Total time (Redis): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;\n');
             App.wrapTest(err,test);
         };
@@ -87,7 +87,7 @@ module.exports = {
         };
         var q = async.queue(lookupUser,10);
         q.drain = function(err){
-            console.log('Total time (MySql): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup;\n');
+            console.log('Total time (MySql): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup;');
             console.log('Total time (MySql): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;\n');
             App.wrapTest(err,test);
         };

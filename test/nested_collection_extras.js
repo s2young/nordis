@@ -9,7 +9,7 @@ var async       = require('async'),
  * @type {number}
  */
 
-var nTestSize = 100;
+var nTestSize = 10;
 
 module.exports = {
     setUp:function(callback) {

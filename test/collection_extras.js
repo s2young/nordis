@@ -14,7 +14,7 @@ var async       = require('async'),
  * @type {number}
  */
 
-var nTestSize = 1000;
+var nTestSize = 10;
 var oRedisClient;
 var nStartingMemory;
 module.exports = {

@@ -66,6 +66,7 @@ module.exports = {
                             var oFriend = Base.lookup({sClass:'Friend'});
                             oFriend.set('nUserID',oSelf.oUser.get('nID'));
                             oFriend.set('nFriendUserID',oFriendUser.get('nID'));
+                            oFriend.set('nRank',n);
                             oFriend.save(null,function(err){
                                 oSelf.aFriends.push(oFriend);
                                 callback(err);

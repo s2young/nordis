@@ -59,7 +59,7 @@ module.exports.hSettings = {
         }
         ,hClasses:{
             User:{
-                aProperties:['sID','sFirstName','sLastName','sPassword','sEmail','nReferringUserID']
+                aProperties:['nID','sID','sName','sPassword','sEmail','nReferringUserID']
                 ,aSecondaryLookupKeys:['sID','sEmail']
                 ,nLengthOfsID:36
                 ,nClass:1

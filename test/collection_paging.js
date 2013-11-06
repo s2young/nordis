@@ -4,19 +4,22 @@ var async       = require('async'),
     App         = require('./../lib/AppConfig');
 
 /**
- * This test creates friends on friends on friends and shows how to look up a user, his friends and his friends friends.
+ * This test creates a user and n friends (defined by nTestSize). Then, each test shows how to get a subset of those
+ * friends in a paged collection. The test shows how to retrieve a collection from Redis (the framework's default) as
+ * well as how to specify that the collection come from MySql only.
  *
- * @type {number}
+ * NOTE: nTestSize must be both divisible by two and five (i.e. use 10, 20, 30, etc as test size).
+ *
  */
 
-var nTestSize = 2;
+var nTestSize = 50;
 
 module.exports = {
     setUp:function(callback) {
         var oSelf = this;
 
-        if (nTestSize < 2 || nTestSize%2)
-            App.error('nTestSize must be at least 2 and be divisble by two.');
+        if (nTestSize < 5 || nTestSize%2 || nTestSize%2)
+            App.error('nTestSize must be at least 5 and be divisble by 2 and 5.');
         else
             async.series([
                 function(cb) {
@@ -41,6 +44,8 @@ module.exports = {
                                 var oFriend = Base.lookup({sClass:'Friend'});
                                 oFriend.set('nUserID',oSelf.oUser.get('nID'));
                                 oFriend.set('nFriendUserID',oFriendUser.get('nID'));
+                                // Store rank as an inverted number to show that we can sort by rank instead of id.
+                                oFriend.set('nRank',nTestSize-n);
                                 oFriend.save(null,cb);
                             }
                             ,function(oFriend,cb) {
@@ -59,19 +64,22 @@ module.exports = {
             ],callback);
     }
     ,tearDown:function(callback) {
-        var oSelf = this;
         async.series([
             function(cb){
-                // Lookup the user's friends and the user objects associated with those friend records so we can remove them.
-                oSelf.oUser.loadExtras({cFriends:true},cb);
+                new Collection({sClass:'Friend',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
+                    if (err)
+                        cb(err);
+                    else
+                        cColl.delete(cb);
+                });
             }
             ,function(cb){
-                // Now delete the cFriends collection.
-                oSelf.oUser.cFriends.delete(cb);
-            }
-            ,function(cb){
-                // And finally the oUser.
-                oSelf.oUser.delete(cb);
+                new Collection({sClass:'User',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
+                    if (err)
+                        cb(err);
+                    else
+                        cColl.delete(cb);
+                });
             }
         ],callback);
     }
@@ -95,7 +103,7 @@ module.exports = {
             }
         ],function(err){App.wrapTest(err,test)});
     }
-    ,getPageOneAndTwo:function(test){
+    ,getCollectionInTwoPages:function(test){
         var oSelf = this;
         test.expect(2);
 
@@ -112,6 +120,167 @@ module.exports = {
                 test.equal(oSelf.oUser.cFriends.nNextID,undefined);
                 // We should now have the second half of our list.
                 test.equal(oSelf.oUser.cFriends.nCount,(nTestSize/2));
+                cb();
+            }
+        ],function(err){App.wrapTest(err,test)});
+    }
+    ,getCollectionInFivePages:function(test){
+        var oSelf = this;
+        test.expect(11);
+
+        async.waterfall([
+            function(cb){
+                // Let's get first 20% of the items.
+                oSelf.oUser.loadExtras({cFriends:{nSize:(nTestSize/5)}},cb);
+            }
+            ,function(o,cb){
+                //console.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
+                // Confirm paging is correct by testing the nRank of the first and last items.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),(nTestSize-1));
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),nTestSize-(nTestSize/5));
+                // Let's get second 20% of the items.
+                oSelf.oUser.loadExtras({cFriends:{nSize:(nTestSize/5),nFirstID:oSelf.oUser.cFriends.nNextID}},cb);
+            }
+            ,function(o,cb){
+                //console.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
+                // Confirm paging is correct by testing the nRank of the first and last items.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),nTestSize-(nTestSize/5)-1);
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),nTestSize-((nTestSize/5)*2));
+                // Let's get third 20% of the items.
+                oSelf.oUser.loadExtras({cFriends:{nSize:(nTestSize/5),nFirstID:oSelf.oUser.cFriends.nNextID}},cb);
+            }
+            ,function(o,cb){
+                //console.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
+                // Confirm paging is correct by testing the nRank of the first and last items.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),nTestSize-((nTestSize/5)*2)-1);
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),nTestSize-((nTestSize/5)*3));
+                // Let's get fourth 20% of the items.
+                oSelf.oUser.loadExtras({cFriends:{nSize:(nTestSize/5),nFirstID:oSelf.oUser.cFriends.nNextID}},cb);
+            }
+            ,function(o,cb){
+                //console.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
+                // Confirm paging is correct by testing the nRank of the first and last items.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),nTestSize-((nTestSize/5)*3)-1);
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),nTestSize-((nTestSize/5)*4));
+                // Let's get fifth 20% of the items.
+                oSelf.oUser.loadExtras({cFriends:{nSize:(nTestSize/5),nFirstID:oSelf.oUser.cFriends.nNextID}},cb);
+            }
+            ,function(o,cb){
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),0);
+                test.equal(oSelf.oUser.cFriends.nNextID,undefined);
+                // We should now have the second half of our list.
+                test.equal(oSelf.oUser.cFriends.nCount,(nTestSize/5));
+                cb();
+            }
+        ],function(err){App.wrapTest(err,test)});
+    }
+    ,getPageOneMySql:function(test){
+        var oSelf = this;
+        test.expect(5);
+
+        async.waterfall([
+            function(cb){
+                // Let's get half of the items in the collection.
+                oSelf.oUser.loadExtras({sSource:'MySql',cFriends:{nSize:(nTestSize/2)}},cb);
+            }
+            ,function(o,cb){
+                // nTotal will be the whole collection regardless of paging options.
+                test.equal((oSelf.oUser.cFriends.nNextID>0),true);
+                test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);
+                // nCount will be the number of items in the current page.
+                test.equal(oSelf.oUser.cFriends.nCount,(nTestSize/2));
+                // The first item in the list should have an nRank of nTestSize-1.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),(nTestSize-1));
+                // And the last should have (nTestSize/2)
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),(nTestSize/2));
+
+                cb();
+            }
+        ],function(err){App.wrapTest(err,test)});
+    }
+    ,getCollectionInTwoPagesMySql:function(test){
+        var oSelf = this;
+        test.expect(6);
+        async.waterfall([
+            function(cb){
+                // Let's get half of the items in the collection.
+                oSelf.oUser.loadExtras({sSource:'MySql',cFriends:{nSize:(nTestSize/2)}},cb);
+            }
+            ,function(o,cb){
+                // The first item in the list should have an nRank of nTestSize-1.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),(nTestSize-1));
+                // And the last should have (nTestSize/2)
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),(nTestSize/2));
+
+                // Now, let's get the next half.
+                oSelf.oUser.loadExtras({
+                    sSource:'MySql',
+                    cFriends:{
+                        nSize:(nTestSize/2),
+                        nFirstID:oSelf.oUser.cFriends.nNextID}
+                },cb);
+            }
+            ,function(o,cb){
+                test.equal(oSelf.oUser.cFriends.nNextID,undefined);
+
+                // The first item in the list should have an nRank of (nTestSize/2)-1.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),((nTestSize/2)-1));
+                // And the last should have (nTestSize/2)
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),0);
+
+                // We should now have the second half of our list.
+                test.equal(oSelf.oUser.cFriends.nCount,(nTestSize/2));
+                cb();
+            }
+        ],function(err){App.wrapTest(err,test)});
+    }
+    ,getCollectionInFivePagesMySql:function(test){
+        var oSelf = this;
+        test.expect(11);
+
+        async.waterfall([
+            function(cb){
+                // Let's get first 20% of the items.
+                oSelf.oUser.loadExtras({sSource:'MySql',cFriends:{nSize:(nTestSize/5)}},cb);
+            }
+            ,function(o,cb){
+                //console.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
+                // Confirm paging is correct by testing the nRank of the first and last items.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),(nTestSize-1));
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),nTestSize-(nTestSize/5));
+                // Let's get second 20% of the items.
+                oSelf.oUser.loadExtras({sSource:'MySql',cFriends:{nSize:(nTestSize/5),nFirstID:oSelf.oUser.cFriends.nNextID}},cb);
+            }
+            ,function(o,cb){
+                //console.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
+                // Confirm paging is correct by testing the nRank of the first and last items.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),nTestSize-(nTestSize/5)-1);
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),nTestSize-((nTestSize/5)*2));
+                // Let's get third 20% of the items.
+                oSelf.oUser.loadExtras({sSource:'MySql',cFriends:{nSize:(nTestSize/5),nFirstID:oSelf.oUser.cFriends.nNextID}},cb);
+            }
+            ,function(o,cb){
+                //console.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
+                // Confirm paging is correct by testing the nRank of the first and last items.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),nTestSize-((nTestSize/5)*2)-1);
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),nTestSize-((nTestSize/5)*3));
+                // Let's get fourth 20% of the items.
+                oSelf.oUser.loadExtras({sSource:'MySql',cFriends:{nSize:(nTestSize/5),nFirstID:oSelf.oUser.cFriends.nNextID}},cb);
+            }
+            ,function(o,cb){
+                //console.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
+                // Confirm paging is correct by testing the nRank of the first and last items.
+                test.equal(oSelf.oUser.cFriends.first().get('nRank'),nTestSize-((nTestSize/5)*3)-1);
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),nTestSize-((nTestSize/5)*4));
+                // Let's get fifth 20% of the items.
+                oSelf.oUser.loadExtras({sSource:'MySql',cFriends:{nSize:(nTestSize/5),nFirstID:oSelf.oUser.cFriends.nNextID}},cb);
+            }
+            ,function(o,cb){
+                test.equal(oSelf.oUser.cFriends.last().get('nRank'),0);
+                test.equal(oSelf.oUser.cFriends.nNextID,undefined);
+                // We should now have the second half of our list.
+                test.equal(oSelf.oUser.cFriends.nCount,(nTestSize/5));
+                cb();
             }
         ],function(err){App.wrapTest(err,test)});
     }

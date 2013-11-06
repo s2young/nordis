@@ -68,6 +68,8 @@ module.exports.hSettings = {
                     ,cFriends:{
                         sType:'Collection'
                         ,sClass:'Friend'
+                        ,sOrderBy:'nRank'
+                        ,bReverse:true
                         ,fnQuery:function(oSelf,App){
                             return {nUserID:oSelf.get('nID')}
                         }
@@ -83,7 +85,7 @@ module.exports.hSettings = {
                 }
             }
             ,Friend:{
-                aProperties:['nUserID','nFriendUserID']
+                aProperties:['nUserID','nFriendUserID','nRank']
                 ,nClass:2
                 ,hExtras:{
                     oUser:{

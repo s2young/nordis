@@ -80,42 +80,20 @@ module.exports = {
         var oSelf = this;
         async.series([
             function(cb){
-                // Lookup the user's friends and the user objects associated with those friend records so we can remove them.
-                oSelf.oUser.loadExtras({
-                    cFriends:{
-                        hExtras:{
-                            oFriendUser:{
-                                hExtras:{
-                                    cFriends:true
-                                }
-                            }
-                        }
-                    }
-                },function(err){
-                    if (err) {
+                new Collection({sClass:'Friend',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
+                    if (err)
                         cb(err);
-                    } else {
-                        // We don't just call the delete method on the collection because it's the oFriendUser property
-                        // on each collection item that we want to remove.
-                        var deleteItem = function(oItem,callback) {
-                            if (oItem.oFriendUser && oItem.oFriendUser.cFriends)
-                                oItem.oFriendUser.cFriends.delete(function(err){
-                                    oItem.oFriendUser.delete(callback);
-                                });
-                            else
-                                callback();
-                        };
-                        async.forEachLimit(oSelf.oUser.cFriends.aObjects,100,deleteItem,cb);
-                    }
+                    else
+                        cColl.delete(cb);
                 });
             }
             ,function(cb){
-                // Now delete the cFriends collection.
-                oSelf.oUser.cFriends.delete(cb);
-            }
-            ,function(cb){
-                // And finally the oUser.
-                oSelf.oUser.delete(cb);
+                new Collection({sClass:'User',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
+                    if (err)
+                        cb(err);
+                    else
+                        cColl.delete(cb);
+                });
             }
         ],callback);
     }

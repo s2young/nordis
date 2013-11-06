@@ -15,20 +15,20 @@ module.exports = {
         var oSelf = this;
         oSelf.oUser.delete(callback);
     }
-//    ,lookupViaSecondaryField:function(test){
-//        var oSelf = this;
-//        test.expect(1);
-//        // This test should use the _CrossReferenceTbl to find the primary key id of the user with the email test@test.com.
-//        async.waterfall([
-//            function(cb) {
-//                Base.lookup({sClass:'User',hQuery:{sEmail:'test@test.com'}},cb);
-//            }
-//            ,function(oUser,cb){
-//                test.equal(oSelf.oUser.get('nID'),oUser.get('nID'));
-//                cb();
-//            }
-//        ],function(err){ App.wrapTest(err,test); });
-//    }
+    ,lookupViaSecondaryField:function(test){
+        var oSelf = this;
+        test.expect(1);
+        // This test should use the _CrossReferenceTbl to find the primary key id of the user with the email test@test.com.
+        async.waterfall([
+            function(cb) {
+                Base.lookup({sClass:'User',hQuery:{sEmail:'test@test.com'}},cb);
+            }
+            ,function(oUser,cb){
+                test.equal(oSelf.oUser.get('nID'),oUser.get('nID'));
+                cb();
+            }
+        ],function(err){ App.wrapTest(err,test); });
+    }
     ,lookupWhenCrossRefMissing:function(test){
         var oSelf = this;
         test.expect(1);
@@ -61,6 +61,19 @@ module.exports = {
             }
             ,function(oUser,cb){
                 test.equal(oSelf.oUser.get('nID'),oUser.get('nID'));
+                cb();
+            }
+        ],function(err){ App.wrapTest(err,test); });
+    }
+    ,lookupEmailNotPresent:function(test){
+        var oSelf = this;
+
+        async.waterfall([
+            function(cb){
+                Base.lookup({sClass:'User',hQuery:{sEmail:'testy@test.com'}},cb);
+            }
+            ,function(oUser,cb) {
+                test.equal(oUser.get('nID'),undefined);
                 cb();
             }
         ],function(err){ App.wrapTest(err,test); });

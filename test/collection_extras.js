@@ -123,16 +123,11 @@ module.exports = {
 
         async.waterfall([
             function(cb){
-                var addFriend = function(oFriend,callback) {
+                async.forEachLimit(oSelf.aFriends,100,function(oFriend,callback) {
                     oSelf.oUser.setExtra('cFriends',oFriend,callback);
-                };
-                var q = async.queue(addFriend,1);
-                q.drain = function(){
-                    cb(null,null);
-                };
-                for (var n = 0; n < nTestSize; n++) {
-                    q.push(oSelf.aFriends[n]);
-                }
+                },function(err){
+                    cb(err,null);
+                });
             }
             ,function(o,cb){
                 test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);
@@ -147,7 +142,6 @@ module.exports = {
                 nTotal = new Date().getTime()-nStart;
                 console.log('Extras lookup: '+nTotal+' ms');
                 test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);
-
                 cb(null,null);
             }
             ,function(o,cb){

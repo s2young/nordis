@@ -133,4 +133,24 @@ module.exports = {
             }
         ],function(err){ App.wrapTest(err,test); });
     }
+    ,changeUserName:function(test) {
+        // This test submits a save.json call on the existing user, changing his name.
+        var oSelf = this;
+        test.expect(1);
+
+        var sNewName = 'Dummy';
+        async.waterfall([
+            function(callback){
+                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.get('sID')+'/save.json',form:{sName:sNewName}},function(error, response, body){
+                    callback(error,body);
+                });
+            }
+            ,function(body,callback){
+                var hResult = JSON.parse(body);
+                test.equal(hResult.sName,sNewName);
+                callback();
+            }
+        ],function(err){ App.wrapTest(err,test); });
+    }
+
 };

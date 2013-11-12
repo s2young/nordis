@@ -107,9 +107,5 @@ module.exports.hSettings = {
                 }
             }
         }
-        ,hClassMap:{
-            1:'User'
-            ,2:'Friend'
-        }
     }
 };

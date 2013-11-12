@@ -12,8 +12,9 @@
       "npm": ">=1.2.1"
   }
   ,"dependencies": {
-      "async":"latest"
-      ,"generic-pool":"latest"
+      "async":"*"
+      ,"request":"*"
+      ,"generic-pool":"*"
       ,"mysql":"2.0.0-alpha9"
       ,"nodemailer":"latest"
       ,"nodeunit":"latest"

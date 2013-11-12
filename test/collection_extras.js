@@ -89,29 +89,24 @@ module.exports = {
     }
     ,tearDown:function(callback) {
         var oSelf = this;
-        async.series([
+        async.waterfall([
             function(cb){
-                oRedisClient.info(function(err,res){
-                    var nEndingMemory = res.match(/used_memory\:([^\r]*)/)[1];
-                    console.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
-                    cb(err);
-                });
+                oRedisClient.info(cb);
             }
-            ,function(cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
-                    if (err)
-                        cb(err);
-                    else
-                        cColl.delete(cb);
-                });
+            ,function(res,cb) {
+                var nEndingMemory = res.match(/used_memory\:([^\r]*)/)[1];
+                console.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
+
+                new Collection({sClass:'User',hQuery:{sWhere:'sEmail IS NOT NULL'}},cb);
             }
-            ,function(cb){
-                new Collection({sClass:'User',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
-                    if (err)
-                        cb(err);
-                    else
-                        cColl.delete(cb);
-                });
+            ,function(cColl,cb) {
+                cColl.delete(cb);
+            }
+            ,function(ignore,cb){
+                new Collection({sClass:'Friend',hQuery:{sWhere:'nID IS NOT NULL'}},cb);
+            }
+            ,function(cColl,cb) {
+                cColl.delete(cb);
             }
         ],callback);
     }

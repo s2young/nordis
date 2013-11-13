@@ -159,14 +159,9 @@ module.exports = {
         async.waterfall([
             function(callback){
                 request.post({uri:'http://localhost:'+nPort+'/badclass/new/details.json'},function(error, response, body){
+                    test.equal(response.statusCode,500);
                     callback(error,body);
                 });
-            }
-            ,function(body,callback){
-                var hResult = JSON.parse(body);
-                console.log(hResult);
-                test.equal(hResult.sName,sNewName);
-                callback();
             }
         ],function(err){ App.wrapTest(err,test); });
     }

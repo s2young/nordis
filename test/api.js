@@ -152,5 +152,23 @@ module.exports = {
             }
         ],function(err){ App.wrapTest(err,test); });
     }
+    ,badClassInRequest:function(test) {
+        var oSelf = this;
+        test.expect(1);
+
+        async.waterfall([
+            function(callback){
+                request.post({uri:'http://localhost:'+nPort+'/badclass/new/details.json'},function(error, response, body){
+                    callback(error,body);
+                });
+            }
+            ,function(body,callback){
+                var hResult = JSON.parse(body);
+                console.log(hResult);
+                test.equal(hResult.sName,sNewName);
+                callback();
+            }
+        ],function(err){ App.wrapTest(err,test); });
+    }
 
 };

@@ -25,7 +25,7 @@ module.exports.hSettings = {
         nSeedID:1000000
         ,sLanguage:'en'
         ,aEmergencyEmails:['s2.d.young@gmail.com']
-        ,sLogLevel:'debug'
+        ,sLogLevel:'info'
         ,hOptions:{
             MySql:{
                 sSchema:'nordis',

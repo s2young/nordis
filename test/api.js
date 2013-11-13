@@ -165,5 +165,21 @@ module.exports = {
             }
         ],function(err){ App.wrapTest(err,test); });
     }
+    ,lookupUserByNumberID:function(test) {
+        var oSelf = this;
+        test.expect(1);
 
+        async.waterfall([
+            function(callback){
+                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.get('nID')+'/details.json'},function(error, response, body){
+                    callback(error,body);
+                });
+            }
+            ,function(body,callback){
+                var hResult = JSON.parse(body);
+                test.equal(hResult.nUserID,oSelf.oUser.get('nID'));
+                callback();
+            }
+        ],function(err){ App.wrapTest(err,test); });
+    }
 };

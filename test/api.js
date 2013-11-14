@@ -182,4 +182,22 @@ module.exports = {
             }
         ],function(err){ App.wrapTest(err,test); });
     }
+    ,loadFriendsDirectly:function(test) {
+        var oSelf = this;
+        test.expect(1);
+
+        async.waterfall([
+            function(callback){
+                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.get('sID')+'/cFriends.json'},function(error, response, body){
+                    callback(error,body);
+                });
+            }
+            ,function(body,callback){
+                var cFriends = JSON.parse(body);
+                test.equal(cFriends.nTotal,nTestSize);
+                callback();
+            }
+        ],function(err){ App.wrapTest(err,test); });
+
+    }
 };

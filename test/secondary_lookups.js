@@ -24,7 +24,7 @@ module.exports = {
                 Base.lookup({sClass:'User',hQuery:{sEmail:'test@test.com'}},cb);
             }
             ,function(oUser,cb){
-                test.equal(oSelf.oUser.get('nID'),oUser.get('nID'));
+                test.equal(oSelf.oUser.getNumKey(),oUser.getNumKey());
                 cb();
             }
         ],function(err){ App.wrapTest(err,test); });
@@ -60,7 +60,7 @@ module.exports = {
                 Base.lookup({sClass:'User',hQuery:{sEmail:'test@test.com'}},cb);
             }
             ,function(oUser,cb){
-                test.equal(oSelf.oUser.get('nID'),oUser.get('nID'));
+                test.equal(oSelf.oUser.getNumKey(),oUser.getNumKey());
                 cb();
             }
         ],function(err){ App.wrapTest(err,test); });
@@ -73,7 +73,7 @@ module.exports = {
                 Base.lookup({sClass:'User',hQuery:{sEmail:'testy@test.com'}},cb);
             }
             ,function(oUser,cb) {
-                test.equal(oUser.get('nID'),undefined);
+                test.equal(oUser.getNumKey(),undefined);
                 cb();
             }
         ],function(err){ App.wrapTest(err,test); });

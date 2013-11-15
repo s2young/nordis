@@ -3,7 +3,6 @@ var async       = require('async'),
     Collection  = require('./../lib/Collection'),
     App         = require('./../lib/AppConfig');
 
-var nTestSize = 10;
 module.exports = {
     setUp:function(callback) {
         var oSelf = this;
@@ -44,7 +43,7 @@ module.exports = {
                 oSelf.oUser.setExtra('oReferringUser',oSelf.oFriend,callback);
             }
             ,function(callback) {
-                test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.get('nID'));
+                test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.getNumKey());
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); })
@@ -56,15 +55,17 @@ module.exports = {
         async.waterfall([
             function(callback) {
                 nStart = new Date().getTime();
-                // Lookup user by primary key (nID) and request some extras.
+                // Lookup user by primary, numeric key and request some extras.
+                var hQuery = {};
+                hQuery[App.hClasses.User.sNumericKey] = oSelf.oUser.getNumKey();
                 Base.lookup({
                     sClass:'User'
-                    ,hQuery:{nID:oSelf.oUser.get('nID')}
+                    ,hQuery:hQuery
                 },callback);
             }
             ,function(oUser,callback){
                 console.log(oUser.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms\n');
-                test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
+                test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); });
@@ -79,19 +80,22 @@ module.exports = {
                 oSelf.oUser.setExtra('oReferringUser',oSelf.oFriend,callback);
             }
             ,function(oUser,callback) {
-                test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.get('nID'));
+                test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.getNumKey());
                 nStart = new Date().getTime();
-                // Lookup user by primary key (nID) and request some extras.
+
+                var hQuery = {};
+                hQuery[oSelf.oUser.getSettings().sNumericKey] = oSelf.oUser.getNumKey();
+
                 Base.lookup({
                     sClass:'User'
-                    ,hQuery:{nID:oSelf.oUser.get('nID')}
+                    ,hQuery:hQuery
                     ,hExtras:{oReferringUser:true}
                 },callback);
             }
             ,function(oUser,callback){
                 console.log(oUser.sSource+' lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms\n');
-                test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
-                test.equal(oUser.oReferringUser.get('nID'),oSelf.oUser.get('nReferringUserID'));
+                test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
+                test.equal(oUser.oReferringUser.getNumKey(),oSelf.oUser.get('nReferringUserID')); // Unless you also change the aKey settings for this relationship, changing the primary key for giggles could break this one.
                 test.equal(oUser.sSource,'Redis');
                 callback();
             }
@@ -107,21 +111,23 @@ module.exports = {
                 oSelf.oUser.setExtra('oReferringUser',oSelf.oFriend,callback);
             }
             ,function(oUser,callback) {
-                test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.get('nID'));
+                test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.getNumKey());
                 // Now, delete the friend.
                 oSelf.oFriend.delete(callback);
             }
             ,function(oUser,callback){
                 // Now, try and lookup the friend (oFriend) via the referred user (oUser).
+                var hQuery = {};
+                hQuery[oSelf.oUser.getSettings().sNumericKey] = oSelf.oUser.getNumKey();
                 Base.lookup({
                     sClass:'User'
-                    ,hQuery:{nID:oSelf.oUser.get('nID')}
+                    ,hQuery:hQuery
                     ,hExtras:{oReferringUser:true}
                 },callback);
             }
             ,function(oUser,callback){
-                test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
-                test.equal(oUser.oReferringUser.get('nID'),null);
+                test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
+                test.equal(oUser.oReferringUser.getNumKey(),null);
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); });
@@ -132,12 +138,14 @@ module.exports = {
         test.expect(2);
 
         var nStart= new Date().getTime();
-        Base.lookup({sClass:'User',hQuery:{nID:oSelf.oUser.get('nID')},sSource:'MySql'},function(err,oUser){
+        var hQuery = {};
+        hQuery[App.hClasses.User.sNumericKey] = oSelf.oUser.getNumKey();
+
+        Base.lookup({sClass:'User',hQuery:hQuery,sSource:'MySql'},function(err,oUser){
             console.log(oUser.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms\n');
             test.equal(oUser.sSource,'MySql');
-            test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
+            test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
             App.wrapTest(err,test);
         });
-
     }
 };

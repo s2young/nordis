@@ -4,6 +4,7 @@ var async       = require('async'),
     App         = require('./../lib/AppConfig');
 
 var nTestSize = 10;
+
 module.exports = {
     setUp:function(callback) {
         // Create empty Base object of class 'User.'
@@ -41,7 +42,10 @@ module.exports = {
 
                 // Look up via primary key.
                 var nStart2 = new Date().getTime();
-                Base.lookup({sClass:'User',hQuery:{nID:oUser.get('nID')}},function(err,oUser2){
+                var hQuery = {};
+                hQuery[App.hClasses.User.sNumericKey] = oUser.getNumKey();
+
+                Base.lookup({sClass:'User',hQuery:hQuery},function(err,oUser2){
                     nTotalTime2 += (new Date().getTime()-nStart2);
                     test.equal(oUser2.get('sEmail'),'test'+n+'@test.com');
                     cb();
@@ -76,7 +80,9 @@ module.exports = {
                     test.equal(oUser.get('sEmail'),'test'+n+'@test.com');
 
                     nStart = new Date().getTime();
-                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:{nID:oUser.get('nID')}},callback);
+                    var hQuery = {};
+                    hQuery[App.hClasses.User.sNumericKey] = oUser.getNumKey();
+                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:hQuery},callback);
                 }
                 ,function(oUser,callback) {
                     nTotalTime2 += (new Date().getTime()-nStart);

@@ -11,7 +11,6 @@ var async       = require('async'),
  * NOTE: nTestSize must be both divisible by two and five (i.e. use 10, 20, 30, etc as test size).
  *
  */
-
 var nTestSize = 50;
 
 module.exports = {
@@ -42,8 +41,8 @@ module.exports = {
                             }
                             ,function(oFriendUser,cb) {
                                 var oFriend = Base.lookup({sClass:'Friend'});
-                                oFriend.set('nUserID',oSelf.oUser.get('nID'));
-                                oFriend.set('nFriendUserID',oFriendUser.get('nID'));
+                                oFriend.set('nUserID',oSelf.oUser.getNumKey());
+                                oFriend.set('nFriendUserID',oFriendUser.getNumKey());
                                 // Store rank as an inverted number to show that we can sort by rank instead of id.
                                 oFriend.set('nRank',nTestSize-n);
                                 oFriend.save(null,cb);
@@ -66,7 +65,7 @@ module.exports = {
     ,tearDown:function(callback) {
         async.series([
             function(cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
+                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumericKey+' IS NOT NULL'}},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -74,7 +73,7 @@ module.exports = {
                 });
             }
             ,function(cb){
-                new Collection({sClass:'User',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
+                new Collection({sClass:'User',hQuery:{sWhere:App.hClasses.User.sNumericKey+' IS NOT NULL'}},function(err,cColl){
                     if (err)
                         cb(err);
                     else

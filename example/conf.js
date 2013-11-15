@@ -25,7 +25,7 @@ module.exports.hSettings = {
         nSeedID:1000000
         ,sLanguage:'en'
         ,aEmergencyEmails:['s2.d.young@gmail.com']
-        ,sLogLevel:'info'
+        ,sLogLevel:'warn'
         ,hOptions:{
             MySql:{
                 sSchema:'nordis',
@@ -60,9 +60,11 @@ module.exports.hSettings = {
         }
         ,hClasses:{
             User:{
-                aProperties:['nID','sID','sName','sPassword','sEmail','nReferringUserID']
+                aProperties:['sName','sPassword','sEmail','nReferringUserID']
+                ,sNumericKey:'nID'
+                ,sStringKey:'sID'
+                ,nStringKeyLength:36
                 ,aSecondaryLookupKeys:['sID','sEmail']
-                ,nLengthOfsID:36
                 ,nClass:1
                 ,hExtras:{
                     nPoints:{sType:'Increment'}
@@ -72,7 +74,7 @@ module.exports.hSettings = {
                         ,sOrderBy:'nRank'
                         ,bReverse:true
                         ,fnQuery:function(oSelf,App){
-                            return {nUserID:oSelf.get('nID')}
+                            return {nUserID:oSelf.getNumKey()}
                         }
                     }
                     ,oReferringUser:{
@@ -87,6 +89,7 @@ module.exports.hSettings = {
             }
             ,Friend:{
                 aProperties:['nUserID','nFriendUserID','nRank']
+                ,sNumericKey:'nID'
                 ,nClass:2
                 ,hExtras:{
                     oUser:{

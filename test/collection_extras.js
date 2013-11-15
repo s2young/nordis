@@ -17,6 +17,7 @@ var async       = require('async'),
 var nTestSize = 10;
 var oRedisClient;
 var nStartingMemory;
+
 module.exports = {
     setUp:function(callback) {
         var oSelf = this;
@@ -62,10 +63,10 @@ module.exports = {
                             callback(err);
                         else {
                             nUserWriteTotal += new Date().getTime()-nStart;
-                            oSelf.aFriendUserIDs.push(oFriendUser.get('nID'));
+                            oSelf.aFriendUserIDs.push(oFriendUser.getNumKey());
                             var oFriend = Base.lookup({sClass:'Friend'});
-                            oFriend.set('nUserID',oSelf.oUser.get('nID'));
-                            oFriend.set('nFriendUserID',oFriendUser.get('nID'));
+                            oFriend.set('nUserID',oSelf.oUser.getNumKey());
+                            oFriend.set('nFriendUserID',oFriendUser.getNumKey());
                             oFriend.set('nRank',n);
                             oFriend.save(null,function(err){
                                 oSelf.aFriends.push(oFriend);
@@ -103,7 +104,7 @@ module.exports = {
                 cColl.delete(cb);
             }
             ,function(ignore,cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:'nID IS NOT NULL'}},cb);
+                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumericKey+' IS NOT NULL'}},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);

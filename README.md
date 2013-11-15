@@ -23,24 +23,16 @@ which they belong - in a single line of code (+ a callback of course).
 
 Conventions:
 
-Class definitions in the configuration file include a unique integer id. In the example code, the 'User' class has an 'nClass'
-property of 1. Why? Easier, smaller namespacing of objects in the database.
+When defining a class you must set a property to be a numeric, primary key - defined in the sNumericKey property of the class.
+You can optionally have a string-based primary key as well, the name of which is defined in the sStringKey property. You can additionally
+define the desired length of the string-based key in the nStringKeyLength property of the class.
 
-Variables in the code start with lower-case strings to indicate, in simple terms, the type of the object.  For example,
-nID is an integer id while sID is a string ID.  n = number (integer or float), s = string, b = boolean, o = typed object,
-h = hash/dictionary/associative array/object literal, and c = collection. This is a modified Hungarian Notation style.
-
-The framework actually uses the property names for things like
-typing and serialization. This replaces the need to build types into configuration and constantly check a config file
-to reference what a variable is. This is what most people will choke on, and so be it. This framework is mine, and was
-open-sourced for use in some client projects.  I can't tell you how many times the convention has made my life easier,
-so give it a chance. :-)
 
 Collections:
 
 Collections are stored in redis as Sorted Set data types, and are defined as properties on classes. In Redis, you cannot
 just retrieve a list of items using any query.  Each sorted set is stored in Redis, named by the object to which it belongs.
-The example config lists a 'User' class with a 'cFriends' collection. A user with an nID of 999 would have his cFriends
+The example config lists a 'User' class with a 'cFriends' collection. A user with an nID (numeric id) of 999 would have his cFriends
 collection stored in Redis under the key '1:999:cFriends' where 1 = User.nClass, 999 User.nID, and 'cFriends' is the property
 name.
 

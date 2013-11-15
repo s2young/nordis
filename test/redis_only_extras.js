@@ -4,6 +4,7 @@ var async       = require('async'),
     App         = require('./../lib/AppConfig');
 
 var nTestSize = 10;
+
 module.exports = {
     setUp:function(callback) {
         var oSelf = this;
@@ -56,13 +57,15 @@ module.exports = {
 
         var nStart = new Date().getTime();
         // Lookup user by primary key (nID) and request some extras.
+        var hQuery = {};
+        hQuery[App.hClasses.User.sNumericKey] = oSelf.oUser.getNumKey();
         Base.lookup({
             sClass:'User'
-            ,hQuery:{nID:oSelf.oUser.get('nID')}
+            ,hQuery:hQuery
             ,hExtras:{nPoints:true}
         },function(err,oUser){
             console.log('Lookup time for primary key lookup of user + three static extras + one object extra: '+(new Date().getTime()-nStart)+' ms');
-            test.equal(oUser.get('nID'),oSelf.oUser.get('nID'));
+            test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
 
             App.wrapTest(err,test);
         });

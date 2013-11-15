@@ -32,8 +32,8 @@ module.exports = {
                             callback(err);
                         else {
                             var oFriend = Base.lookup({sClass:'Friend'});
-                            oFriend.set('nUserID',oSelf.oUser.get('nID'));
-                            oFriend.set('nFriendUserID',oFriendUser.get('nID'));
+                            oFriend.set('nUserID',oSelf.oUser.getNumKey());
+                            oFriend.set('nFriendUserID',oFriendUser.getNumKey());
                             oFriend.set('nRank',n);
                             oFriend.save(null,function(err){
                                 callback(err);
@@ -73,7 +73,7 @@ module.exports = {
                 cColl.delete(cb);
             }
             ,function(ignore,cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:'nID IS NOT NULL'}},cb);
+                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumericKey+' IS NOT NULL'}},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);
@@ -92,13 +92,13 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.get('sID')+'/details.json'},function(error, response, body){
-                    callback(error,body);
+                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.getStrKey()+'/details.json'},function(error, response, body){
+                    callback(error,JSON.parse(body));
                 });
             }
-            ,function(body,callback){
-                var hResult = JSON.parse(body);
-                test.equal(hResult.nUserID,oSelf.oUser.get('nID'));
+            ,function(hResult,callback){
+                var oUser = Base.lookup({sClass:'User',hData:hResult});
+                test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); });
@@ -120,13 +120,13 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.get('sID')+'/details.json',form:hData},function(error, response, body){
-                    callback(error,body);
+                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.getStrKey()+'/details.json',form:hData},function(error, response, body){
+                    callback(error,JSON.parse(body));
                 });
             }
-            ,function(body,callback){
-                var hResult = JSON.parse(body);
-                test.equal(hResult.nUserID,oSelf.oUser.get('nID'));
+            ,function(hResult,callback){
+                var oUser = Base.lookup({sClass:'User',hData:hResult});
+                test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
                 test.equal(hResult.cFriends.nTotal,nTestSize);
 
                 callback();
@@ -141,7 +141,7 @@ module.exports = {
         var sNewName = 'Dummy';
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.get('sID')+'/save.json',form:{sName:sNewName}},function(error, response, body){
+                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.getStrKey()+'/save.json',form:{sName:sNewName}},function(error, response, body){
                     callback(error,body);
                 });
             }
@@ -171,13 +171,13 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.get('nID')+'/details.json'},function(error, response, body){
-                    callback(error,body);
+                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.getNumKey()+'/details.json'},function(error, response, body){
+                    callback(error,JSON.parse(body));
                 });
             }
-            ,function(body,callback){
-                var hResult = JSON.parse(body);
-                test.equal(hResult.nUserID,oSelf.oUser.get('nID'));
+            ,function(hResult,callback){
+                var oUser = Base.lookup({sClass:'User',hData:hResult});
+                test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); });
@@ -188,7 +188,7 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.get('sID')+'/cFriends.json'},function(error, response, body){
+                request.post({uri:'http://localhost:'+nPort+'/user/'+oSelf.oUser.getStrKey()+'/cFriends.json'},function(error, response, body){
                     callback(error,body);
                 });
             }

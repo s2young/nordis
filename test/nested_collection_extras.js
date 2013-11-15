@@ -39,8 +39,8 @@ module.exports = {
                             }
                             ,function(oFriendUser,cb) {
                                 var oFriend = Base.lookup({sClass:'Friend'});
-                                oFriend.set('nUserID',oSelf.oUser.get('nID'));
-                                oFriend.set('nFriendUserID',oFriendUser.get('nID'));
+                                oFriend.set('nUserID',oSelf.oUser.getNumKey());
+                                oFriend.set('nFriendUserID',oFriendUser.getNumKey());
                                 oFriend.set('nRank',n);
                                 oFriend.save(null,cb);
                             }
@@ -51,10 +51,10 @@ module.exports = {
                                 Base.lookup({sClass:'User',hQuery:{sEmail:'testfriend'+(n-1)+'@test.com'}},cb);
                             }
                             ,function(oLastUser,cb){
-                                if (oLastUser.get('nID')) {
+                                if (oLastUser.getNumKey()) {
                                     var oFriendOfFriend = Base.lookup({sClass:'Friend'});
-                                    oFriendOfFriend.set('nUserID',oFriendUser.get('nID'));
-                                    oFriendOfFriend.set('nFriendUserID',oLastUser.get('nID'));
+                                    oFriendOfFriend.set('nUserID',oFriendUser.getNumKey());
+                                    oFriendOfFriend.set('nFriendUserID',oLastUser.getNumKey());
                                     oFriendOfFriend.set('nRank',1);
                                     oFriendOfFriend.save(null,cb);
                                 } else
@@ -82,7 +82,7 @@ module.exports = {
         var oSelf = this;
         async.series([
             function(cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
+                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumericKey+' IS NOT NULL'}},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -90,7 +90,7 @@ module.exports = {
                 });
             }
             ,function(cb){
-                new Collection({sClass:'User',hQuery:{sWhere:'nID IS NOT NULL'}},function(err,cColl){
+                new Collection({sClass:'User',hQuery:{sWhere:App.hClasses.Friend.sNumericKey+' IS NOT NULL'}},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -123,7 +123,7 @@ module.exports = {
             ,function(o,cb){
 
                 oSelf.oUser.cFriends.forEach(function(oFriend,nIndex){
-                    console.log(oFriend.oFriendUser.get('sName')+' ('+oFriend.oFriendUser.get('nID')+') has '+oFriend.oFriendUser.cFriends.nTotal+' friend(s).');
+                    console.log(oFriend.oFriendUser.get('sName')+' ('+oFriend.oFriendUser.getNumKey()+') has '+oFriend.oFriendUser.cFriends.nTotal+' friend(s).');
                 });
 
                 test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);

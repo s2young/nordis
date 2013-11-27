@@ -35,8 +35,7 @@ module.exports = {
         // This test simulates a missing cross-reference value and looks the record up directly against the table using the email.
         async.waterfall([
             function(cb) {
-                // First, let's remove the _CrossReferenceTbl record for this lookup.
-                // First in redis.
+                // First, let's remove the _CrossReferenceTbl record for this lookup in redis.
                 App.Redis.acquire(function(err,oClient){
                     if (err)
                         cb(err);
@@ -45,16 +44,8 @@ module.exports = {
                 });
             }
             ,function(res,cb) {
-                // First, let's remove the _CrossReferenceTbl record for this lookup.
-                // First in redis.
-                App.MySql.acquire(function(err,oClient){
-                    if (err)
-                        cb(err);
-                    else
-                        oClient.query('DELETE FROM _CrossReferenceTbl WHERE sID=?',[oSelf.oUser.nClass+':'+oSelf.oUser.get('sEmail')],function(err){
-                            cb(err,null);
-                        });
-                });
+                // Next, in MySql.
+                App.MySql.execute(null,'DELETE FROM _CrossReferenceTbl WHERE sID=?',[oSelf.oUser.nClass+':'+oSelf.oUser.get('sEmail')],cb);
             }
             ,function(res,cb) {
                 Base.lookup({sClass:'User',hQuery:{sEmail:'test@test.com'}},cb);

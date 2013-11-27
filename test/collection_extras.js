@@ -114,9 +114,7 @@ module.exports = {
     ,addFriend:function(test){
         var oSelf = this;
         test.expect(2);
-
         var nStart;var nTotal;
-
         async.waterfall([
             function(cb){
                 async.forEachLimit(oSelf.aFriends,100,function(oFriend,callback) {
@@ -153,6 +151,34 @@ module.exports = {
                 console.log('Serialize user & '+nTestSize+' friends: '+nTotal+' ms');
 
                 cb();
+            }
+        ],function(err){App.wrapTest(err,test)});
+    }
+    ,removeFriends:function(test) {
+        var oSelf = this;
+        test.expect(2);
+        async.waterfall([
+            function(cb){
+                async.forEachLimit(oSelf.aFriends,100,function(oFriend,callback) {
+                    oSelf.oUser.setExtra('cFriends',oFriend,callback);
+                },function(err){
+                    cb(err,null);
+                });
+            }
+            ,function(o,cb){
+                test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);
+                cb(null,null);
+            }
+            ,function(o,cb){
+                async.forEachLimit(oSelf.aFriends,1,function(oFriend,callback) {
+                    oSelf.oUser.deleteExtra('cFriends',oFriend,callback);
+                },function(err){
+                    cb(err,null);
+                });
+            }
+            ,function(o,cb){
+                test.equal(oSelf.oUser.cFriends.nTotal,0);
+                cb(null,null);
             }
         ],function(err){App.wrapTest(err,test)});
     }

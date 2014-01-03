@@ -7,8 +7,6 @@ var async       = require('async'),
  * This test validates that Nordis will properly create tables if missing from the MySql schema.
  *
  */
-var hQuery; // Will be used a couple of times.
-
 module.exports = {
     setUp:function(callback) {
         // We are going to dynamically define a class so that we don't interfere with any other tests.
@@ -16,29 +14,35 @@ module.exports = {
         // The assigned nClass will be a timestamp, to guarantee uniqueness.
         var nClass = new Date().getTime();
         App.hClasses.TempClass = {
-            aProperties:['sTitle']
+            hProperties:{
+                id:{
+                    sType:'Number'
+                    ,bUnique:true
+                }
+                ,sid:{
+                    sType:'String'
+                    ,bUnique:true
+                    ,nLength:10
+                }
+            }
             ,nClass:nClass
-            ,sNumericKey:'sID'
         };
-        App.hClassMap[nClass] = 'TempClass';
-        // We'll use this query a couple of times. Doesn't matter that it won't find any records.
-        var hQuery = {};
-        hQuery[App.hClasses.TempClass.sNumericKey] = 1;
+        App.processClass('TempClass');
 
         callback();
     }
     ,tearDown:function(callback) {
-        App.MySql.execute(null,'DROP TABLE IF EXISTS `'+App.MySql.hSettings.sSchema+'`.`TempClassTbl`;',null,callback);
+        App.MySql.execute(null,'DROP TABLE IF EXISTS `'+App.MySql.hOpts.sSchema+'`.`TempClassTbl`;',null,callback);
     }
     ,createTable:function(test){
         test.expect(1);
         async.waterfall([
             // This step should result in the creation of the TempClassTbl.
             function(cb) {
-                Base.lookup({sClass:'TempClass',hQuery:hQuery},cb);
+                Base.lookup({sClass:'TempClass',hQuery:{id:1}},cb);
             }
             ,function(oResult,cb){
-                test.equal(oResult.get(App.hClasses.TempClass.sNumericKey),undefined);
+                test.equal(oResult.getNumKey(),undefined);
                 cb();
             }
         ],function(err){ App.wrapTest(err,test); });
@@ -50,16 +54,20 @@ module.exports = {
         async.waterfall([
             // This step should result in the creation of the TempClassTbl.
             function(cb) {
-                Base.lookup({sClass:'TempClass',hQuery:hQuery},cb);
+                Base.lookup({sClass:'TempClass',hQuery:{id:1}},cb);
             }
             ,function(oResult,cb){
-                test.equal(oResult.get(App.hClasses.TempClass.sNumericKey),undefined);
+                test.equal(oResult.getNumKey(),undefined);
                 // Let's add a property to the TempClass.aProperties and then query against it.
-                App.hClasses.TempClass.aProperties.push('sEmail');
-                Base.lookup({sClass:'TempClass',hQuery:{sEmail:'demo@test.com'}},cb);
+                App.hClasses.TempClass.hProperties.email = {
+                    sType:'String'
+                    ,bUnique:true
+                };
+                App.processClass('TempClass');
+                Base.lookup({sClass:'TempClass',hQuery:{email:'demo@test.com'}},cb);
             }
             ,function(oObj,cb){
-                test.equal(oObj.get(App.hClasses.TempClass.sNumericKey),undefined);
+                test.equal(oObj.getNumKey(),undefined);
                 cb();
             }
         ],function(err){ App.wrapTest(err,test); });

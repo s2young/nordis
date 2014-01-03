@@ -23,17 +23,17 @@ which they belong - in a single line of code (+ a callback of course).
 
 Conventions:
 
-When defining a class you must set a property to be a numeric, primary key - defined in the sNumericKey property of the class.
-You can optionally have a string-based primary key as well, the name of which is defined in the sStringKey property. You can additionally
-define the desired length of the string-based key in the nStringKeyLength property of the class.
+When defining a class you must set a property to be a numeric, primary key - defined in the sNumKeyProperty property of the class.
+You can optionally have a string-based primary key as well, the name of which is defined in the sStrKeyProperty property. You can additionally
+define the desired length of the string-based key in the nLength property of the class.
 
 
 Collections:
 
 Collections are stored in redis as Sorted Set data types, and are defined as properties on classes. In Redis, you cannot
 just retrieve a list of items using any query.  Each sorted set is stored in Redis, named by the object to which it belongs.
-The example config lists a 'User' class with a 'cFriends' collection. A user with an nID (numeric id) of 999 would have his cFriends
-collection stored in Redis under the key '1:999:cFriends' where 1 = User.nClass, 999 User.nID, and 'cFriends' is the property
+The example config lists a 'User' class with a 'friends' collection. A user with an nID (numeric id) of 999 would have his friends
+collection stored in Redis under the key '1:999:friends' where 1 = User.nClass, 999 User.nID, and 'friends' is the property
 name.
 
 You can instantiate a collection and pass in simple queries, but those will use MySql to retrieve the data. For example:

@@ -7,22 +7,25 @@ var nTestSize = 10;
 
 module.exports = {
     setUp:function(callback) {
-        // Create empty Base object of class 'User.'
-        var createUser = function(n,cb) {
-            var oUser = Base.lookup({sClass:'User'});
-            oUser.set('sName','TestUser');
-            oUser.set('sEmail','test'+n+'@test.com');
-            oUser.save(null,cb);
-        };
-        var q = async.queue(createUser,10);
-        q.drain = callback;
-        
-        for (var n = 0; n < nTestSize; n++) {
-            q.push(n);
-        }
+
+        async.series([
+            function(cb){
+                var createUser = function(n,cback) {
+                    var user = Base.lookup({sClass:'User'});
+                    user.set('name','TestUser');
+                    user.set('email','test'+n+'@test.com');
+                    user.save(null,cback);
+                };
+                var q = async.queue(createUser,10);
+                q.drain = cb;
+                for (var n = 0; n < nTestSize; n++) {
+                    q.push(n);
+                }
+            }
+        ],callback);
     }
     ,tearDown:function(callback) {
-        new Collection({sClass:'User',hQuery:{sWhere:'sEmail LIKE \'%@test.com\''}},function(err,cColl){
+        new Collection({sClass:'User',hQuery:{sWhere:'email LIKE \'%@test.com\''}},function(err,cColl){
             if (err)
                 callback(err);
             else
@@ -36,26 +39,26 @@ module.exports = {
         var nTotalTime2 = 0;
         var lookupUser = function(n,cb) {
             var nStart = new Date().getTime();
-            Base.lookup({sClass:'User',hQuery:{sEmail:'test'+n+'@test.com'}},function(err,oUser){
+            Base.lookup({sClass:'User',hQuery:{email:'test'+n+'@test.com'}},function(err,user){
                 nTotalTime += (new Date().getTime()-nStart);
-                test.equal(oUser.get('sEmail'),'test'+n+'@test.com');
+                test.equal(user.get('email'),'test'+n+'@test.com');
 
                 // Look up via primary key.
                 var nStart2 = new Date().getTime();
                 var hQuery = {};
-                hQuery[App.hClasses.User.sNumericKey] = oUser.getNumKey();
+                hQuery[App.hClasses.User.sNumKeyProperty] = user.getNumKey();
 
-                Base.lookup({sClass:'User',hQuery:hQuery},function(err,oUser2){
+                Base.lookup({sClass:'User',hQuery:hQuery},function(err,user2){
                     nTotalTime2 += (new Date().getTime()-nStart2);
-                    test.equal(oUser2.get('sEmail'),'test'+n+'@test.com');
+                    test.equal(user2.get('email'),'test'+n+'@test.com');
                     cb();
                 });
             });
         };
         var q = async.queue(lookupUser,10);
         q.drain = function(err){
-            console.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup via email;');
-            console.log('Total time (Redis): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;\n');
+            App.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup via email;');
+            App.log('Total time (Redis): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
             App.wrapTest(err,test);
         };
 
@@ -73,28 +76,28 @@ module.exports = {
             async.waterfall([
                 function(callback){
                     nStart = new Date().getTime();
-                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:{sEmail:'test'+n+'@test.com'}},callback);
+                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:{email:'test'+n+'@test.com'}},callback);
                 }
-                ,function(oUser,callback){
+                ,function(user,callback){
                     nTotalTime += (new Date().getTime()-nStart);
-                    test.equal(oUser.get('sEmail'),'test'+n+'@test.com');
+                    test.equal(user.get('email'),'test'+n+'@test.com');
 
                     nStart = new Date().getTime();
                     var hQuery = {};
-                    hQuery[App.hClasses.User.sNumericKey] = oUser.getNumKey();
+                    hQuery[App.hClasses.User.sNumKeyProperty] = user.getNumKey();
                     Base.lookup({sClass:'User',sSource:'MySql',hQuery:hQuery},callback);
                 }
-                ,function(oUser,callback) {
+                ,function(user,callback) {
                     nTotalTime2 += (new Date().getTime()-nStart);
-                    test.equal(oUser.get('sEmail'),'test'+n+'@test.com');
+                    test.equal(user.get('email'),'test'+n+'@test.com');
                     callback();
                 }
             ],cb);
         };
         var q = async.queue(lookupUser,10);
         q.drain = function(err){
-            console.log('Total time (MySql): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup;');
-            console.log('Total time (MySql): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;\n');
+            App.log('Total time (MySql): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup;');
+            App.log('Total time (MySql): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
             App.wrapTest(err,test);
         };
 
@@ -104,8 +107,8 @@ module.exports = {
     }
     ,lookupViaWhereClause:function(test) {
         test.expect(1);
-        Base.lookup({sClass:'User',hQuery:{sWhere:'sName=\'TestUser\' AND sEmail=\'test0@test.com\''}},function(err,oUser){
-            if (oUser) test.equal(oUser.get('sEmail'),'test0@test.com');
+        Base.lookup({sClass:'User',hQuery:{sWhere:'name=\'TestUser\' AND email=\'test0@test.com\''}},function(err,user){
+            if (user) test.equal(user.get('email'),'test0@test.com');
             App.wrapTest(err,test);
         });
     }

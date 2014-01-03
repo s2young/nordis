@@ -13,56 +13,56 @@ var nTestSize = 2;
 
 module.exports = {
     setUp:function(callback) {
-        var oSelf = this;
+        var self = this;
 
         if (nTestSize < 2) {
             App.error('nTestSize must be at least 2.');
         } else
             async.series([
                 function(cb) {
-                    oSelf.oUser = Base.lookup({sClass:'User'});
-                    oSelf.oUser.set('sName','TestUser');
-                    oSelf.oUser.set('sEmail','test@test.com');
-                    oSelf.oUser.save(null,cb);
+                    self.user = Base.lookup({sClass:'User'});
+                    self.user.set('name','TestUser');
+                    self.user.set('email','test@test.com');
+                    self.user.save(null,cb);
                 }
                 ,function(cb) {
                     // Create n friend records  (n = nTestSize);
                     var createFriend = function(n,callback) {
                         // Create friendship between newly created user and first user, as well as with previously created user.
-                        var oFriendUser;
+                        var friend_user;
                         async.waterfall([
                             function(cb) {
-                                oFriendUser = Base.lookup({sClass:'User'});
-                                oFriendUser.set('sName','TestFriend '+n);
-                                oFriendUser.set('sEmail','testfriend'+n+'@test.com');
-                                oFriendUser.save(null,cb);
+                                friend_user = Base.lookup({sClass:'User'});
+                                friend_user.set('name','TestFriend '+n);
+                                friend_user.set('email','testfriend'+n+'@test.com');
+                                friend_user.save(null,cb);
                             }
-                            ,function(oFriendUser,cb) {
-                                var oFriend = Base.lookup({sClass:'Friend'});
-                                oFriend.set('nUserID',oSelf.oUser.getNumKey());
-                                oFriend.set('nFriendUserID',oFriendUser.getNumKey());
-                                oFriend.set('nRank',n);
-                                oFriend.save(null,cb);
+                            ,function(friend_user,cb) {
+                                var friend = Base.lookup({sClass:'Friend'});
+                                friend.set('user_id',self.user.getNumKey());
+                                friend.set('friend_id',friend_user.getNumKey());
+                                friend.set('rank',n);
+                                friend.save(null,cb);
                             }
-                            ,function(oFriend,cb) {
-                                oSelf.oUser.setExtra('cFriends',oFriend,cb);
+                            ,function(friend,cb) {
+                                self.user.setExtra('friends',friend,cb);
                             }
                             ,function(o,cb) {
-                                Base.lookup({sClass:'User',hQuery:{sEmail:'testfriend'+(n-1)+'@test.com'}},cb);
+                                Base.lookup({sClass:'User',hQuery:{email:'testfriend'+(n-1)+'@test.com'}},cb);
                             }
                             ,function(oLastUser,cb){
                                 if (oLastUser.getNumKey()) {
-                                    var oFriendOfFriend = Base.lookup({sClass:'Friend'});
-                                    oFriendOfFriend.set('nUserID',oFriendUser.getNumKey());
-                                    oFriendOfFriend.set('nFriendUserID',oLastUser.getNumKey());
-                                    oFriendOfFriend.set('nRank',1);
-                                    oFriendOfFriend.save(null,cb);
+                                    var friendOfFriend = Base.lookup({sClass:'Friend'});
+                                    friendOfFriend.set('user_id',friend_user.getNumKey());
+                                    friendOfFriend.set('friend_id',oLastUser.getNumKey());
+                                    friendOfFriend.set('rank',1);
+                                    friendOfFriend.save(null,cb);
                                 } else
                                     cb(null,null);
                             }
-                            ,function(oFriendOfFriend,cb){
-                                if (oFriendOfFriend) {
-                                    oFriendUser.setExtra('cFriends',oFriendOfFriend,cb);
+                            ,function(friendOfFriend,cb){
+                                if (friendOfFriend) {
+                                    friend_user.setExtra('friends',friendOfFriend,cb);
                                 } else
                                     cb();
                             }
@@ -79,10 +79,9 @@ module.exports = {
             ],callback);
     }
     ,tearDown:function(callback) {
-        var oSelf = this;
         async.series([
             function(cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumericKey+' IS NOT NULL'}},function(err,cColl){
+                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -90,7 +89,7 @@ module.exports = {
                 });
             }
             ,function(cb){
-                new Collection({sClass:'User',hQuery:{sWhere:App.hClasses.Friend.sNumericKey+' IS NOT NULL'}},function(err,cColl){
+                new Collection({sClass:'User',hQuery:{sWhere:App.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -100,19 +99,19 @@ module.exports = {
         ],callback);
     }
     ,loadFriendsOfFriends:function(test){
-        var oSelf = this;
+        var self = this;
         test.expect(3);
 
         async.waterfall([
             function(cb){
-                oSelf.oUser.loadExtras({
-                    cFriends:{
+                self.user.loadExtras({
+                    friends:{
                         hExtras:{
-                            oFriendUser:{
+                            friend_user:{
                                 hExtras:{
-                                    cFriends:{hExtras:{
-                                        oFriendUser:true
-                                        ,oUser:true
+                                    friends:{hExtras:{
+                                        friend_user:true
+                                        ,user:true
                                     }}
                                 }
                             }
@@ -121,16 +120,11 @@ module.exports = {
                 },cb);
             }
             ,function(o,cb){
-
-                oSelf.oUser.cFriends.forEach(function(oFriend,nIndex){
-                    console.log(oFriend.oFriendUser.get('sName')+' ('+oFriend.oFriendUser.getNumKey()+') has '+oFriend.oFriendUser.cFriends.nTotal+' friend(s).');
-                });
-
-                test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);
+                test.equal(self.user.friends.nTotal,nTestSize);
                 // The first user has no friends because there was no one before him.
-                test.equal(oSelf.oUser.cFriends.last().oFriendUser.cFriends.nTotal,0);
+                test.equal(self.user.friends.last().friend_user.friends.nTotal,0);
                 // The second user should have a friend.
-                test.equal(oSelf.oUser.cFriends.first().oFriendUser.cFriends.nTotal,1);
+                test.equal(self.user.friends.first().friend_user.friends.nTotal,1);
 
                 cb();
             }

@@ -121,6 +121,16 @@ module.exports.hSettings = {
                     }
                 }
             }
+            ,Sale:{
+                nClass:3
+                ,hProperties:{
+                    id:{bUnique:true,sType:'Number'}
+                    ,user_id:{sType:'Number'}
+                    ,amount:{sType:'Float',nMax:20,nScale:2}
+                }
+                ,sAdapterPath:'example/overrides/adapter/Sale.js'
+                ,sClassPath:'example/overrides/class/Sale.js'
+            }
         }
         ,hErrorStrings:{
             500:{

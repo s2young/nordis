@@ -25,12 +25,25 @@ module.exports = {
         ],callback);
     }
     ,tearDown:function(callback) {
-        new Collection({sClass:'User',hQuery:{sWhere:'email LIKE \'%@test.com\''}},function(err,cColl){
-            if (err)
-                callback(err);
-            else
-                cColl.delete(callback);
-        });
+        async.parallel([
+            function(cb) {
+                new Collection({sClass:'User',hQuery:{sWhere:'email LIKE \'%@test.com\''}},function(err,cColl){
+                    if (err)
+                        cb(err);
+                    else
+                        cColl.delete(cb);
+                });
+            }
+            ,function(cb) {
+                new Collection({sClass:'Sale',hQuery:{sWhere:'id IS NOT NULL'}},function(err,cColl){
+                    if (err)
+                        cb(err);
+                    else
+                        cColl.delete(cb);
+                });
+            }
+        ],callback);
+
     }
     ,lookupViaRedis:function(test){
         test.expect(nTestSize*2);
@@ -111,5 +124,21 @@ module.exports = {
             if (user) test.equal(user.get('email'),'test0@test.com');
             App.wrapTest(err,test);
         });
+    }
+    ,classOverride:function(test){
+        test.expect(2);
+        Base.lookup({sClass:'User',hQuery:{sWhere:'name=\'TestUser\' AND email=\'test0@test.com\''}},function(err,user){
+            if (user) test.equal(user.get('email'),'test0@test.com');
+
+            var sale = Base.lookup({sClass:'Sale'});
+            sale.set('user_id',user.getNumKey());
+            sale.set('amount',100.00);
+            sale.save(null,function(err){
+                test.equal(sale.bOverridden,true);
+                App.wrapTest(err,test);
+            });
+
+        });
+
     }
 };

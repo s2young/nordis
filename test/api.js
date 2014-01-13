@@ -97,7 +97,6 @@ module.exports = {
                 });
             }
             ,function(hResult,callback){
-
                 var user = Base.lookup({sClass:'User',hData:hResult});
                 test.equal(user.getNumKey(),self.user.getNumKey());
                 callback();

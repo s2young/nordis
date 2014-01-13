@@ -8,24 +8,14 @@ var nTestSize = 10;
 module.exports = {
     setUp:function(callback) {
         var self = this;
-
-        async.series([
-            function(cb) {
-                self.user = Base.lookup({sClass:'User'});
-                self.user.set('name','TestUser');
-                self.user.set('email','test@test.com');
-                self.user.save(null,cb);
-            }
-        ],callback);
+        self.user = Base.lookup({sClass:'User'});
+        self.user.set('name','TestUser');
+        self.user.set('email','test@test.com');
+        self.user.save(null,callback);
     }
     ,tearDown:function(callback) {
         var self = this;
-
-        async.parallel([
-            function(cb){
-                self.user.delete(cb);
-            }
-        ],callback);
+        self.user.delete(callback);
     }
     ,trackPoints:function(test){
         var self = this;
@@ -33,15 +23,15 @@ module.exports = {
 
         var nStart = new Date().getTime();
         var setStuff = function(n,cb) {
-            self.user.setExtra('nPoints',1,function(err){
+            self.user.setExtra('points',1,function(err){
                 cb(err);
             });
         };
         var q = async.queue(setStuff,1);
         q.drain = function(){
             var nTotalTime = (new Date().getTime() - nStart);
-            self.user.loadExtras({nPoints:true},function(err){
-                test.equal(self.user.nPoints,nTestSize);
+            self.user.loadExtras({points:true},function(err){
+                test.equal(self.user.points,nTestSize);
                 App.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per increment;');
                 App.wrapTest(err,test);
             });
@@ -62,7 +52,7 @@ module.exports = {
         Base.lookup({
             sClass:'User'
             ,hQuery:hQuery
-            ,hExtras:{nPoints:true}
+            ,hExtras:{points:true}
         },function(err,user){
             App.log('Lookup time for primary key lookup of user + three static extras + one object extra: '+(new Date().getTime()-nStart)+' ms');
             test.equal(user.getNumKey(),self.user.getNumKey());

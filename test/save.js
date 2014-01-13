@@ -7,22 +7,17 @@ var nTestSize = 10;
 
 module.exports = {
     setUp:function(callback) {
-
-        async.series([
-            function(cb){
-                var createUser = function(n,cback) {
-                    var user = Base.lookup({sClass:'User'});
-                    user.set('name','TestUser');
-                    user.set('email','test'+n+'@test.com');
-                    user.save(null,cback);
-                };
-                var q = async.queue(createUser,10);
-                q.drain = cb;
-                for (var n = 0; n < nTestSize; n++) {
-                    q.push(n);
-                }
-            }
-        ],callback);
+        var createUser = function(n,cback) {
+            var user = Base.lookup({sClass:'User'});
+            user.set('name','TestUser');
+            user.set('email','test'+n+'@test.com');
+            user.save(null,cback);
+        };
+        var q = async.queue(createUser,10);
+        q.drain = callback;
+        for (var n = 0; n < nTestSize; n++) {
+            q.push(n);
+        }
     }
     ,tearDown:function(callback) {
         async.parallel([

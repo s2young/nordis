@@ -6,7 +6,7 @@ module.exports.hSettings = {
     global: {
         nSeedID:1000000
         ,sLanguage:'en'
-        ,sLogLevel:'warn'
+        ,sLogLevel:'info'
         ,hOptions:{
             MySql:{
                 sSchema:'nordis',
@@ -38,7 +38,7 @@ module.exports.hSettings = {
                     id:{
                         sType:'Number'
                         ,bUnique:true
-                        ,sSample:'123'
+                        ,sSample:'1'
                     }
                     ,sid:{
                         sType:'String'
@@ -140,16 +140,20 @@ module.exports.hSettings = {
                 hProperties:{
                     id:{
                         sType:'Number',
-                        bUnique:true
+                        bUnique:true,
+                        sSample:'3'
                     }
                     ,user_id:{
                         sType:'Number'
+                        ,sSample:'1'
                     }
                     ,friend_id:{
                         sType:'Number'
+                        ,sSample:'2'
                     }
                     ,rank:{
                         sType:'Number'
+                        ,sSample:'0'
                     }
                 }
                 ,nClass:2
@@ -189,6 +193,7 @@ module.exports.hSettings = {
                                     sTitle:'Retrieve Friend Collection'
                                     ,sDescription:'The fnApiOutput is added to automatically return the friend_user property on each friend result. Or that can be left to the user to request it.'
                                     ,bTrackStats:true
+                                    ,hSample:{sClass:'Friend',aObjects:[{id:3,user_id:1,friend_id:2,rank:1,friend_user:{id:2,sid:'H0Jd56g6',created:1389625960,updated:1389625960,name:'Joe Friend',email:'friend@gmail.com',referrer_id:'1'}}],nTotal:1}
                                     ,fnApiOutput:function(req,App,fnCallback){
                                         // We're going to provide a default hExtras if it's not passed in by the middleware.
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {friend_user:true};

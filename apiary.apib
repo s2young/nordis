@@ -18,6 +18,8 @@ You can also create a NEW user by leaving the sid out.
 + Response 200 (application/json)
     + Body
 
+            {"sClass":"User","nClass":1,"id":1,"sid":"Yf8uIoP","created":1389625960,"updated":1389625960,"name":"Joe User","email":"joe@gmail.com","referrer_id":null}
+
 
 ### Retrieve a User [GET]
 You can retrieve any of the 'hExtras' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user's 'friends' collection up to a total of ONE record (nSize:1). On that friend, we want the related friend_user property (which is a User object).
@@ -26,7 +28,7 @@ You can retrieve any of the 'hExtras' configured for the class using the hExtras
 + Response 200 (application/json)
     + Body
 
-            {"sClass":"User","nClass":1,"id":123,"sid":"Yf8uIoP","created":1389625960,"updated":1389625960,"name":"Joe User","email":"joe@gmail.com","referrer_id":null}
+            {"sClass":"User","nClass":1,"id":1,"sid":"Yf8uIoP","created":1389625960,"updated":1389625960,"name":"Joe User","email":"joe@gmail.com","referrer_id":null}
 
 
 ### Delete a User [DELETE]
@@ -46,6 +48,6 @@ The fnApiOutput is added to automatically return the friend_user property on eac
 + Response 200 (application/json)
     + Body
 
-            {"sClass":"Friend","nClass":2}
+            {"sClass":"Friend","aObjects":[{"id":3,"user_id":1,"friend_id":2,"rank":1,"friend_user":{"id":2,"sid":"H0Jd56g6","created":1389625960,"updated":1389625960,"name":"Joe Friend","email":"friend@gmail.com","referrer_id":"1"}}],"nTotal":1}
 
 

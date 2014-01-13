@@ -3,6 +3,7 @@
  **/
 var App     = require('./../../lib/AppConfig'),
     Base    = require('./../../lib/Base'),
+    Collection= require('./../../lib/Collection'),
     fs      = require('fs'),
     async   = require('async');
 
@@ -125,19 +126,25 @@ else {
                                                 fs.appendFileSync(sPath,'+ Response 200 (application/json)\n');
                                                 fs.appendFileSync(sPath,'    + Body\n\n');
 
-                                                // Assemble sample response from the class definittion.
+                                                // Build sample objects based on the sEndpoint. This is why we set an 'sSample' property in the class.property definitions.
                                                 var oObj = Base.lookup({sClass:sClass});
                                                 for (var sProp in App.hClasses[sClass].hProperties) {
-                                                    oObj.set(sProp,App.hClasses[sClass].hProperties[sProp].sSample);
+                                                    oObj.set(sProp,App.hClasses[sClass].hProperties[sProp].sSample,true);
                                                 }
+
                                                 // Now, serialize with either the provided override or the default toHash method.
-                                                if (hVerb.fnApiOutput) {
-                                                    if (!hVerb.fnApiOutput.toString().match(/return /))
-                                                        throw new Error('To properly create Apiary docs, each fnApiOutput in your config file method should include a synchronous path with a return statement, and return sample data for documentation purposes.');
-                                                    else {
-                                                        var hResult = (hVerb.fnApiOutput) ? hVerb.fnApiOutput({hNordis:{oResult:oObj}}) : oObj.toHash();
-                                                        fs.appendFileSync(sPath,'            '+JSON.stringify(hResult)+'\n\n');
+                                                if (hVerb.hSample)
+                                                    fs.appendFileSync(sPath,'            '+JSON.stringify(hVerb.hSample)+'\n\n');
+                                                else {
+                                                    var hResult = oObj.toHash();
+                                                    if (hVerb.fnApiOutput) {
+                                                        if (!hVerb.fnApiOutput.toString().match(/return /))
+                                                            throw new Error('To properly create Apiary docs, each fnApiOutput in your config file method should include a synchronous path with a return statement, and return sample data for documentation purposes.');
+                                                        else {
+                                                            hResult = hVerb.fnApiOutput({hNordis:{oResult:oObj}});
+                                                        }
                                                     }
+                                                    fs.appendFileSync(sPath,'            '+JSON.stringify(hResult)+'\n\n');
                                                 }
                                             break;
                                             case 'DELETE':

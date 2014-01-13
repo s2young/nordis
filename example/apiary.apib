@@ -1,0 +1,36 @@
+FORMAT: 1A
+HOST: http://api.example.com
+
+# Nordis Sample API
+This API is a simple output of the classes provided in this simple configuration example. No authentication is required for any endpoint, but real-world examples should include it.
+
+# Group User
+Users are usually people, but can sometimes be bots. Users can be created, saved and deleted. These methods are marked unprotected, but a security layer can be applied via custom handler or here in configuration using the fnValidate function.
+
+## User [/user/{sid}]
+Retrieve, update and delete user.
+
++ Parameters
+    + sid (required,String,`Yf8uIoP`) ... String id of the user record. Numeric ids are also supported.
+
+### Update (or Create) User [POST]
+You can also create a NEW user by leaving the sid out.
++ Response 200 (application/json)
+    + Body
+
+            {"sClass":"User","nClass":1,"id":123,"sid":"Yf8uIoP","created":1389625960,"updated":1389625960,"name":"Joe User","email":"joe@gmail.com","referrer_id":null}
+
+
+### Retrieve a User [GET]
+You can retrieve any of the 'hExtras' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user's 'friends' collection up to a total of ONE record (nSize:1). On that friend, we want the related friend_user property (which is a User object).
+
+            {"hExtras":{friends:{nSize:1,hExtras:{friend_user:true}}}}
++ Response 200 (application/json)
+    + Body
+
+            {"sClass":"User","nClass":1,"id":123,"sid":"Yf8uIoP","created":1389625960,"updated":1389625960,"name":"Joe User","email":"joe@gmail.com","referrer_id":null}
+
+
+### Delete a User [DELETE]
++ Response 204
+

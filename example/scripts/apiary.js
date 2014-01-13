@@ -11,7 +11,6 @@ process.env.sApp = 'apiary.js';
 var sPath;
 // Make sure the script is providing an absolute or relative path to the output directory.
 process.argv.forEach(function (val, index, array) {
-    console.log(index+','+val);
     switch (index) {
         case 2:
             sPath = val;
@@ -132,9 +131,14 @@ else {
                                                     oObj.set(sProp,App.hClasses[sClass].hProperties[sProp].sSample);
                                                 }
                                                 // Now, serialize with either the provided override or the default toHash method.
-                                                var hResult = (hVerb.fnApiOutput) ? hVerb.fnApiOutput(oObj) : oObj.toHash();
-                                                fs.appendFileSync(sPath,'            '+JSON.stringify(hResult)+'\n\n');
-
+                                                if (hVerb.fnApiOutput) {
+                                                    if (!hVerb.fnApiOutput.toString().match(/return /))
+                                                        throw new Error('To properly create Apiary docs, each fnApiOutput in your config file method should include a synchronous path with a return statement, and return sample data for documentation purposes.');
+                                                    else {
+                                                        var hResult = (hVerb.fnApiOutput) ? hVerb.fnApiOutput({hNordis:{oResult:oObj}}) : oObj.toHash();
+                                                        fs.appendFileSync(sPath,'            '+JSON.stringify(hResult)+'\n\n');
+                                                    }
+                                                }
                                             break;
                                             case 'DELETE':
                                                 fs.appendFileSync(sPath,'+ Response 204\n');

@@ -39,6 +39,20 @@ module.exports = {
                     cb(err);
                 });
             }
+            // Delete any stats tracked even incidentally by other tests.
+            ,function(cb) {
+                var q = async.queue(function(sProp,cback){
+                    if (self.oApp[sProp] instanceof Collection) {
+                        console.log('delete '+sProp);
+                        self.oApp[sProp].delete(cback);
+                    } else
+                        cback();
+                },1);
+                q.drain = cb;
+                for (var sProp in self.oApp) {
+                    q.push(sProp);
+                }
+            }
             // Start up the api.
             ,function(cb) {
                 App.init(null,function(err){
@@ -229,7 +243,7 @@ module.exports = {
 
                 // call the api up to nTestSize times.
                 var q = async.queue(function(n,cb){
-                    request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/details.json'},function(error, response, body){
+                    request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()},function(error, response, body){
                         cb();
                     });
                 },10);

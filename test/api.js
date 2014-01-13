@@ -92,8 +92,17 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/details.json'},function(error, response, body){
-                    callback(error,JSON.parse(body));
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()},function(error, response, body){
+                    if (error)
+                        callback(error);
+                    else {
+                        try {
+                            callback(error,JSON.parse(body));
+                        } catch (err) {
+                            App.error(body);
+                        }
+                    }
+
                 });
             }
             ,function(hResult,callback){
@@ -120,7 +129,7 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/details.json',form:hData},function(error, response, body){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),qs:hData},function(error, response, body){
                     callback(error,JSON.parse(body));
                 });
             }
@@ -141,7 +150,7 @@ module.exports = {
         var sNewName = 'Dummy';
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/save.json',form:{name:sNewName}},function(error, response, body){
+                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),form:{name:sNewName}},function(error, response, body){
                     callback(error,body);
                 });
             }
@@ -157,7 +166,7 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/badclass/new/details.json'},function(error, response, body){
+                request.post({uri:'http://localhost:'+nPort+'/badclass'},function(error, response, body){
                     test.equal(response.statusCode,500);
                     callback(error,body);
                 });
@@ -170,7 +179,7 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getNumKey()+'/details.json'},function(error, response, body){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getNumKey()},function(error, response, body){
                     callback(error,JSON.parse(body));
                 });
             }
@@ -187,12 +196,12 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/friends.json'},function(error, response, body){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/friends'},function(error, response, body){
                     callback(error,body);
                 });
             }
             ,function(body,callback){
-                var friends = JSON.parse(body);
+                var friends = (body) ? JSON.parse(body) : {nTotal:0};
                 test.equal(friends.nTotal,nTestSize);
                 callback();
             }

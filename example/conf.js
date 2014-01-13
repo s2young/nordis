@@ -99,10 +99,10 @@ module.exports.hSettings = {
                 ,hApi:{
                     sDescription:'Users are usually people, but can sometimes be bots. Users can be created, saved and deleted. These methods are marked unprotected, but a security layer can be applied via custom handler or here in configuration using the fnValidate function.'
                     ,hEndpoints:{
-                        '/user/{sid}':{
+                        '/user/{id}':{
                             sDescription:'Retrieve, update and delete user.'
                             ,hParameters:{
-                                sid:{
+                                id:{
                                     bRequired:true
                                     ,sType:'String'
                                     ,sExample:'Yf8uIoP'
@@ -113,22 +113,22 @@ module.exports.hSettings = {
                                 POST:{
                                     sTitle:'Update (or Create) User'
                                     ,sDescription:'You can also create a NEW user by leaving the sid out.'
-                                    ,bProtected:false
                                     ,bTrackStats:true
-                                    ,fnApiOutput:function(oSelf,App){
-                                        // Nordis has a toHash method as the default serialization for each class, but you can override it here.
-                                        return oSelf.toHash();
-                                    }
                                 }
                                 ,GET:{
                                     sTitle:'Retrieve a User'
                                     ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'friends\' collection up to a total of ONE record (nSize:1). On that friend, we want the related friend_user property (which is a User object).\n\n            {"hExtras":{friends:{nSize:1,hExtras:{friend_user:true}}}}'
-                                    ,bProtected:false
                                     ,bTrackStats:true
+                                    ,fnApiOutput:function(req,App,fnCallback){
+                                        if (fnCallback)
+                                            // Nordis has a toHash method as the default serialization for each class, but you can override it here. In this case, we're just going ahead with the default serialization.
+                                            fnCallback(null,req.hNordis.oResult.toHash(req.hNordis.hExtras));
+                                        else
+                                            return req.hNordis.oResult.toHash(req.hNordis.hExtras);
+                                    }
                                 }
                                 ,DELETE:{
                                     sTitle:'Delete a User'
-                                    ,bProtected:false
                                     ,bTrackStats:true
                                 }
                             }
@@ -168,6 +168,43 @@ module.exports.hSettings = {
                         ,aKey:['friend_id','id']
                         ,fnQuery:function(oSelf){
                             return {nID:oSelf.get('friend_id')}
+                        }
+                    }
+                }
+                ,hApi:{
+                    sDescription:'Friend objects are pointers to Users. The initiator of the friendship is found on the \'user\' extra, while the recipient is the \'friend_user.\''
+                    ,hEndpoints:{
+                        '/user/{id}/friends':{
+                            sDescription:'Retrieves collection of friends for the passed-in user.'
+                            ,hParameters:{
+                                id:{
+                                    bRequired:true
+                                    ,sType:'String'
+                                    ,sExample:'Yf8uIoP'
+                                    ,sDescription:'String id of the user record. Numeric ids are also supported.'
+                                }
+                            }
+                            ,hVerbs:{
+                                GET:{
+                                    sTitle:'Retrieve Friend Collection'
+                                    ,sDescription:'The fnApiOutput is added to automatically return the friend_user property on each friend result. Or that can be left to the user to request it.'
+                                    ,bTrackStats:true
+                                    ,fnApiOutput:function(req,App,fnCallback){
+                                        // We're going to provide a default hExtras if it's not passed in by the middleware.
+                                        req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {friend_user:true};
+                                        // For production use, there will be a callback. The apiary.js script, which produces API docs, does not provide a callback and expects a return statement.
+                                        if (fnCallback)
+                                            req.hNordis.oResult.loadExtras(req.hNordis.hExtras,function(err){
+                                                if (err)
+                                                    fnCallback(err);
+                                                else
+                                                    fnCallback(null,req.hNordis.oResult.toHash(req.hNordis.hExtras));
+                                            });
+                                        else
+                                            return req.hNordis.oResult.toHash(req.hNordis.hExtras);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -229,30 +266,6 @@ module.exports.hSettings = {
             ,misconfigured_stat:{
                 sDescription:'This stat is missing the fnValidate function, and is here for unit testing purposes.'
             }
-        }
-        ,fnMiddleware:function(req,res,next,App,async) {
-            // This is an optional function that will be executed in the api middleware flow.
-            // The primary purpose is to allow you to track whatever you want in the api.
-            // Of course, you can inject this function in your own web app if you like. But this is here to provide
-            // an example of how Nordis supports api endpoint tracking.
-
-            // The preParse method will have already run, setting the following vars inside the req.hNordis hash:
-            /**
-             * sClass - String name of the class being requested.
-             * sAction - String action (save.json, details.json, etc)
-             * hQuery - lookup hash derived from the endpoint path which is used to lookup the object.
-             * sLookupProperty - the property being used to lookup the object (numeric or string key property name).
-             */
-
-            // The following calls could be offloaded to another process, or executed off of the UI thread if desired.
-            async.parallel([
-                function(callback){
-                    App.trackStat('api_requests',[req.hNordis.sClass+'/'+req.hNordis.sAction],callback);
-                }
-                ,function(callback){
-                    App.trackStat('hits',null,callback);
-                }
-            ],next);
         }
         ,hErrorStrings:{
             500:{

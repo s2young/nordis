@@ -5,51 +5,51 @@ var async       = require('async'),
 
 module.exports = {
     setUp:function(callback) {
-        var oSelf = this;
-        // Create empty Base object of class 'User.'
+        var self = this;
+
         async.series([
             function(cb) {
-                oSelf.oUser = Base.lookup({sClass:'User'});
-                oSelf.oUser.set('sName','TestUser');
-                oSelf.oUser.set('sEmail','test@test.com');
-                oSelf.oUser.save(null,cb);
+                self.user = Base.lookup({sClass:'User'});
+                self.user.set('name','TestUser');
+                self.user.set('email','test@test.com');
+                self.user.save(null,cb);
             }
             ,function(cb){
                 // Create but don't save the friend object.
-                oSelf.oFriend = Base.lookup({sClass:'User'});
-                oSelf.oFriend.set('sName','TestUser\'s Friend');
-                oSelf.oFriend.set('sEmail','friend@test.com');
+                self.friend = Base.lookup({sClass:'User'});
+                self.friend.set('name','TestUser\'s Friend');
+                self.friend.set('email','friend@test.com');
                 cb();
             }
         ],callback);
     }
     ,tearDown:function(callback) {
-        var oSelf = this;
+        var self = this;
         async.parallel([
             function(cb){
-                oSelf.oUser.delete(cb);
+                self.user.delete(cb);
             }
             ,function(cb){
-                oSelf.oFriend.delete(cb);
+                self.friend.delete(cb);
             }
         ],callback);
     }
     ,saveReferringUser:function(test) {
-        var oSelf = this;
+        var self = this;
         test.expect(1);
         async.series([
             function(callback) {
-                // This will both save the oFriend and set the oUser.nReferringUserID
-                oSelf.oUser.setExtra('oReferringUser',oSelf.oFriend,callback);
+                // This will both save the friend and set the user.referrer_id
+                self.user.setExtra('referring_user',self.friend,callback);
             }
             ,function(callback) {
-                test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.getNumKey());
+                test.equal(self.user.get('referrer_id'),self.friend.getNumKey());
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); })
     }
     ,lookupUserOnly:function(test){
-        var oSelf = this;
+        var self = this;
         test.expect(1);
         var nStart;
         async.waterfall([
@@ -57,94 +57,94 @@ module.exports = {
                 nStart = new Date().getTime();
                 // Lookup user by primary, numeric key and request some extras.
                 var hQuery = {};
-                hQuery[App.hClasses.User.sNumericKey] = oSelf.oUser.getNumKey();
+                hQuery[App.hClasses.User.sNumKeyProperty] = self.user.getNumKey();
                 Base.lookup({
                     sClass:'User'
                     ,hQuery:hQuery
                 },callback);
             }
-            ,function(oUser,callback){
-                console.log(oUser.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms\n');
-                test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
+            ,function(user,callback){
+                App.log(user.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
+                test.equal(user.getNumKey(),self.user.getNumKey());
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); });
     }
     ,lookupUserAndExtras:function(test){
-        var oSelf = this;
+        var self = this;
         test.expect(4);
         var nStart;
         async.waterfall([
             function(callback) {
-                // This will both save the oFriend and set the oUser.nReferringUserID
-                oSelf.oUser.setExtra('oReferringUser',oSelf.oFriend,callback);
+                // This will both save the friend and set the user.referrer_id
+                self.user.setExtra('referring_user',self.friend,callback);
             }
-            ,function(oUser,callback) {
-                test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.getNumKey());
+            ,function(user,callback) {
+                test.equal(self.user.get('referrer_id'),self.friend.getNumKey());
                 nStart = new Date().getTime();
 
                 var hQuery = {};
-                hQuery[oSelf.oUser.getSettings().sNumericKey] = oSelf.oUser.getNumKey();
+                hQuery[self.user.getSettings().sNumKeyProperty] = self.user.getNumKey();
 
                 Base.lookup({
                     sClass:'User'
                     ,hQuery:hQuery
-                    ,hExtras:{oReferringUser:true}
+                    ,hExtras:{referring_user:true}
                 },callback);
             }
-            ,function(oUser,callback){
-                console.log(oUser.sSource+' lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms\n');
-                test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
-                test.equal(oUser.oReferringUser.getNumKey(),oSelf.oUser.get('nReferringUserID')); // Unless you also change the aKey settings for this relationship, changing the primary key for giggles could break this one.
-                test.equal(oUser.sSource,'Redis');
+            ,function(user,callback){
+                App.log(user.sSource+' lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms');
+                test.equal(user.getNumKey(),self.user.getNumKey());
+                test.equal(user.referring_user.getNumKey(),self.user.get('referrer_id')); // Unless you also change the aKey settings for this relationship, changing the primary key for giggles could break this one.
+                test.equal(user.sSource,'Redis');
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); });
     }
     ,deleteReferringUser:function(test){
         // What if the referring user is removed?  The references to it in the referred user should also be removed.
-        var oSelf = this;
+        var self = this;
         test.expect(3);
         async.waterfall([
             function(callback) {
                 // Add the friend as the referring user.
-                oSelf.oUser.setExtra('oReferringUser',oSelf.oFriend,callback);
+                self.user.setExtra('referring_user',self.friend,callback);
             }
-            ,function(oUser,callback) {
-                test.equal(oSelf.oUser.get('nReferringUserID'),oSelf.oFriend.getNumKey());
+            ,function(user,callback) {
+                test.equal(self.user.get('referrer_id'),self.friend.getNumKey());
                 // Now, delete the friend.
-                oSelf.oFriend.delete(callback);
+                self.friend.delete(callback);
             }
-            ,function(oUser,callback){
-                // Now, try and lookup the friend (oFriend) via the referred user (oUser).
+            ,function(user,callback){
+                // Now, try and lookup the friend (friend) via the referred user (user).
                 var hQuery = {};
-                hQuery[oSelf.oUser.getSettings().sNumericKey] = oSelf.oUser.getNumKey();
+                hQuery[self.user.getSettings().sNumKeyProperty] = self.user.getNumKey();
                 Base.lookup({
                     sClass:'User'
                     ,hQuery:hQuery
-                    ,hExtras:{oReferringUser:true}
+                    ,hExtras:{referring_user:true}
                 },callback);
             }
-            ,function(oUser,callback){
-                test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
-                test.equal(oUser.oReferringUser.getNumKey(),null);
+            ,function(user,callback){
+                test.equal(user.getNumKey(),self.user.getNumKey());
+                test.equal(user.referring_user.getNumKey(),null);
                 callback();
             }
         ],function(err){ App.wrapTest(err,test); });
     }
     ,lookupUserViaMySqlOnly:function(test){
-        var oSelf = this;
+        var self = this;
         // Here is how to look up a user and specify that the data come only from MySql.
         test.expect(2);
 
         var nStart= new Date().getTime();
         var hQuery = {};
-        hQuery[App.hClasses.User.sNumericKey] = oSelf.oUser.getNumKey();
+        hQuery[App.hClasses.User.sNumKeyProperty] = self.user.getNumKey();
 
-        Base.lookup({sClass:'User',hQuery:hQuery,sSource:'MySql'},function(err,oUser){
-            console.log(oUser.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms\n');
-            test.equal(oUser.sSource,'MySql');
-            test.equal(oUser.getNumKey(),oSelf.oUser.getNumKey());
+        Base.lookup({sClass:'User',hQuery:hQuery,sSource:'MySql'},function(err,user){
+            App.log(user.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
+            test.equal(user.sSource,'MySql');
+            test.equal(user.getNumKey(),self.user.getNumKey());
             App.wrapTest(err,test);
         });
     }

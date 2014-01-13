@@ -20,11 +20,11 @@ var nStartingMemory;
 
 module.exports = {
     setUp:function(callback) {
-        var oSelf = this;
+        var self = this;
         // Keep friends created during setup in an array for use later.
-        oSelf.aFriends = [];
+        self.aFriends = [];
         // Also, keep track of the friend users created so we can clean them up at the end.
-        oSelf.aFriendUserIDs = [];
+        self.aFriendUserIDs = [];
 
         var nUserWriteTotal = 0;
         var nStart;
@@ -44,32 +44,32 @@ module.exports = {
                 });
             }
             ,function(cb) {
-                oSelf.oUser = Base.lookup({sClass:'User'});
-                oSelf.oUser.set('sName','TestUser');
-                oSelf.oUser.set('sEmail','test@test.com');
+                self.user = Base.lookup({sClass:'User'});
+                self.user.set('name','TestUser');
+                self.user.set('email','test@test.com');
                 nStart = new Date().getTime();
-                oSelf.oUser.save(null,cb);
+                self.user.save(null,cb);
             }
             ,function(cb) {
                 nUserWriteTotal += new Date().getTime()-nStart;
                 // Create n friend records  (n = nTestSize);
                 var createFriend = function(n,callback) {
-                    var oFriendUser = Base.lookup({sClass:'User'});
-                    oFriendUser.set('sName','TestFriend '+n);
-                    oFriendUser.set('sEmail','testfriend'+n+'@test.com');
+                    var friend_user = Base.lookup({sClass:'User'});
+                    friend_user.set('name','TestFriend '+n);
+                    friend_user.set('email','testfriend'+n+'@test.com');
                     nStart = new Date().getTime();
-                    oFriendUser.save(null,function(err){
+                    friend_user.save(null,function(err){
                         if (err)
                             callback(err);
                         else {
                             nUserWriteTotal += new Date().getTime()-nStart;
-                            oSelf.aFriendUserIDs.push(oFriendUser.getNumKey());
-                            var oFriend = Base.lookup({sClass:'Friend'});
-                            oFriend.set('nUserID',oSelf.oUser.getNumKey());
-                            oFriend.set('nFriendUserID',oFriendUser.getNumKey());
-                            oFriend.set('nRank',n);
-                            oFriend.save(null,function(err){
-                                oSelf.aFriends.push(oFriend);
+                            self.aFriendUserIDs.push(friend_user.getNumKey());
+                            var friend = Base.lookup({sClass:'Friend'});
+                            friend.set('user_id',self.user.getNumKey());
+                            friend.set('friend_id',friend_user.getNumKey());
+                            friend.set('rank',n);
+                            friend.save(null,function(err){
+                                self.aFriends.push(friend);
                                 callback(err);
                             });
                         }
@@ -83,28 +83,27 @@ module.exports = {
                 }
             }
             ,function(cb) {
-                console.log('User per record writes: '+Math.round(nUserWriteTotal/(nTestSize+1))+'ms');
+                App.log('User per record writes (Redis + MySql): '+Math.round(nUserWriteTotal/(nTestSize+1))+'ms');
                 cb();
             }
         ],callback);
     }
     ,tearDown:function(callback) {
-        var oSelf = this;
         async.waterfall([
             function(cb){
                 oRedisClient.info(cb);
             }
             ,function(res,cb) {
                 var nEndingMemory = res.match(/used_memory\:([^\r]*)/)[1];
-                console.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
+                App.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
 
-                new Collection({sClass:'User',hQuery:{sWhere:'sEmail IS NOT NULL'}},cb);
+                new Collection({sClass:'User',hQuery:{sWhere:'email IS NOT NULL'}},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);
             }
             ,function(ignore,cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumericKey+' IS NOT NULL'}},cb);
+                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);
@@ -112,72 +111,72 @@ module.exports = {
         ],callback);
     }
     ,addFriend:function(test){
-        var oSelf = this;
+        var self = this;
         test.expect(2);
         var nStart;var nTotal;
         async.waterfall([
             function(cb){
-                async.forEachLimit(oSelf.aFriends,100,function(oFriend,callback) {
-                    oSelf.oUser.setExtra('cFriends',oFriend,callback);
+                async.forEachLimit(self.aFriends,100,function(friend,callback) {
+                    self.user.setExtra('friends',friend,callback);
                 },function(err){
                     cb(err,null);
                 });
             }
             ,function(o,cb){
-                test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);
+                test.equal(self.user.friends.nTotal,nTestSize);
                 cb(null,null);
             }
             ,function(o,cb){
-                // Now, lookup cFriends and include the oUser and oFriend properties on cFriend items.
+                // Now, lookup friends and include the user and friend properties on cFriend items.
                 nStart = new Date().getTime();
-                oSelf.oUser.loadExtras({cFriends:true},cb);
+                self.user.loadExtras({friends:true},cb);
             }
-            ,function(oUser,cb){
+            ,function(user,cb){
                 nTotal = new Date().getTime()-nStart;
-                console.log('Extras lookup: '+nTotal+' ms');
-                test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);
+                App.log('Extras lookup: '+nTotal+' ms');
+                test.equal(self.user.friends.nTotal,nTestSize);
                 cb(null,null);
             }
             ,function(o,cb){
                 nStart = new Date().getTime();
                 // Serialize just the user.
-                var hResult = oSelf.oUser.toHash();
+                self.user.toHash();
                 nTotal = new Date().getTime() - nStart;
-                console.log('Serialize just user: '+nTotal+' ms');
+                App.log('Serialize just user: '+nTotal+' ms');
                 // Now benchmark serializing the user and his friends.
                 nStart = new Date().getTime();
-                hResult = oSelf.oUser.toHash({cFriends:true});
+                self.user.toHash({friends:true});
                 nTotal = new Date().getTime() - nStart;
-                console.log('Serialize user & '+nTestSize+' friends: '+nTotal+' ms');
+                App.log('Serialize user & '+nTestSize+' friends: '+nTotal+' ms');
 
                 cb();
             }
         ],function(err){App.wrapTest(err,test)});
     }
     ,removeFriends:function(test) {
-        var oSelf = this;
+        var self = this;
         test.expect(2);
         async.waterfall([
             function(cb){
-                async.forEachLimit(oSelf.aFriends,100,function(oFriend,callback) {
-                    oSelf.oUser.setExtra('cFriends',oFriend,callback);
+                async.forEachLimit(self.aFriends,100,function(friend,callback) {
+                    self.user.setExtra('friends',friend,callback);
                 },function(err){
                     cb(err,null);
                 });
             }
             ,function(o,cb){
-                test.equal(oSelf.oUser.cFriends.nTotal,nTestSize);
+                test.equal(self.user.friends.nTotal,nTestSize);
                 cb(null,null);
             }
             ,function(o,cb){
-                async.forEachLimit(oSelf.aFriends,1,function(oFriend,callback) {
-                    oSelf.oUser.deleteExtra('cFriends',oFriend,callback);
+                async.forEachLimit(self.aFriends,1,function(friend,callback) {
+                    self.user.deleteExtra('friends',friend,callback);
                 },function(err){
                     cb(err,null);
                 });
             }
             ,function(o,cb){
-                test.equal(oSelf.oUser.cFriends.nTotal,0);
+                test.equal(self.user.friends.nTotal,0);
                 cb(null,null);
             }
         ],function(err){App.wrapTest(err,test)});

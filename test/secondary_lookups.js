@@ -5,32 +5,32 @@ var async       = require('async'),
 
 module.exports = {
     setUp:function(callback) {
-        var oSelf = this;
-        oSelf.oUser = Base.lookup({sClass:'User'});
-        oSelf.oUser.set('sName','TestUser');
-        oSelf.oUser.set('sEmail','test@test.com');
-        oSelf.oUser.save(null,callback);
+        var self = this;
+        self.user = Base.lookup({sClass:'User'});
+        self.user.set('name','TestUser');
+        self.user.set('email','test@test.com');
+        self.user.save(null,callback);
     }
     ,tearDown:function(callback) {
-        var oSelf = this;
-        oSelf.oUser.delete(callback);
+        var self = this;
+        self.user.delete(callback);
     }
     ,lookupViaSecondaryField:function(test){
-        var oSelf = this;
+        var self = this;
         test.expect(1);
         // This test should use the _CrossReferenceTbl to find the primary key id of the user with the email test@test.com.
         async.waterfall([
             function(cb) {
-                Base.lookup({sClass:'User',hQuery:{sEmail:'test@test.com'}},cb);
+                Base.lookup({sClass:'User',hQuery:{email:'test@test.com'}},cb);
             }
-            ,function(oUser,cb){
-                test.equal(oSelf.oUser.getNumKey(),oUser.getNumKey());
+            ,function(user,cb){
+                test.equal(self.user.getNumKey(),user.getNumKey());
                 cb();
             }
         ],function(err){ App.wrapTest(err,test); });
     }
     ,lookupWhenCrossRefMissing:function(test){
-        var oSelf = this;
+        var self = this;
         test.expect(1);
         // This test simulates a missing cross-reference value and looks the record up directly against the table using the email.
         async.waterfall([
@@ -40,31 +40,29 @@ module.exports = {
                     if (err)
                         cb(err);
                     else
-                        oClient.del(oSelf.oUser.nClass+':'+oSelf.oUser.get('sEmail'),cb);
+                        oClient.del(self.user.nClass+':'+self.user.get('email'),cb);
                 });
             }
             ,function(res,cb) {
                 // Next, in MySql.
-                App.MySql.execute(null,'DELETE FROM _CrossReferenceTbl WHERE sID=?',[oSelf.oUser.nClass+':'+oSelf.oUser.get('sEmail')],cb);
+                App.MySql.execute(null,'DELETE FROM _CrossReferenceTbl WHERE sID=?',[self.user.nClass+':'+self.user.get('email')],cb);
             }
             ,function(res,cb) {
-                Base.lookup({sClass:'User',hQuery:{sEmail:'test@test.com'}},cb);
+                Base.lookup({sClass:'User',hQuery:{email:'test@test.com'}},cb);
             }
-            ,function(oUser,cb){
-                test.equal(oSelf.oUser.getNumKey(),oUser.getNumKey());
+            ,function(user,cb){
+                test.equal(self.user.getNumKey(),user.getNumKey());
                 cb();
             }
         ],function(err){ App.wrapTest(err,test); });
     }
     ,lookupEmailNotPresent:function(test){
-        var oSelf = this;
-
         async.waterfall([
             function(cb){
-                Base.lookup({sClass:'User',hQuery:{sEmail:'testy@test.com'}},cb);
+                Base.lookup({sClass:'User',hQuery:{email:'testy@test.com'}},cb);
             }
-            ,function(oUser,cb) {
-                test.equal(oUser.getNumKey(),undefined);
+            ,function(user,cb) {
+                test.equal(user.getNumKey(),undefined);
                 cb();
             }
         ],function(err){ App.wrapTest(err,test); });

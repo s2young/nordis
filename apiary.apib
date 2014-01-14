@@ -44,7 +44,7 @@ Retrieves collection of friends for the passed-in user.
     + id (required,String,`Yf8uIoP`) ... String id of the user record. Numeric ids are also supported.
 
 ### Retrieve Friend Collection [GET]
-The fnApiOutput is added to automatically return the friend_user property on each friend result. Or that can be left to the user to request it.
+This api call is an example of how to define a custom function (fnApiCallProcessor) to track stats or check security credentials on an endpoint. Also, this example has a custom output function (fnApiCallOutput) which customizes what the returning document looks like. Both are defined in the config file.
 + Response 200 (application/json)
     + Body
 

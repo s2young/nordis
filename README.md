@@ -1,30 +1,38 @@
 nordis
 =====
 
-Bare-bones framework for rapid web application development that scales with you.
+Node.js framework for rapid web application and API development that utilizes the speed of Redis without sacrificing the piece
+of mind provided by a relational database.
 
 Nordis Highlights:
 
 1. Code-first. You define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables
 and columns in MySql for you.
 
-2. Redis as DB. Nordis stores objects in both Redis and MySql and will always pull from Redis first if the object is available,
+2. Redis + MySql as DB. Nordis stores objects in both Redis and MySql and will always pull from Redis first if the object is available,
 unless you specify otherwise in your code. This means consistently fast look-ups without losing the peace-of-mind that
-a relational db provides.  I definitely would like to add support for other dbs over time.
+a relational db provides.  Plugins for Postgres and other relational dbs shouldn't be too hard to add over time.
 
-3. Base class. Nordis objects include convenient methods to save, delete and serialize. You can override the Base class
-to add custom methods. You can also attach an adapter that is triggered post-db call, so you can respond to a new/removed/changed
-  object.
+3. Nested Property Lookups. Almost never does a resource exist in a model without relationships with other resources. Twitter users,
+for example, have followers. Nordis allows you to retrieve a complex document relating to the resource including collections of
+ data (a list of followers, for example; or just the first page of followers).
 
-4. Collection class. Nordis collections make it easy to iterate, page, and serialize objects. These features extend to REST calls
-to the built-in API.
+4. Base Class. The Nordis base class provides all your CRUD boilerplate methods. You can create your own custom modules that extend
+the Base class.
 
-5. Extended properties on objects. Define objects or collections that exist as properties on other objects,
-and you immediately have the ability to store and retrieve those objects and collections along with the parent object to
-which they belong - in a single line of code. This feature extends to the REST API as well.
+5. Collection Class. The Nordis collection provides support for getting paged data easily, as well as getting the total number of
+items in the collection regardless of the size of the page you request. Collections are defined in configuration, including how they
+are sorted and the query parameters required to pull the collection directly from MySql. They are stored in Redis using Redis'
+Sorted Set data type, a powerful and fast tool for storing collections. Again, if the data isn't in Redis we'll check MySql.
 
-6. API-in-config. The configuration file also supports API definition so you can quickly create a REST API for your model. In
-addition, Nordis includes an apiary.js script that outputs the contents of the configuration into Apiary.io-compatible API documentation.
+6. API Boilerplate & Apiary Docs. Nordis is packaged with the ability to create a RESTful API by defining endpoints in your config file
+and utilizing the provided expressjs Middleware functions. The parser middleware performs all the CRUD exposed in the API, while
+the pre-parser only looks up the desired resource and sets properties on the resource (in the case of updates) but does NOT
+save the resource. There are a couple of hooks you can add to any api call to customize the output, track stats, check security, etc.
+You can, of course, bypass this middleware completely and build your own API. By defining the API in config,
+however, you can leverage the packaged apiary.js script which outputs API documentation for use over at apiary.io. Your choice.
+
+
 
 
 

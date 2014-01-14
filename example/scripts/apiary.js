@@ -1,7 +1,7 @@
 /**
  This script outputs apiary-compatible documentation for the api, based on what is provided in the config file.
  **/
-var App     = require('./../../lib/AppConfig'),
+var AppConfig     = require('./../../lib/AppConfig'),
     Base    = require('./../../lib/Base'),
     Collection= require('./../../lib/Collection'),
     fs      = require('fs'),
@@ -33,7 +33,7 @@ else {
             else
                 throw new Error(err);// miscellaneous error (e.g. permissions)
 
-            App.exit();
+            AppConfig.exit();
         } else {
             if (status.isDirectory())
                 sPath += '/apiary.apib';
@@ -45,7 +45,7 @@ else {
 
             async.series([
                 function(callback) {
-                    App.init(null,callback);
+                    AppConfig.init(null,callback);
                 }
                 // Write top-level info about the API.
                 ,function(callback) {
@@ -54,20 +54,20 @@ else {
                     // Write the first line.
                     fs.appendFileSync(sPath,'FORMAT: 1A\n');
                     // And the hostname for the api.
-                    if (App.hApi && App.hApi.sHost)
-                        fs.appendFileSync(sPath,'HOST: '+App.hApi.sHost+'\n\n');
+                    if (AppConfig.hApi && AppConfig.hApi.sHost)
+                        fs.appendFileSync(sPath,'HOST: '+AppConfig.hApi.sHost+'\n\n');
                     // And the title for the api.
-                    if (App.hApi && App.hApi.sTitle)
-                        fs.appendFileSync(sPath,'# '+App.hApi.sTitle+'\n');
+                    if (AppConfig.hApi && AppConfig.hApi.sTitle)
+                        fs.appendFileSync(sPath,'# '+AppConfig.hApi.sTitle+'\n');
                     // And the description for the api.
-                    if (App.hApi && App.hApi.sDescription)
-                        fs.appendFileSync(sPath,App.hApi.sDescription+'\n\n');
+                    if (AppConfig.hApi && AppConfig.hApi.sDescription)
+                        fs.appendFileSync(sPath,AppConfig.hApi.sDescription+'\n\n');
                     callback();
                 }
                 // Write documentation for all the classes that have an hApi section in the conf file.
                 ,function(callback) {
-                    for (var sClass in App.hClasses) {
-                        if (App.hClasses[sClass].hApi)
+                    for (var sClass in AppConfig.hClasses) {
+                        if (AppConfig.hClasses[sClass].hApi)
                             aClasses.push(sClass);
                     }
                     if (aClasses.length)
@@ -81,25 +81,25 @@ else {
 
                         // Write class-level details.
                         fs.appendFileSync(sPath,'# Group '+sClass+'\n');
-                        if (App.hClasses[sClass].hApi.sDescription)
-                            fs.appendFileSync(sPath,App.hClasses[sClass].hApi.sDescription+'\n\n');
+                        if (AppConfig.hClasses[sClass].hApi.sDescription)
+                            fs.appendFileSync(sPath,AppConfig.hClasses[sClass].hApi.sDescription+'\n\n');
 
                         var aEndpoints = [];
                         // Create entries for each endpoint/path.
-                        for (var sEndpoint in App.hClasses[sClass].hApi.hEndpoints) {
+                        for (var sEndpoint in AppConfig.hClasses[sClass].hApi.hEndpoints) {
                             aEndpoints.push(sEndpoint);
                         }
 
                         if (aEndpoints.length)
                             async.forEach(aEndpoints,function(sEndpoint,cb) {
                                 fs.appendFileSync(sPath,'## '+sClass+' ['+sEndpoint+']\n');
-                                fs.appendFileSync(sPath,App.hClasses[sClass].hApi.hEndpoints[sEndpoint].sDescription+'\n\n');
+                                fs.appendFileSync(sPath,AppConfig.hClasses[sClass].hApi.hEndpoints[sEndpoint].sDescription+'\n\n');
 
-                                if (App.hClasses[sClass].hApi.hEndpoints[sEndpoint].hParameters) {
+                                if (AppConfig.hClasses[sClass].hApi.hEndpoints[sEndpoint].hParameters) {
                                     fs.appendFileSync(sPath,'+ Parameters\n');
 
-                                    for (var sParam in App.hClasses[sClass].hApi.hEndpoints[sEndpoint].hParameters) {
-                                        var hParam = App.hClasses[sClass].hApi.hEndpoints[sEndpoint].hParameters[sParam];
+                                    for (var sParam in AppConfig.hClasses[sClass].hApi.hEndpoints[sEndpoint].hParameters) {
+                                        var hParam = AppConfig.hClasses[sClass].hApi.hEndpoints[sEndpoint].hParameters[sParam];
                                         fs.appendFileSync(sPath,'    + '+sParam+' (');
                                         if (hParam.bRequired)
                                             fs.appendFileSync(sPath,'required');
@@ -114,9 +114,9 @@ else {
                                     fs.appendFileSync(sPath,'\n');
                                 }
 
-                                if (App.hClasses[sClass].hApi.hEndpoints[sEndpoint].hVerbs) {
-                                    for (var sVerb in App.hClasses[sClass].hApi.hEndpoints[sEndpoint].hVerbs) {
-                                        var hVerb = App.hClasses[sClass].hApi.hEndpoints[sEndpoint].hVerbs[sVerb];
+                                if (AppConfig.hClasses[sClass].hApi.hEndpoints[sEndpoint].hVerbs) {
+                                    for (var sVerb in AppConfig.hClasses[sClass].hApi.hEndpoints[sEndpoint].hVerbs) {
+                                        var hVerb = AppConfig.hClasses[sClass].hApi.hEndpoints[sEndpoint].hVerbs[sVerb];
                                         fs.appendFileSync(sPath,'### '+hVerb.sTitle+' ['+sVerb+']\n');
                                         if (hVerb.sDescription)
                                             fs.appendFileSync(sPath,hVerb.sDescription+'\n');
@@ -128,8 +128,8 @@ else {
 
                                                 // Build sample objects based on the sEndpoint. This is why we set an 'sSample' property in the class.property definitions.
                                                 var oObj = Base.lookup({sClass:sClass});
-                                                for (var sProp in App.hClasses[sClass].hProperties) {
-                                                    oObj.set(sProp,App.hClasses[sClass].hProperties[sProp].sSample,true);
+                                                for (var sProp in AppConfig.hClasses[sClass].hProperties) {
+                                                    oObj.set(sProp,AppConfig.hClasses[sClass].hProperties[sProp].sSample,true);
                                                 }
 
                                                 // Now, serialize with either the provided override or the default toHash method.
@@ -137,11 +137,11 @@ else {
                                                     fs.appendFileSync(sPath,'            '+JSON.stringify(hVerb.hSample)+'\n\n');
                                                 else {
                                                     var hResult = oObj.toHash();
-                                                    if (hVerb.fnApiOutput) {
-                                                        if (!hVerb.fnApiOutput.toString().match(/return /))
-                                                            throw new Error('To properly create Apiary docs, each fnApiOutput in your config file method should include a synchronous path with a return statement, and return sample data for documentation purposes.');
+                                                    if (hVerb.fnApiCallOutput) {
+                                                        if (!hVerb.fnApiCallOutput.toString().match(/return /))
+                                                            throw new Error('To properly create Apiary docs, each fnApiCallOutput in your config file method should include a synchronous path with a return statement, and return sample data for documentation purposes.');
                                                         else {
-                                                            hResult = hVerb.fnApiOutput({hNordis:{oResult:oObj}});
+                                                            hResult = hVerb.fnApiCallOutput({hNordis:{oResult:oObj}});
                                                         }
                                                     }
                                                     fs.appendFileSync(sPath,'            '+JSON.stringify(hResult)+'\n\n');
@@ -163,9 +163,9 @@ else {
                 }
             ],function(err){
                 if (err)
-                    App.error(err);
+                    AppConfig.error(err);
 
-                App.exit();
+                AppConfig.exit();
             });
         }
     });

@@ -1,11 +1,10 @@
 var async       = require('async'),
-    moment      = require('moment'),
     request     = require('request'),
     express     = require('express'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
     Middleware  = require('./../lib/Utils/Middleware'),
-    App         = require('./../lib/AppConfig');
+    AppConfig         = require('./../lib/AppConfig');
 
 /**
  * This test is all about confirming the accuracy of the stats-tracking capabilities of Nordis. There are a couple
@@ -39,23 +38,37 @@ module.exports = {
                     cb(err);
                 });
             }
-            // Delete any stats tracked even incidentally by other tests.
+            // Delete all stats, just in case a previous test triggered some tracking we don't care about.
             ,function(cb) {
-                var q = async.queue(function(sProp,cback){
-                    if (self.oApp[sProp] instanceof Collection) {
-                        console.log('delete '+sProp);
-                        self.oApp[sProp].delete(cback);
+                // Flush all stats.
+                var q = async.queue(function(hOpts,cback){
+                    if (hOpts.sStat && hOpts.sGrain) {
+                        var hExtras = {};
+                        hExtras[hOpts.sStat] = {hExtras:{}};
+                        hExtras[hOpts.sStat][hOpts.sGrain] = true;
+                        self.oApp.loadExtras(hExtras,function(err){
+                            if (err)
+                                cback(err);
+                            else if (self.oApp[hOpts.sStat] && self.oApp[hOpts.sStat][hOpts.sGrain])
+                                self.oApp[hOpts.sStat][hOpts.sGrain].delete(cback);
+                            else
+                                cback();
+                        });
                     } else
                         cback();
                 },1);
                 q.drain = cb;
-                for (var sProp in self.oApp) {
-                    q.push(sProp);
+
+                for (var sStat in AppConfig.hStats) {
+                    ['hour','day','month','year'].forEach(function(sGrain){
+                        q.push({sStat:sStat,sGrain:sGrain});
+                    });
+                    q.push({});
                 }
             }
             // Start up the api.
             ,function(cb) {
-                App.init(null,function(err){
+                AppConfig.init(null,function(err){
                     if (err)
                         cb(err);
                     else {
@@ -76,16 +89,30 @@ module.exports = {
                 self.user.delete(cb);
             }
             ,function(cb) {
-                var q = async.queue(function(sProp,cback){
-                    if (self.oApp[sProp] instanceof Collection) {
-                        console.log('delete '+sProp);
-                        self.oApp[sProp].delete(cback);
+                // Flush all stats.
+                var q = async.queue(function(hOpts,cback){
+                    if (hOpts.sStat && hOpts.sGrain) {
+                        var hExtras = {};
+                        hExtras[hOpts.sStat] = {hExtras:{}};
+                        hExtras[hOpts.sStat][hOpts.sGrain] = true;
+                        self.oApp.loadExtras(hExtras,function(err){
+                            if (err)
+                                cback(err);
+                            else if (self.oApp[hOpts.sStat] && self.oApp[hOpts.sStat][hOpts.sGrain])
+                                self.oApp[hOpts.sStat][hOpts.sGrain].delete(cback);
+                            else
+                                cback();
+                        });
                     } else
                         cback();
                 },1);
                 q.drain = cb;
-                for (var sProp in self.oApp) {
-                    q.push(sProp);
+
+                for (var sStat in AppConfig.hStats) {
+                    ['hour','day','month','year'].forEach(function(sGrain){
+                        q.push({sStat:sStat,sGrain:sGrain});
+                    });
+                    q.push({});
                 }
             }
             ,function(cb){
@@ -98,152 +125,42 @@ module.exports = {
 //    ,uniqueStatFail:function(test) {
 //        test.expect(3);
 //        var sStat = 'unique_users';
-//
 //        async.series([
 //            function(callback){
-//                App.trackStat('stat_that_does_not_exist',[],function(err){
+//                AppConfig.trackStat('stat_that_does_not_exist',[],function(err){
+//                    console.log(err);
 //                    test.equal(err,'Stat not configured: stat_that_does_not_exist');
 //                    callback();
 //                });
 //            }
 //            ,function(callback) {
-//                App.trackStat('misconfigured_stat',[],function(err){
+//                AppConfig.trackStat('misconfigured_stat',[],function(err){
+//                    console.log(err);
 //                    test.equal(err,'fnValidate not defined for stat: misconfigured_stat');
 //                    callback();
 //                });
 //            }
 //            ,function(callback) {
-//                App.trackStat(sStat,[],function(err){
+//                AppConfig.trackStat(sStat,[],function(err){
+//                    console.log(err);
 //                    test.equal(err,'This stat requires a User object as first param.');
 //                    callback();
 //                });
 //            }
-//        ],function(err){App.wrapTest(err,test)});
-//    }
-//    ,uniqueStatSuccess:function(test) {
-//        var sStat = 'unique_users';
-//        var self = this;
-//        var dStart;
-//        var dEnd;
-//
-//        test.expect(nTestSize+10+365);
-//        async.series([
-//            // First we simulate the tracking of a unique user.
-//            function(callback){
-//                var nTotal = 0; // Gonna do rough benchmark of time needed to store the stats.
-//                var q = async.queue(function(n,cb){
-//                    var nStart = new Date().getTime();
-//                    App.trackStat(sStat,[self.user],function(err,res){
-//                        nTotal += new Date().getTime()-nStart;
-//                        test.deepEqual(res,[(n+1),(n+1),(n+1),(n+1)]);
-//                        cb();
-//                    });
-//                },1);
-//                q.drain = function(){
-//                    App.log('Time per stat track, incrementing at four different granularities - (MS): '+(nTotal/nTestSize));
-//                    callback();
-//                };
-//                for (var i = 0; i < nTestSize; i++) {
-//                    q.push(i,function(err){
-//                        if (err)
-//                            App.error(err);
-//                    });
-//                }
-//            }
-//            // Next, we run the method that puts stats in a retrievable form.
-//            ,function(callback) {
-//                dStart = new Date(new Date().getTime()-100000);
-//                dEnd = new Date();
-//                App.processStats(dStart,dEnd,callback);
-//            }
-//            // Load up the app singleton and its stat collections for each granularity.
-//            ,function(callback){
-//                var hExtras = {};
-//                ['year','month','day','hour'].forEach(function(sGrain){
-//                    hExtras[sStat+'_'+sGrain] = true;
-//                });
-//                self.oApp.loadExtras(hExtras,callback);
-//            }
-//            // Validate our counts - which should be ONE because no matter the test size there's just one user being tracked here.
-//            ,function(callback) {
-//                ['year','month','day','hour'].forEach(function(sGrain){
-//                    if (self.oApp[sStat+'_'+sGrain] && self.oApp[sStat+'_'+sGrain].first())
-//                        test.equal(self.oApp[sStat+'_'+sGrain].first().get('count'),1);
-//                    else
-//                        test.equal(null,1);
-//                });
-//                callback();
-//            }
-//            // Now, let's simulate a year's worth of stats, starting Jan 1, 2013.
-//            ,function(callback) {
-//                dStart = new Date(2013,0,1);
-//                dEnd = new Date(2013,11,31);
-//
-//                var nTotal = 0; // Gonna do rough benchmark of time needed to store the stats.
-//                var q = async.queue(function(dDate,cb){
-//                    var nStart = new Date().getTime();
-//                    App.trackStat(sStat,[self.user],function(err,res){
-//                        nTotal += new Date().getTime()-nStart;
-//                        test.deepEqual(res.length,4);
-//                        cb();
-//                    },dDate);
-//                },1);
-//                q.drain = function(){
-//                    App.log('Time per stat track, incrementing at four different granularities - (MS): '+(nTotal/365));
-//                    callback();
-//                };
-//                while (dStart <= dEnd) {
-//                    q.push(dStart);
-//                    var m = moment(dStart);
-//                    m = m.add('days',1);
-//                    dStart = new Date(m.valueOf());
-//                }
-//            }
-//            ,function(callback) {
-//                App.processStats(dStart,dEnd,callback);
-//            }
-//            // Load up the app singleton and its stat collections for each granularity.
-//            ,function(callback){
-//                var hExtras = {};
-//                ['year','month','day','hour'].forEach(function(sGrain){
-//                    hExtras[sStat+'_'+sGrain] = true;
-//                });
-//                self.oApp.loadExtras(hExtras,callback);
-//            }
-//            // Validate our counts - which should be ONE because no matter the test size there's just one user being tracked here.
-//            ,function(callback) {
-//                ['year','month','day','hour'].forEach(function(sGrain){
-//
-//                    if (self.oApp[sStat+'_'+sGrain].first()) {
-//                        // The 'day' granularity collection should have 366 items in it, for both tests above.
-//                        switch (sGrain) {
-//                            case 'day':
-//                                test.equal(self.oApp[sStat+'_'+sGrain].nTotal,366);
-//                                break;
-//                            case 'month':
-//                                test.equal(self.oApp[sStat+'_'+sGrain].nTotal,13);
-//                                break;
-//                        }
-//                        test.equal(self.oApp[sStat+'_'+sGrain].first().get('count'),1);
-//                    } else
-//                        test.equal(null,1);
-//                });
-//                callback();
-//            }
-//
-//        ],function(err){App.wrapTest(err,test)});
+//        ],function(err){AppConfig.wrapTest(err,test)});
 //    }
     ,middlewareStats:function(test){
         var self = this;
         // This test makes sure that the fnMiddleware function defined in the example conf.js file is running and
         // tracking the stats appropriately as API requests come in.
-        test.expect(2);
+        test.expect(1);
         async.series([
             function(callback){
-
                 // call the api up to nTestSize times.
                 var q = async.queue(function(n,cb){
-                    request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()},function(error, response, body){
+                    request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/friends'},function(error, response, body){
+                        if (error)
+                            AppConfig.error(error);
                         cb();
                     });
                 },10);
@@ -251,39 +168,33 @@ module.exports = {
                 for (var i = 0; i < nTestSize; i++){
                     q.push(i);
                 }
-
             }
             //Now, let's process our stats.
             ,function(callback){
                 var dStart = new Date(new Date().getTime()-100000);
                 var dEnd = new Date();
-                App.processStats(dStart,dEnd,callback);
+                AppConfig.processStats(dStart,dEnd,callback);
             }
             // Load up the app singleton and its stat collections for each granularity.
             ,function(callback){
                 self.oApp.loadExtras({
-                    hits_day:true
-                    ,api_requests_hour:true
+                    api_requests:{hExtras:{hour:true}}
                 },callback);
             }
             // Validate our counts - which should be ONE because no matter the test size there's just one user being tracked here.
             ,function(callback) {
-                var nHits = (self.oApp.hits_day && self.oApp.hits_day.first()) ? self.oApp.hits_day.first().get('count') : 0;
-                test.equal(nHits,nTestSize);
-
-                var nApiRequests = (self.oApp.api_requests_hour && self.oApp.api_requests_hour.first()) ? self.oApp.api_requests_hour.first().get('count') : 0;
+                var nApiRequests = (self.oApp.api_requests && self.oApp.api_requests.hour && self.oApp.api_requests.hour.first()) ? self.oApp.api_requests.hour.first().get('count') : 0;
                 test.equal(nApiRequests,1);
-
                 callback();
             }
 
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
 
     }
 //    ,totalStatSuccess:function(test){
 //        var sStat = 'unique_users';
 //        var self = this;
-//        test.expect(nTestSize+App.hStats[sStat].aGranularities.length);
+//        test.expect(nTestSize+AppConfig.hStats[sStat].aGranularities.length);
 //
 //        async.series([
 //            // First we simulate the tracking of a unique user.
@@ -292,7 +203,7 @@ module.exports = {
 //                var nTotal = 0;
 //                var trackStat = function(n,cb){
 //                    var nStart = new Date().getTime();
-//                    App.trackStat(sStat,[self.user],function(err,res){
+//                    AppConfig.trackStat(sStat,[self.user],function(err,res){
 //                        nTotal += new Date().getTime()-nStart;
 //                        test.deepEqual(res,[(n+1),(n+1)]);
 //                        cb();
@@ -300,13 +211,13 @@ module.exports = {
 //                };
 //                var q = async.queue(trackStat,1);
 //                q.drain = function(){
-//                    App.log('Time per stat track (MS): '+(nTotal/nTestSize));
+//                    AppConfig.log('Time per stat track (MS): '+(nTotal/nTestSize));
 //                    callback();
 //                };
 //                for (var i = 0; i < nTestSize; i++) {
 //                    q.push(i,function(err){
 //                        if (err)
-//                            App.error(err);
+//                            AppConfig.error(err);
 //                    });
 //                }
 //            }
@@ -314,19 +225,19 @@ module.exports = {
 //            ,function(callback) {
 //                var dStart = new Date(new Date().getTime()-100000);
 //                var dEnd = new Date();
-//                App.processStats(dStart,dEnd,callback);
+//                AppConfig.processStats(dStart,dEnd,callback);
 //            }
 //            // Load up the app and its stat collection for the 'day' granularity.
 //            ,function(callback){
 //                var hExtras = {};
-//                App.hStats[sStat].aGranularities.forEach(function(sGrain){
+//                AppConfig.hStats[sStat].aGranularities.forEach(function(sGrain){
 //                    hExtras[sStat+'_'+sGrain] = true;
 //                });
 //                self.oApp.loadExtras(hExtras,callback);
 //            }
 //            ,function(callback) {
 //
-//                App.hStats[sStat].aGranularities.forEach(function(sGrain){
+//                AppConfig.hStats[sStat].aGranularities.forEach(function(sGrain){
 //                    if (self.oApp[sStat+'_'+sGrain].first())
 //                        test.equal(self.oApp[sStat+'_'+sGrain].first().get('count'),1);
 //                    else
@@ -335,6 +246,6 @@ module.exports = {
 //
 //                callback();
 //            }
-//        ],function(err){App.wrapTest(err,test)});
+//        ],function(err){AppConfig.wrapTest(err,test)});
 //    }
 };

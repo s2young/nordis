@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    App         = require('./../lib/AppConfig');
+    AppConfig         = require('./../lib/AppConfig');
 
 module.exports = {
     setUp:function(callback) {
@@ -24,10 +24,10 @@ module.exports = {
                 Base.lookup({sClass:'User',hQuery:{email:'test@test.com'}},cb);
             }
             ,function(user,cb){
-                test.equal(self.user.getNumKey(),user.getNumKey());
+                test.equal(self.user.getKey(),user.getKey());
                 cb();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,lookupWhenCrossRefMissing:function(test){
         var self = this;
@@ -36,7 +36,7 @@ module.exports = {
         async.waterfall([
             function(cb) {
                 // First, let's remove the _CrossReferenceTbl record for this lookup in redis.
-                App.Redis.acquire(function(err,oClient){
+                AppConfig.Redis.acquire(function(err,oClient){
                     if (err)
                         cb(err);
                     else
@@ -45,16 +45,16 @@ module.exports = {
             }
             ,function(res,cb) {
                 // Next, in MySql.
-                App.MySql.execute(null,'DELETE FROM _CrossReferenceTbl WHERE sID=?',[self.user.nClass+':'+self.user.get('email')],cb);
+                AppConfig.MySql.execute(null,'DELETE FROM _CrossReferenceTbl WHERE sID=?',[self.user.nClass+':'+self.user.get('email')],cb);
             }
             ,function(res,cb) {
                 Base.lookup({sClass:'User',hQuery:{email:'test@test.com'}},cb);
             }
             ,function(user,cb){
-                test.equal(self.user.getNumKey(),user.getNumKey());
+                test.equal(self.user.getKey(),user.getKey());
                 cb();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,lookupEmailNotPresent:function(test){
         async.waterfall([
@@ -62,9 +62,9 @@ module.exports = {
                 Base.lookup({sClass:'User',hQuery:{email:'testy@test.com'}},cb);
             }
             ,function(user,cb) {
-                test.equal(user.getNumKey(),undefined);
+                test.equal(user.getKey(),undefined);
                 cb();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
 };

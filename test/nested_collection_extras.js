@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    App         = require('./../lib/AppConfig');
+    AppConfig         = require('./../lib/AppConfig');
 
 /**
  * This test creates friends on friends on friends and shows how to look up a user, his friends and his friends friends.
@@ -16,7 +16,7 @@ module.exports = {
         var self = this;
 
         if (nTestSize < 2) {
-            App.error('nTestSize must be at least 2.');
+            AppConfig.error('nTestSize must be at least 2.');
         } else
             async.series([
                 function(cb) {
@@ -39,8 +39,8 @@ module.exports = {
                             }
                             ,function(friend_user,cb) {
                                 var friend = Base.lookup({sClass:'Friend'});
-                                friend.set('user_id',self.user.getNumKey());
-                                friend.set('friend_id',friend_user.getNumKey());
+                                friend.set('user_id',self.user.getKey());
+                                friend.set('friend_id',friend_user.getKey());
                                 friend.set('rank',n);
                                 friend.save(null,cb);
                             }
@@ -51,10 +51,10 @@ module.exports = {
                                 Base.lookup({sClass:'User',hQuery:{email:'testfriend'+(n-1)+'@test.com'}},cb);
                             }
                             ,function(oLastUser,cb){
-                                if (oLastUser.getNumKey()) {
+                                if (oLastUser.getKey()) {
                                     var friendOfFriend = Base.lookup({sClass:'Friend'});
-                                    friendOfFriend.set('user_id',friend_user.getNumKey());
-                                    friendOfFriend.set('friend_id',oLastUser.getNumKey());
+                                    friendOfFriend.set('user_id',friend_user.getKey());
+                                    friendOfFriend.set('friend_id',oLastUser.getKey());
                                     friendOfFriend.set('rank',1);
                                     friendOfFriend.save(null,cb);
                                 } else
@@ -81,7 +81,7 @@ module.exports = {
     ,tearDown:function(callback) {
         async.series([
             function(cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},function(err,cColl){
+                new Collection({sClass:'Friend',hQuery:{sWhere:AppConfig.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -89,7 +89,7 @@ module.exports = {
                 });
             }
             ,function(cb){
-                new Collection({sClass:'User',hQuery:{sWhere:App.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},function(err,cColl){
+                new Collection({sClass:'User',hQuery:{sWhere:AppConfig.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -128,6 +128,6 @@ module.exports = {
 
                 cb();
             }
-        ],function(err){App.wrapTest(err,test)});
+        ],function(err){AppConfig.wrapTest(err,test)});
     }
 };

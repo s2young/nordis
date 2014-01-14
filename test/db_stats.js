@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    App         = require('./../lib/AppConfig');
+    AppConfig         = require('./../lib/AppConfig');
 
 /**
  * This test is all about confirming the accuracy of the stats-tracking capabilities of Nordis. There are a couple

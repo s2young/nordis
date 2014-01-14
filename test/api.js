@@ -4,7 +4,7 @@ var express     = require('express'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
     Middleware  = require('./../lib/Utils/Middleware'),
-    App         = require('./../lib/AppConfig');
+    AppConfig         = require('./../lib/AppConfig');
 
 var nTestSize = 10;
 var nPort = 2002; // Port on which to run api instance during test.
@@ -32,8 +32,8 @@ module.exports = {
                             callback(err);
                         else {
                             var friend = Base.lookup({sClass:'Friend'});
-                            friend.set('user_id',self.user.getNumKey());
-                            friend.set('friend_id',friend_user.getNumKey());
+                            friend.set('user_id',self.user.getKey());
+                            friend.set('friend_id',friend_user.getKey());
                             friend.set('rank',n);
                             friend.save(null,function(err){
                                 callback(err);
@@ -50,7 +50,7 @@ module.exports = {
             }
             // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
             ,function(cb) {
-                App.init(null,function(err){
+                AppConfig.init(null,function(err){
                     if (err)
                         cb(err);
                     else {
@@ -73,7 +73,7 @@ module.exports = {
                 users.delete(cb);
             }
             ,function(ignore,cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},cb);
+                new Collection({sClass:'Friend',hQuery:{sWhere:AppConfig.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},cb);
             }
             ,function(friends,cb) {
                 friends.delete(cb);
@@ -99,7 +99,7 @@ module.exports = {
                         try {
                             callback(error,JSON.parse(body));
                         } catch (err) {
-                            App.error(body);
+                            AppConfig.error(body);
                         }
                     }
 
@@ -107,10 +107,10 @@ module.exports = {
             }
             ,function(hResult,callback){
                 var user = Base.lookup({sClass:'User',hData:hResult});
-                test.equal(user.getNumKey(),self.user.getNumKey());
+                test.equal(user.getKey(),self.user.getKey());
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,lookupUserAndFriends:function(test) {
         var self = this;
@@ -135,12 +135,12 @@ module.exports = {
             }
             ,function(hResult,callback){
                 var user = Base.lookup({sClass:'User',hData:hResult});
-                test.equal(user.getNumKey(),self.user.getNumKey());
+                test.equal(user.getKey(),self.user.getKey());
                 test.equal(hResult.friends.nTotal,nTestSize);
 
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,changeUserName:function(test) {
         // This test submits a save.json call on the existing user, changing his name.
@@ -159,7 +159,7 @@ module.exports = {
                 test.equal(hResult.name,sNewName);
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,badClassInRequest:function(test) {
         test.expect(1);
@@ -171,7 +171,7 @@ module.exports = {
                     callback(error,body);
                 });
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,lookupUserByNumberID:function(test) {
         var self = this;
@@ -179,16 +179,16 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getNumKey()},function(error, response, body){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getKey()},function(error, response, body){
                     callback(error,JSON.parse(body));
                 });
             }
             ,function(hResult,callback){
                 var user = Base.lookup({sClass:'User',hData:hResult});
-                test.equal(user.getNumKey(),self.user.getNumKey());
+                test.equal(user.getKey(),self.user.getKey());
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,loadFriendsDirectly:function(test) {
         var self = this;
@@ -205,7 +205,7 @@ module.exports = {
                 test.equal(friends.nTotal,nTestSize);
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
 
     }
 };

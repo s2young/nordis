@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    App         = require('./../lib/AppConfig');
+    AppConfig         = require('./../lib/AppConfig');
 
 /**
  * This test shows the creation of a user and a number of friends. Once the friends are created, we can look up the user and his friends in a single transaction.
@@ -31,7 +31,7 @@ module.exports = {
         async.series([
             function(cb){
                 // Take note of amount of memory in Redis before test begins.
-                App.Redis.acquire(function(err,oClient){
+                AppConfig.Redis.acquire(function(err,oClient){
                     if (err)
                         cb(err);
                     else {
@@ -63,10 +63,10 @@ module.exports = {
                             callback(err);
                         else {
                             nUserWriteTotal += new Date().getTime()-nStart;
-                            self.aFriendUserIDs.push(friend_user.getNumKey());
+                            self.aFriendUserIDs.push(friend_user.getKey());
                             var friend = Base.lookup({sClass:'Friend'});
-                            friend.set('user_id',self.user.getNumKey());
-                            friend.set('friend_id',friend_user.getNumKey());
+                            friend.set('user_id',self.user.getKey());
+                            friend.set('friend_id',friend_user.getKey());
                             friend.set('rank',n);
                             friend.save(null,function(err){
                                 self.aFriends.push(friend);
@@ -83,7 +83,7 @@ module.exports = {
                 }
             }
             ,function(cb) {
-                App.log('User per record writes (Redis + MySql): '+Math.round(nUserWriteTotal/(nTestSize+1))+'ms');
+                AppConfig.log('User per record writes (Redis + MySql): '+Math.round(nUserWriteTotal/(nTestSize+1))+'ms');
                 cb();
             }
         ],callback);
@@ -95,7 +95,7 @@ module.exports = {
             }
             ,function(res,cb) {
                 var nEndingMemory = res.match(/used_memory\:([^\r]*)/)[1];
-                App.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
+                AppConfig.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
 
                 new Collection({sClass:'User',hQuery:{sWhere:'email IS NOT NULL'}},cb);
             }
@@ -103,7 +103,7 @@ module.exports = {
                 cColl.delete(cb);
             }
             ,function(ignore,cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:App.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},cb);
+                new Collection({sClass:'Friend',hQuery:{sWhere:AppConfig.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);
@@ -133,7 +133,7 @@ module.exports = {
             }
             ,function(user,cb){
                 nTotal = new Date().getTime()-nStart;
-                App.log('Extras lookup: '+nTotal+' ms');
+                AppConfig.log('Extras lookup: '+nTotal+' ms');
                 test.equal(self.user.friends.nTotal,nTestSize);
                 cb(null,null);
             }
@@ -142,16 +142,16 @@ module.exports = {
                 // Serialize just the user.
                 self.user.toHash();
                 nTotal = new Date().getTime() - nStart;
-                App.log('Serialize just user: '+nTotal+' ms');
+                AppConfig.log('Serialize just user: '+nTotal+' ms');
                 // Now benchmark serializing the user and his friends.
                 nStart = new Date().getTime();
                 self.user.toHash({friends:true});
                 nTotal = new Date().getTime() - nStart;
-                App.log('Serialize user & '+nTestSize+' friends: '+nTotal+' ms');
+                AppConfig.log('Serialize user & '+nTestSize+' friends: '+nTotal+' ms');
 
                 cb();
             }
-        ],function(err){App.wrapTest(err,test)});
+        ],function(err){AppConfig.wrapTest(err,test)});
     }
     ,removeFriends:function(test) {
         var self = this;
@@ -179,6 +179,6 @@ module.exports = {
                 test.equal(self.user.friends.nTotal,0);
                 cb(null,null);
             }
-        ],function(err){App.wrapTest(err,test)});
+        ],function(err){AppConfig.wrapTest(err,test)});
     }
 };

@@ -1,11 +1,11 @@
 var async   = require('async'),
-    App     =   require('./../../lib/AppConfig');
+    AppConfig     =   require('./../../lib/AppConfig');
 
 process.env.sApp = 'flushRedis.js';
 /**
  * This deletes everything in redis!! Don't screw with it.
  */
-App.Redis.acquire(function(err,oClient){
+AppConfig.Redis.acquire(function(err,oClient){
     oClient.keys('*',function(err,aKeys){
         var nFound = 0;
 
@@ -29,7 +29,7 @@ App.Redis.acquire(function(err,oClient){
 
         q.drain = function(){
             console.log('All done.');
-            App.exit();
+            AppConfig.exit();
         }
     });
 })

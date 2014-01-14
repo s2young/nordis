@@ -1,8 +1,9 @@
-var App     = require('./../../lib/AppConfig'),
+var AppConfig     = require('./../../lib/AppConfig'),
     Base    = require('./../../lib/Base');
 
-App.init(null,function(){
-    Base.lookup({sClass:'App'},function(err,oApp){
+AppConfig.init(null,function(){
+    Base.lookup({sClass:'App',hExtras:{unique_users:{hExtras:{day:true}}}},function(err,oApp){
         console.log(oApp);
+        AppConfig.exit();
     });
 });

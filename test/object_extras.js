@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    App         = require('./../lib/AppConfig');
+    AppConfig         = require('./../lib/AppConfig');
 
 module.exports = {
     setUp:function(callback) {
@@ -43,10 +43,10 @@ module.exports = {
                 self.user.setExtra('referring_user',self.friend,callback);
             }
             ,function(callback) {
-                test.equal(self.user.get('referrer_id'),self.friend.getNumKey());
+                test.equal(self.user.get('referrer_id'),self.friend.getKey());
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); })
+        ],function(err){ AppConfig.wrapTest(err,test); })
     }
     ,lookupUserOnly:function(test){
         var self = this;
@@ -57,18 +57,18 @@ module.exports = {
                 nStart = new Date().getTime();
                 // Lookup user by primary, numeric key and request some extras.
                 var hQuery = {};
-                hQuery[App.hClasses.User.sNumKeyProperty] = self.user.getNumKey();
+                hQuery[AppConfig.hClasses.User.sNumKeyProperty] = self.user.getKey();
                 Base.lookup({
                     sClass:'User'
                     ,hQuery:hQuery
                 },callback);
             }
             ,function(user,callback){
-                App.log(user.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
-                test.equal(user.getNumKey(),self.user.getNumKey());
+                AppConfig.log(user.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
+                test.equal(user.getKey(),self.user.getKey());
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,lookupUserAndExtras:function(test){
         var self = this;
@@ -80,11 +80,11 @@ module.exports = {
                 self.user.setExtra('referring_user',self.friend,callback);
             }
             ,function(user,callback) {
-                test.equal(self.user.get('referrer_id'),self.friend.getNumKey());
+                test.equal(self.user.get('referrer_id'),self.friend.getKey());
                 nStart = new Date().getTime();
 
                 var hQuery = {};
-                hQuery[self.user.getSettings().sNumKeyProperty] = self.user.getNumKey();
+                hQuery[self.user.getSettings().sNumKeyProperty] = self.user.getKey();
 
                 Base.lookup({
                     sClass:'User'
@@ -93,13 +93,13 @@ module.exports = {
                 },callback);
             }
             ,function(user,callback){
-                App.log(user.sSource+' lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms');
-                test.equal(user.getNumKey(),self.user.getNumKey());
-                test.equal(user.referring_user.getNumKey(),self.user.get('referrer_id')); // Unless you also change the aKey settings for this relationship, changing the primary key for giggles could break this one.
+                AppConfig.log(user.sSource+' lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms');
+                test.equal(user.getKey(),self.user.getKey());
+                test.equal(user.referring_user.getKey(),self.user.get('referrer_id')); // Unless you also change the aKey settings for this relationship, changing the primary key for giggles could break this one.
                 test.equal(user.sSource,'Redis');
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,deleteReferringUser:function(test){
         // What if the referring user is removed?  The references to it in the referred user should also be removed.
@@ -111,14 +111,14 @@ module.exports = {
                 self.user.setExtra('referring_user',self.friend,callback);
             }
             ,function(user,callback) {
-                test.equal(self.user.get('referrer_id'),self.friend.getNumKey());
+                test.equal(self.user.get('referrer_id'),self.friend.getKey());
                 // Now, delete the friend.
                 self.friend.delete(callback);
             }
             ,function(user,callback){
                 // Now, try and lookup the friend (friend) via the referred user (user).
                 var hQuery = {};
-                hQuery[self.user.getSettings().sNumKeyProperty] = self.user.getNumKey();
+                hQuery[self.user.getSettings().sNumKeyProperty] = self.user.getKey();
                 Base.lookup({
                     sClass:'User'
                     ,hQuery:hQuery
@@ -126,11 +126,11 @@ module.exports = {
                 },callback);
             }
             ,function(user,callback){
-                test.equal(user.getNumKey(),self.user.getNumKey());
-                test.equal(user.referring_user.getNumKey(),null);
+                test.equal(user.getKey(),self.user.getKey());
+                test.equal(user.referring_user.getKey(),null);
                 callback();
             }
-        ],function(err){ App.wrapTest(err,test); });
+        ],function(err){ AppConfig.wrapTest(err,test); });
     }
     ,lookupUserViaMySqlOnly:function(test){
         var self = this;
@@ -139,13 +139,13 @@ module.exports = {
 
         var nStart= new Date().getTime();
         var hQuery = {};
-        hQuery[App.hClasses.User.sNumKeyProperty] = self.user.getNumKey();
+        hQuery[AppConfig.hClasses.User.sNumKeyProperty] = self.user.getKey();
 
         Base.lookup({sClass:'User',hQuery:hQuery,sSource:'MySql'},function(err,user){
-            App.log(user.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
+            AppConfig.log(user.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
             test.equal(user.sSource,'MySql');
-            test.equal(user.getNumKey(),self.user.getNumKey());
-            App.wrapTest(err,test);
+            test.equal(user.getKey(),self.user.getKey());
+            AppConfig.wrapTest(err,test);
         });
     }
 };

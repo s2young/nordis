@@ -4,9 +4,8 @@
  */
 module.exports.hSettings = {
     global: {
-        nSeedID:1000000
-        ,sLanguage:'en'
-        ,sLogLevel:'info'
+        sLanguage:'en'
+        ,sLogLevel:'warn'
         ,hOptions:{
             MySql:{
                 sSchema:'nordis',
@@ -84,7 +83,7 @@ module.exports.hSettings = {
                         ,sOrderBy:'rank'
                         ,bReverse:true
                         ,fnQuery:function(oSelf){
-                            return {user_id:oSelf.getNumKey()}
+                            return {user_id:oSelf.getKey()}
                         }
                     }
                     ,referring_user:{
@@ -119,7 +118,7 @@ module.exports.hSettings = {
                                     sTitle:'Retrieve a User'
                                     ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'friends\' collection up to a total of ONE record (nSize:1). On that friend, we want the related friend_user property (which is a User object).\n\n            {"hExtras":{friends:{nSize:1,hExtras:{friend_user:true}}}}'
                                     ,bTrackStats:true
-                                    ,fnApiOutput:function(req,App,fnCallback){
+                                    ,fnApiCallOutput:function(req,AppConfig,fnCallback){
                                         if (fnCallback)
                                             // Nordis has a toHash method as the default serialization for each class, but you can override it here. In this case, we're just going ahead with the default serialization.
                                             fnCallback(null,req.hNordis.oResult.toHash(req.hNordis.hExtras));
@@ -191,10 +190,13 @@ module.exports.hSettings = {
                             ,hVerbs:{
                                 GET:{
                                     sTitle:'Retrieve Friend Collection'
-                                    ,sDescription:'The fnApiOutput is added to automatically return the friend_user property on each friend result. Or that can be left to the user to request it.'
+                                    ,sDescription:'This api call is an example of how to define a custom function (fnApiCallProcessor) to track stats or check security credentials on an endpoint. Also, this example has a custom output function (fnApiCallOutput) which customizes what the returning document looks like. Both are defined in the config file.'
                                     ,bTrackStats:true
                                     ,hSample:{sClass:'Friend',aObjects:[{id:3,user_id:1,friend_id:2,rank:1,friend_user:{id:2,sid:'H0Jd56g6',created:1389625960,updated:1389625960,name:'Joe Friend',email:'friend@gmail.com',referrer_id:'1'}}],nTotal:1}
-                                    ,fnApiOutput:function(req,App,fnCallback){
+                                    ,fnApiCallProcessor:function(req,AppConfig,fnCallback){
+                                        AppConfig.trackStat('api_requests',['/user/{id}/friends'],fnCallback);
+                                    }
+                                    ,fnApiCallOutput:function(req,AppConfig,fnCallback){
                                         // We're going to provide a default hExtras if it's not passed in by the middleware.
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {friend_user:true};
                                         // For production use, there will be a callback. The apiary.js script, which produces API docs, does not provide a callback and expects a return statement.
@@ -228,13 +230,12 @@ module.exports.hSettings = {
         ,hStats:{
             users:{
                 sDescription:'Total number of new user accounts created during the period.'
-                ,sClass:'User'
-                ,fnQuery:function(oSelf,dStart,dEnd,App,fnCallback){
+                ,fnQuery:function(oSelf,dStart,dEnd,AppConfig,fnCallback){
                     // This is a mysql query that will return the count for the passed-in period, allowing recreation
                     // of data from mysql in case of redis data problem or building retro-active stats.
                     var sRange = (dStart && dEnd) ? ' AND created >='+dStart.getTime()+' AND created<'+dEnd.getTime() : '';
                     var sSql = 'SELECT COUNT(*) AS nCount FROM UserTbl WHERE '+sRange;
-                    App.MySql.execute(null,sSql,null,function(err,res){
+                    AppConfig.MySql.execute(null,sSql,null,function(err,res){
                         var nCount =  (res && res.length && res[0].nCount) ? res[0].nCount : 0;
                         fnCallback(err,nCount);
                     });
@@ -248,7 +249,7 @@ module.exports.hSettings = {
                     if (!aParams[0] || !aParams[0].sClass == 'User')
                         fnCallback('This stat requires a User object as first param.');
                     else
-                        fnCallback(null,aParams[0].getNumKey());
+                        fnCallback(null,aParams[0].getKey());
                 }
             }
             ,api_requests:{
@@ -259,13 +260,6 @@ module.exports.hSettings = {
                         fnCallback('This stat requires an api endpoint string as the first param.');
                     else
                         fnCallback(null,aParams[0]);
-                }
-            }
-            ,hits:{
-                sDescription:'Total number of hits, regardless of user or endpoint.'
-                ,fnValidate:function(aParams,fnCallback){
-                    // This is just a raw count, so return an empty string and the stat tracker will just count everything in one bucket.
-                    fnCallback(null,'');
                 }
             }
             ,misconfigured_stat:{

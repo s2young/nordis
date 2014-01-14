@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    App         = require('./../lib/AppConfig');
+    AppConfig         = require('./../lib/AppConfig');
 
 var nTestSize = 10;
 
@@ -54,7 +54,7 @@ module.exports = {
                 // Look up via primary key.
                 var nStart2 = new Date().getTime();
                 var hQuery = {};
-                hQuery[App.hClasses.User.sNumKeyProperty] = user.getNumKey();
+                hQuery[AppConfig.hClasses.User.sNumKeyProperty] = user.getKey();
 
                 Base.lookup({sClass:'User',hQuery:hQuery},function(err,user2){
                     nTotalTime2 += (new Date().getTime()-nStart2);
@@ -65,9 +65,9 @@ module.exports = {
         };
         var q = async.queue(lookupUser,10);
         q.drain = function(err){
-            App.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup via email;');
-            App.log('Total time (Redis): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
-            App.wrapTest(err,test);
+            AppConfig.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup via email;');
+            AppConfig.log('Total time (Redis): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
+            AppConfig.wrapTest(err,test);
         };
 
         for (var n = 0; n < nTestSize; n++) {
@@ -92,7 +92,7 @@ module.exports = {
 
                     nStart = new Date().getTime();
                     var hQuery = {};
-                    hQuery[App.hClasses.User.sNumKeyProperty] = user.getNumKey();
+                    hQuery[AppConfig.hClasses.User.sNumKeyProperty] = user.getKey();
                     Base.lookup({sClass:'User',sSource:'MySql',hQuery:hQuery},callback);
                 }
                 ,function(user,callback) {
@@ -104,9 +104,9 @@ module.exports = {
         };
         var q = async.queue(lookupUser,10);
         q.drain = function(err){
-            App.log('Total time (MySql): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup;');
-            App.log('Total time (MySql): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
-            App.wrapTest(err,test);
+            AppConfig.log('Total time (MySql): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup;');
+            AppConfig.log('Total time (MySql): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
+            AppConfig.wrapTest(err,test);
         };
 
         for (var n = 0; n < nTestSize; n++) {
@@ -117,7 +117,7 @@ module.exports = {
         test.expect(1);
         Base.lookup({sClass:'User',hQuery:{sWhere:'name=\'TestUser\' AND email=\'test0@test.com\''}},function(err,user){
             if (user) test.equal(user.get('email'),'test0@test.com');
-            App.wrapTest(err,test);
+            AppConfig.wrapTest(err,test);
         });
     }
     ,classOverride:function(test){
@@ -126,11 +126,11 @@ module.exports = {
             if (user) test.equal(user.get('email'),'test0@test.com');
 
             var sale = Base.lookup({sClass:'Sale'});
-            sale.set('user_id',user.getNumKey());
+            sale.set('user_id',user.getKey());
             sale.set('amount',100.00);
             sale.save(null,function(err){
                 test.equal(sale.bOverridden,true);
-                App.wrapTest(err,test);
+                AppConfig.wrapTest(err,test);
             });
 
         });

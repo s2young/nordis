@@ -59,6 +59,13 @@ The Nordis base class provides all your CRUD boilerplate methods. You can create
     Base.lookup({sClass:'User',hQuery:{id:1234}},function(err,user){
         console.log(user); // Now you've got your user.
     });
+    
+    // Lookup via secondary key (email)
+    // In the provided example, the User class includes an email property that is marked as unique.
+    // Doing so gives you the ability to do Redis lookups as if email was the primary key:
+    Base.looup({sClass:'User',hQuery:{email:'joe@gmail.com'}},function(err,user){
+        console.log(user); // Now you've got your user.
+    });
 ```
 
 

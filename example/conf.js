@@ -170,7 +170,7 @@ module.exports.hSettings = {
                         ,sClass:'User'
                         ,aKey:['follower_id','id']
                         ,fnQuery:function(oSelf){
-                            return {nID:oSelf.get('follower_id')}
+                            return {id:oSelf.get('follower_id')}
                         }
                     }
                 }

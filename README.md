@@ -8,7 +8,7 @@ Objectives:
 -------------
 
 ### 1. Code-first.
-Define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables and columns in MySql for you. Here is a snippet of the included, example configuration file that defines the 'User' class:
+Define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables and columns in MySql for you. Here is a snippet of the included, example configuration file that defines a 'User' and 'Follow' class:
 
 ```Javascript
     User:{

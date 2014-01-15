@@ -39,7 +39,43 @@ Define your model in the configuration file and then go to work. Nordis will sav
 ### 2. Redis + MySql as DB
 Nordis stores objects in both Redis and MySql and will always pull from Redis first if the object is available, unless you specify otherwise in your code. This means consistently fast look-ups without losing the peace-of-mind that a relational db provides.  Plugins for Postgres and other relational dbs shouldn't be too hard to add over time.
 
-### 3. Nested Property Lookups
+### 3. Base Class
+The Nordis base class provides all your CRUD boilerplate methods. You can create your own custom modules that extend the Base class. 
+
+```Javascript
+    var Base = require('nordis').Base;
+    
+    / **
+    * CREATE NEW USER
+    **/
+    // Instantiate empty User object
+    var user = Base.lookup({sClass:'User'});
+    
+    // Set some properties
+    user.set('name','Joe User');
+    user.set('email','joe@gmail.com');
+    
+    // Save the user
+    user.save(null,function(err){
+        // Now you've saved your user.
+        console.log(user);
+    });
+    
+    / **
+    * LOOKUP EXISTING USER
+    **/
+    // Lookup user wih id of 1234.
+    Base.lookup({sClass:'User',hQuery:{id:1234}},function(err,user){
+        // Now you've got your user.
+        console.log(user);
+    });
+```
+
+
+### 4. Collection Class
+The Nordis collection provides support for getting paged data easily, as well as getting the total number of items in the collection regardless of the size of the page you request. Collections are defined in configuration, including how they are sorted and the query parameters required to pull the collection directly from MySql. They are stored in Redis using Redis' Sorted Set data type, a powerful and fast tool for storing collections. Again, if the data isn't in Redis we'll check MySql.
+
+### 5. Nested Property Lookups
 Almost never does a resource exist in a model without relationships with other resources. Twitter users, for example, have followers. Nordis allows you to retrieve a complex document relating to the resource including collections of data (a list of follows, for example; or just the first page of follows).
 
 Node.js example:
@@ -49,12 +85,6 @@ Node.js example:
         console.log('USER HAS '+oUser.follows.nTotal+' followers!');
     });
 ```
-
-### 4. Base Class
-The Nordis base class provides all your CRUD boilerplate methods. You can create your own custom modules that extend the Base class.
-
-### 5. Collection Class
-The Nordis collection provides support for getting paged data easily, as well as getting the total number of items in the collection regardless of the size of the page you request. Collections are defined in configuration, including how they are sorted and the query parameters required to pull the collection directly from MySql. They are stored in Redis using Redis' Sorted Set data type, a powerful and fast tool for storing collections. Again, if the data isn't in Redis we'll check MySql.
 
 ### 6. API Boilerplate & Apiary Docs 
 Nordis is packaged with the ability to create a RESTful API by defining endpoints in your config file and utilizing the provided expressjs Middleware functions. The parser middleware performs all the CRUD exposed in the API, while the pre-parser only looks up the desired resource and sets properties on the resource (in the case of updates) but does NOT

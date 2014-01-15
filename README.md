@@ -45,9 +45,8 @@ The Nordis base class provides all your CRUD boilerplate methods. You can create
 ```Javascript
     var Base = require('nordis').Base;
     
-    / **
-    * CREATE NEW USER
-    **/
+    // CREATE NEW USER
+    
     // Instantiate empty User object
     var user = Base.lookup({sClass:'User'});
     
@@ -61,9 +60,8 @@ The Nordis base class provides all your CRUD boilerplate methods. You can create
         console.log(user);
     });
     
-    / **
-    * LOOKUP EXISTING USER
-    **/
+    // LOOKUP EXISTING USER
+    
     // Lookup user wih id of 1234.
     Base.lookup({sClass:'User',hQuery:{id:1234}},function(err,user){
         // Now you've got your user.
@@ -89,6 +87,8 @@ Node.js example:
 ### 6. API Boilerplate & Apiary Docs 
 Nordis is packaged with the ability to create a RESTful API by defining endpoints in your config file and utilizing the provided expressjs Middleware functions. The parser middleware performs all the CRUD exposed in the API, while the pre-parser only looks up the desired resource and sets properties on the resource (in the case of updates) but does NOT
 save the resource. There are a couple of hooks you can add to any api call to customize the output, track stats, check security, etc. You can, of course, bypass this middleware completely and build your own API. By defining the API in config, however, you can leverage the packaged apiary.js script which outputs API documentation for use over at apiary.io. Your choice.
+
+Check out the documentation created from the sample configuration provided in this project: http://docs.nordis.apiary.io/
 
 
 

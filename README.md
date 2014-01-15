@@ -42,6 +42,14 @@ Nordis stores objects in both Redis and MySql and will always pull from Redis fi
 ### 3. Nested Property Lookups
 Almost never does a resource exist in a model without relationships with other resources. Twitter users, for example, have followers. Nordis allows you to retrieve a complex document relating to the resource including collections of data (a list of follows, for example; or just the first page of follows).
 
+Node.js example:
+```Javascript
+    Base.lookup({sClass:'User',hQuery:{id:1234},hExtras:{follows:true}},function(err,oUser){
+        // You now have retrieved the User with id==1234, along with ALL his follows.
+        console.log('USER HAS '+oUser.follows.nTotal+' followers!');
+    });
+```
+
 ### 4. Base Class
 The Nordis base class provides all your CRUD boilerplate methods. You can create your own custom modules that extend the Base class.
 

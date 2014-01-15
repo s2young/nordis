@@ -7,59 +7,30 @@ of mind provided by a relational database.
 Nordis Highlights:
 
 1. Code-first. You define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables
-and columns in MySql for you.
+and columns in MySql for you. Here is a snippet of the included, example configuration file that defines the 'User' class:
 
 ```
     User:{
+        // Each class is assigned a number for namespacing in redis.
         nClass:1
+         // Properties can be mapped to existing tables and columns, but this assumes a clean slate
         hProperties:{
-            id:{
-                sType:'Number'
-                ,bUnique:true
-                ,sSample:'1'
-            }
-            ,sid:{
-                sType:'String'
-                ,bUnique:true
-                ,nLength:36
-                ,sSample:'Yf8uIoP'
-            }
-            ,created:{
-                sType:'Timestamp'
-                ,bOnCreate:true
-                ,sSample:'1389625960'
-            }
-            ,updated:{
-                sType:'Timestamp'
-                ,bOnUpdate:true
-                ,sSample:'1389625960'
-            }
-            ,name:{
-                sType:'String'
-                ,sSample:'Joe User'
-            }
-            ,password:{
-                sType:'String'
-                ,bPrivate:true
-                ,sSample:'password'
-            }
-            ,email:{
-                sType:'String'
-                ,bUnique:true
-                ,sSample:'joe@gmail.com'
-            }
-            ,referrer_id:{
-                sType:'Number'
-                ,sSample:null
-            }
+            id:{sType:'Number',bUnique:true,sSample:'1'}
+            ,sid:{sType:'String',bUnique:true,nLength:36,sSample:'Yf8uIoP'}
+            ,name:{sType:'String',sSample:'Joe User'}
+            ,password:{sType:'String',bPrivate:true,sSample:'password'}
+            ,email:{sType:'String',bUnique:true,sSample:'joe@gmail.com'}
+            ,referrer_id:{sType:'Number',sSample:null}
         }
+        // This is where you define related objects and collections.
         ,hExtras:{
             friends:{
                 sType:'Collection'
                 ,sClass:'Friend'
-                ,sOrderBy:'rank'
-                ,bReverse:true
+                ,sOrderBy:'rank' // rank is a property on the Friend class, by which we sort the user.friends collection.
+                ,bReverse:true // rank is ordered largest to smallest.
                 ,fnQuery:function(oSelf){
+                    // If we need to pull the collection from MySql, this returns the query bits needed to do so.
                     return {user_id:oSelf.getKey()}
                 }
             }

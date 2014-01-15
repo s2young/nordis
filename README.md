@@ -46,7 +46,7 @@ The Nordis base class provides all your CRUD boilerplate methods. You can create
     var Base = require('nordis').Base;
     
     // CREATE NEW USER
-    var user = Base.lookup({sClass:'User'});
+    var user = Base.lookup({sClass:'User'}); // New instance of User class.
     
     // Set some properties and save.
     user.set('name','Joe User');

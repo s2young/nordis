@@ -34,6 +34,33 @@ Define your model in the configuration file and then go to work. Nordis will sav
             }
         }
     }
+    ,Follow:{
+            hProperties:{
+                id:{sType:'Number',bUnique:true,sSample:'3'}
+                ,followed_id:{sType:'Number',sSample:'1'}
+                ,follower_id:{sType:'Number',sSample:'2'                }
+                ,rank:{sType:'Number',sSample:'0'}
+            }
+            ,nClass:2
+            ,hExtras:{
+                followed_user:{
+                    sType:'Object'
+                    ,sClass:'User'
+                    ,aKey:['followed_id','id']
+                    ,fnQuery:function(oSelf){
+                        return {id:oSelf.get('followed_id')}
+                    }
+                }
+                ,follower_user:{
+                    sType:'Object'
+                    ,sClass:'User'
+                    ,aKey:['follower_id','id']
+                    ,fnQuery:function(oSelf){
+                        return {id:oSelf.get('follower_id')}
+                    }
+                }
+            }
+        }
 ```
 
 ### 2. Redis + MySql as DB

@@ -22,9 +22,9 @@ You can also create a NEW user by leaving the sid out.
 
 
 ### Retrieve a User [GET]
-You can retrieve any of the 'hExtras' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user's 'friends' collection up to a total of ONE record (nSize:1). On that friend, we want the related friend_user property (which is a User object).
+You can retrieve any of the 'hExtras' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user's 'follows' collection up to a total of ONE record (nSize:1). On that follower, we want the related follower_user property (which is a User object).
 
-            {"hExtras":{friends:{nSize:1,hExtras:{friend_user:true}}}}
+            {"hExtras":{follows:{nSize:1,hExtras:{follower_user:true}}}}
 + Response 200 (application/json)
     + Body
 
@@ -34,20 +34,20 @@ You can retrieve any of the 'hExtras' configured for the class using the hExtras
 ### Delete a User [DELETE]
 + Response 204
 
-# Group Friend
-Friend objects are pointers to Users. The initiator of the friendship is found on the 'user' extra, while the recipient is the 'friend_user.'
+# Group Follow
+Follow objects are pointers to Users. The initiator of the follow is found on the 'follower_user' extra, while the recipient is the 'followed_user.'
 
-## Friend [/user/{id}/friends]
-Retrieves collection of friends for the passed-in user.
+## Follow [/user/{id}/follows]
+Retrieves collection of follows for the passed-in user.
 
 + Parameters
     + id (required,String,`Yf8uIoP`) ... String id of the user record. Numeric ids are also supported.
 
-### Retrieve Friend Collection [GET]
+### Retrieve Follow Collection [GET]
 This api call is an example of how to define a custom function (fnApiCallProcessor) to track stats or check security credentials on an endpoint. Also, this example has a custom output function (fnApiCallOutput) which customizes what the returning document looks like. Both are defined in the config file.
 + Response 200 (application/json)
     + Body
 
-            {"sClass":"Friend","aObjects":[{"id":3,"user_id":1,"friend_id":2,"rank":1,"friend_user":{"id":2,"sid":"H0Jd56g6","created":1389625960,"updated":1389625960,"name":"Joe Friend","email":"friend@gmail.com","referrer_id":"1"}}],"nTotal":1}
+            {"sClass":"Follow","aObjects":[{"id":3,"followed_id":1,"follower_id":2,"rank":1,"follower_user":{"id":2,"sid":"H0Jd56g6","created":1389625960,"updated":1389625960,"name":"Joe Follower","email":"follower@gmail.com","referrer_id":"1"}}],"nTotal":1}
 
 

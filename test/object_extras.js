@@ -15,10 +15,10 @@ module.exports = {
                 self.user.save(null,cb);
             }
             ,function(cb){
-                // Create but don't save the friend object.
-                self.friend = Base.lookup({sClass:'User'});
-                self.friend.set('name','TestUser\'s Friend');
-                self.friend.set('email','friend@test.com');
+                // Create but don't save the follower object.
+                self.follower = Base.lookup({sClass:'User'});
+                self.follower.set('name','TestUser\'s Follower');
+                self.follower.set('email','follower@test.com');
                 cb();
             }
         ],callback);
@@ -30,7 +30,7 @@ module.exports = {
                 self.user.delete(cb);
             }
             ,function(cb){
-                self.friend.delete(cb);
+                self.follower.delete(cb);
             }
         ],callback);
     }
@@ -39,11 +39,11 @@ module.exports = {
         test.expect(1);
         async.series([
             function(callback) {
-                // This will both save the friend and set the user.referrer_id
-                self.user.setExtra('referring_user',self.friend,callback);
+                // This will both save the follower and set the user.referrer_id
+                self.user.setExtra('referring_user',self.follower,callback);
             }
             ,function(callback) {
-                test.equal(self.user.get('referrer_id'),self.friend.getKey());
+                test.equal(self.user.get('referrer_id'),self.follower.getKey());
                 callback();
             }
         ],function(err){ AppConfig.wrapTest(err,test); })
@@ -76,11 +76,11 @@ module.exports = {
         var nStart;
         async.waterfall([
             function(callback) {
-                // This will both save the friend and set the user.referrer_id
-                self.user.setExtra('referring_user',self.friend,callback);
+                // This will both save the follower and set the user.referrer_id
+                self.user.setExtra('referring_user',self.follower,callback);
             }
             ,function(user,callback) {
-                test.equal(self.user.get('referrer_id'),self.friend.getKey());
+                test.equal(self.user.get('referrer_id'),self.follower.getKey());
                 nStart = new Date().getTime();
 
                 var hQuery = {};
@@ -107,16 +107,16 @@ module.exports = {
         test.expect(3);
         async.waterfall([
             function(callback) {
-                // Add the friend as the referring user.
-                self.user.setExtra('referring_user',self.friend,callback);
+                // Add the follower as the referring user.
+                self.user.setExtra('referring_user',self.follower,callback);
             }
             ,function(user,callback) {
-                test.equal(self.user.get('referrer_id'),self.friend.getKey());
-                // Now, delete the friend.
-                self.friend.delete(callback);
+                test.equal(self.user.get('referrer_id'),self.follower.getKey());
+                // Now, delete the follower.
+                self.follower.delete(callback);
             }
             ,function(user,callback){
-                // Now, try and lookup the friend (friend) via the referred user (user).
+                // Now, try and lookup the follower (follower) via the referred user (user).
                 var hQuery = {};
                 hQuery[self.user.getSettings().sNumKeyProperty] = self.user.getKey();
                 Base.lookup({

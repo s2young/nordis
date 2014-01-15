@@ -118,7 +118,7 @@ module.exports = {
             function(callback){
                 // call the api up to nTestSize times.
                 var q = async.queue(function(n,cb){
-                    request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/friends'},function(error, response, body){
+                    request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/follows'},function(error){
                         if (error)
                             AppConfig.error(error);
                         cb();

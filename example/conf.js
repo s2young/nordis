@@ -77,13 +77,13 @@ module.exports.hSettings = {
                 ,nClass:1
                 ,hExtras:{
                     points:{sType:'Increment'}
-                    ,friends:{
+                    ,follows:{
                         sType:'Collection'
-                        ,sClass:'Friend'
+                        ,sClass:'Follow'
                         ,sOrderBy:'rank'
                         ,bReverse:true
                         ,fnQuery:function(oSelf){
-                            return {user_id:oSelf.getKey()}
+                            return {followed_id:oSelf.getKey()}
                         }
                     }
                     ,referring_user:{
@@ -116,7 +116,7 @@ module.exports.hSettings = {
                                 }
                                 ,GET:{
                                     sTitle:'Retrieve a User'
-                                    ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'friends\' collection up to a total of ONE record (nSize:1). On that friend, we want the related friend_user property (which is a User object).\n\n            {"hExtras":{friends:{nSize:1,hExtras:{friend_user:true}}}}'
+                                    ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'follows\' collection up to a total of ONE record (nSize:1). On that follower, we want the related follower_user property (which is a User object).\n\n            {"hExtras":{follows:{nSize:1,hExtras:{follower_user:true}}}}'
                                     ,bTrackStats:true
                                     ,fnApiCallOutput:function(req,AppConfig,fnCallback){
                                         if (fnCallback)
@@ -135,18 +135,18 @@ module.exports.hSettings = {
                     }
                 }
             }
-            ,Friend:{
+            ,Follow:{
                 hProperties:{
                     id:{
                         sType:'Number',
                         bUnique:true,
                         sSample:'3'
                     }
-                    ,user_id:{
+                    ,followed_id:{
                         sType:'Number'
                         ,sSample:'1'
                     }
-                    ,friend_id:{
+                    ,follower_id:{
                         sType:'Number'
                         ,sSample:'2'
                     }
@@ -157,28 +157,28 @@ module.exports.hSettings = {
                 }
                 ,nClass:2
                 ,hExtras:{
-                    user:{
+                    followed_user:{
                         sType:'Object'
                         ,sClass:'User'
-                        ,aKey:['user_id','id']
+                        ,aKey:['followed_id','id']
                         ,fnQuery:function(oSelf){
-                            return {id:oSelf.get('user_id')}
+                            return {id:oSelf.get('followed_id')}
                         }
                     }
-                    ,friend_user:{
+                    ,follower_user:{
                         sType:'Object'
                         ,sClass:'User'
-                        ,aKey:['friend_id','id']
+                        ,aKey:['follower_id','id']
                         ,fnQuery:function(oSelf){
-                            return {nID:oSelf.get('friend_id')}
+                            return {nID:oSelf.get('follower_id')}
                         }
                     }
                 }
                 ,hApi:{
-                    sDescription:'Friend objects are pointers to Users. The initiator of the friendship is found on the \'user\' extra, while the recipient is the \'friend_user.\''
+                    sDescription:'Follow objects are pointers to Users. The initiator of the follow is found on the \'follower_user\' extra, while the recipient is the \'followed_user.\''
                     ,hEndpoints:{
-                        '/user/{id}/friends':{
-                            sDescription:'Retrieves collection of friends for the passed-in user.'
+                        '/user/{id}/follows':{
+                            sDescription:'Retrieves collection of follows for the passed-in user.'
                             ,hParameters:{
                                 id:{
                                     bRequired:true
@@ -189,16 +189,16 @@ module.exports.hSettings = {
                             }
                             ,hVerbs:{
                                 GET:{
-                                    sTitle:'Retrieve Friend Collection'
+                                    sTitle:'Retrieve Follow Collection'
                                     ,sDescription:'This api call is an example of how to define a custom function (fnApiCallProcessor) to track stats or check security credentials on an endpoint. Also, this example has a custom output function (fnApiCallOutput) which customizes what the returning document looks like. Both are defined in the config file.'
                                     ,bTrackStats:true
-                                    ,hSample:{sClass:'Friend',aObjects:[{id:3,user_id:1,friend_id:2,rank:1,friend_user:{id:2,sid:'H0Jd56g6',created:1389625960,updated:1389625960,name:'Joe Friend',email:'friend@gmail.com',referrer_id:'1'}}],nTotal:1}
+                                    ,hSample:{sClass:'Follow',aObjects:[{id:3,followed_id:1,follower_id:2,rank:1,follower_user:{id:2,sid:'H0Jd56g6',created:1389625960,updated:1389625960,name:'Joe Follower',email:'follower@gmail.com',referrer_id:'1'}}],nTotal:1}
                                     ,fnApiCallProcessor:function(req,AppConfig,fnCallback){
-                                        AppConfig.trackStat('api_requests',['/user/{id}/friends'],fnCallback);
+                                        AppConfig.trackStat('api_requests',['/user/{id}/follows'],fnCallback);
                                     }
                                     ,fnApiCallOutput:function(req,AppConfig,fnCallback){
                                         // We're going to provide a default hExtras if it's not passed in by the middleware.
-                                        req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {friend_user:true};
+                                        req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follower_user:true};
                                         // For production use, there will be a callback. The apiary.js script, which produces API docs, does not provide a callback and expects a return statement.
                                         if (fnCallback)
                                             req.hNordis.oResult.loadExtras(req.hNordis.hExtras,function(err){

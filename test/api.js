@@ -22,26 +22,26 @@ module.exports = {
                 self.user.save(null,cb);
             }
             ,function(cb) {
-                // Create n friend records  (n = nTestSize);
-                var createFriend = function(n,callback) {
-                    var friend_user = Base.lookup({sClass:'User'});
-                    friend_user.set('name','TestFriend '+n);
-                    friend_user.set('email','testfriend'+n+'@test.com');
-                    friend_user.save(null,function(err){
+                // Create n follower records  (n = nTestSize);
+                var createFollower = function(n,callback) {
+                    var follower_user = Base.lookup({sClass:'User'});
+                    follower_user.set('name','TestFollower '+n);
+                    follower_user.set('email','testfollower'+n+'@test.com');
+                    follower_user.save(null,function(err){
                         if (err)
                             callback(err);
                         else {
-                            var friend = Base.lookup({sClass:'Friend'});
-                            friend.set('user_id',self.user.getKey());
-                            friend.set('friend_id',friend_user.getKey());
-                            friend.set('rank',n);
-                            friend.save(null,function(err){
+                            var follow = Base.lookup({sClass:'Follow'});
+                            follow.set('followed_id',self.user.getKey());
+                            follow.set('follower_id',follower_user.getKey());
+                            follow.set('rank',n);
+                            follow.save(null,function(err){
                                 callback(err);
                             });
                         }
                     });
                 };
-                var q = async.queue(createFriend,100);
+                var q = async.queue(createFollower,100);
                 q.drain = cb;
 
                 for (var n = 0; n < nTestSize; n++) {
@@ -69,7 +69,6 @@ module.exports = {
         ],callback);
     }
     ,tearDown:function(callback) {
-        var self = this;
         async.waterfall([
             function(cb) {
                 new Collection({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
@@ -79,11 +78,11 @@ module.exports = {
             }
             ,function(ignore,cb){
                 var hQuery = {};
-                hQuery[AppConfig.hClasses.Friend.sNumKeyProperty] = 'NOT NULL';
-                new Collection({sClass:'Friend',hQuery:hQuery},cb);
+                hQuery[AppConfig.hClasses.Follow.sNumKeyProperty] = 'NOT NULL';
+                new Collection({sClass:'Follow',hQuery:hQuery},cb);
             }
-            ,function(friends,cb) {
-                friends.delete(cb);
+            ,function(follows,cb) {
+                follows.delete(cb);
             }
             ,function(ignore,cb) {
                 AppConfig.flushStats(cb);
@@ -122,16 +121,16 @@ module.exports = {
             }
         ],function(err){ AppConfig.wrapTest(err,test); });
     }
-    ,lookupUserAndFriends:function(test) {
+    ,lookupUserAndFollowers:function(test) {
         var self = this;
         test.expect(2);
 
-        // This time, we'll request the user's friends collection along with the user himself.
+        // This time, we'll request the user's follows collection along with the user himself.
         var hData = {
             hExtras:{
-                friends:{
+                follows:{
                     hExtras:{
-                        friend_user:true // We'll get each friend user object on the friends collection.
+                        follower_user:true // We'll get each follower user object on the follows collection.
                     }
                 }
             }
@@ -146,7 +145,7 @@ module.exports = {
             ,function(hResult,callback){
                 var user = Base.lookup({sClass:'User',hData:hResult});
                 test.equal(user.getKey(),self.user.getKey());
-                test.equal(hResult.friends.nTotal,nTestSize);
+                test.equal(hResult.follows.nTotal,nTestSize);
 
                 callback();
             }
@@ -200,19 +199,19 @@ module.exports = {
             }
         ],function(err){ AppConfig.wrapTest(err,test); });
     }
-    ,loadFriendsDirectly:function(test) {
+    ,loadFollowersDirectly:function(test) {
         var self = this;
         test.expect(1);
 
         async.waterfall([
             function(callback){
-                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/friends'},function(error, response, body){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/follows'},function(error, response, body){
                     callback(error,body);
                 });
             }
             ,function(body,callback){
-                var friends = (body) ? JSON.parse(body) : {nTotal:0};
-                test.equal(friends.nTotal,nTestSize);
+                var follows = (body) ? JSON.parse(body) : {nTotal:0};
+                test.equal(follows.nTotal,nTestSize);
                 callback();
             }
         ],function(err){ AppConfig.wrapTest(err,test); });

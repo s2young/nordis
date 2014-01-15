@@ -4,9 +4,9 @@ var async       = require('async'),
     AppConfig         = require('./../lib/AppConfig');
 
 /**
- * This test shows the creation of a user and a number of friends. Once the friends are created, we can look up the user and his friends in a single transaction.
+ * This test shows the creation of a user and a number of follows. Once the follows are created, we can look up the user and his follows in a single transaction.
  *
- * The test's setUp method creates a primary user and then creates n number of friends (where n = nTestSize, a variable you can change). The friend creation code is broken down so that
+ * The test's setUp method creates a primary user and then creates n number of follows (where n = nTestSize, a variable you can change). The follower creation code is broken down so that
  * the writes can be crudely benchmarked. This test will print out the average write time for all User records created during the test.
  *
  * The tearDown method shows how to remove records and collections of records when using Redis as the primary source.
@@ -21,10 +21,10 @@ var nStartingMemory;
 module.exports = {
     setUp:function(callback) {
         var self = this;
-        // Keep friends created during setup in an array for use later.
-        self.aFriends = [];
-        // Also, keep track of the friend users created so we can clean them up at the end.
-        self.aFriendUserIDs = [];
+        // Keep follows created during setup in an array for use later.
+        self.aFollows = [];
+        // Also, keep track of the follower users created so we can clean them up at the end.
+        self.aFollowerUserIDs = [];
 
         var nUserWriteTotal = 0;
         var nStart;
@@ -52,30 +52,30 @@ module.exports = {
             }
             ,function(cb) {
                 nUserWriteTotal += new Date().getTime()-nStart;
-                // Create n friend records  (n = nTestSize);
-                var createFriend = function(n,callback) {
-                    var friend_user = Base.lookup({sClass:'User'});
-                    friend_user.set('name','TestFriend '+n);
-                    friend_user.set('email','testfriend'+n+'@test.com');
+                // Create n follower records  (n = nTestSize);
+                var createFollower = function(n,callback) {
+                    var follower_user = Base.lookup({sClass:'User'});
+                    follower_user.set('name','TestFollower '+n);
+                    follower_user.set('email','testfollower'+n+'@test.com');
                     nStart = new Date().getTime();
-                    friend_user.save(null,function(err){
+                    follower_user.save(null,function(err){
                         if (err)
                             callback(err);
                         else {
                             nUserWriteTotal += new Date().getTime()-nStart;
-                            self.aFriendUserIDs.push(friend_user.getKey());
-                            var friend = Base.lookup({sClass:'Friend'});
-                            friend.set('user_id',self.user.getKey());
-                            friend.set('friend_id',friend_user.getKey());
-                            friend.set('rank',n);
-                            friend.save(null,function(err){
-                                self.aFriends.push(friend);
+                            self.aFollowerUserIDs.push(follower_user.getKey());
+                            var follow = Base.lookup({sClass:'Follow'});
+                            follow.set('followed_id',self.user.getKey());
+                            follow.set('follower_id',follower_user.getKey());
+                            follow.set('rank',n);
+                            follow.save(null,function(err){
+                                self.aFollows.push(follow);
                                 callback(err);
                             });
                         }
                     });
                 };
-                var q = async.queue(createFriend,1000);
+                var q = async.queue(createFollower,1000);
                 q.drain = cb;
 
                 for (var n = 0; n < nTestSize; n++) {
@@ -104,39 +104,39 @@ module.exports = {
             }
             ,function(ignore,cb){
                 var hQuery = {};
-                hQuery[AppConfig.hClasses.Friend.sNumKeyProperty] = 'NOT NULL';
-                new Collection({sClass:'Friend',hQuery:hQuery},cb);
+                hQuery[AppConfig.hClasses.Follow.sNumKeyProperty] = 'NOT NULL';
+                new Collection({sClass:'Follow',hQuery:hQuery},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);
             }
         ],callback);
     }
-    ,addFriend:function(test){
+    ,addFollower:function(test){
         var self = this;
         test.expect(2);
         var nStart;var nTotal;
         async.waterfall([
             function(cb){
-                async.forEachLimit(self.aFriends,100,function(friend,callback) {
-                    self.user.setExtra('friends',friend,callback);
+                async.forEachLimit(self.aFollows,100,function(follower,callback) {
+                    self.user.setExtra('follows',follower,callback);
                 },function(err){
                     cb(err,null);
                 });
             }
             ,function(o,cb){
-                test.equal(self.user.friends.nTotal,nTestSize);
+                test.equal(self.user.follows.nTotal,nTestSize);
                 cb(null,null);
             }
             ,function(o,cb){
-                // Now, lookup friends and include the user and friend properties on cFriend items.
+                // Now, lookup follows and include the user and follower properties on cFollower items.
                 nStart = new Date().getTime();
-                self.user.loadExtras({friends:true},cb);
+                self.user.loadExtras({follows:true},cb);
             }
             ,function(user,cb){
                 nTotal = new Date().getTime()-nStart;
                 AppConfig.log('Extras lookup: '+nTotal+' ms');
-                test.equal(self.user.friends.nTotal,nTestSize);
+                test.equal(self.user.follows.nTotal,nTestSize);
                 cb(null,null);
             }
             ,function(o,cb){
@@ -145,40 +145,40 @@ module.exports = {
                 self.user.toHash();
                 nTotal = new Date().getTime() - nStart;
                 AppConfig.log('Serialize just user: '+nTotal+' ms');
-                // Now benchmark serializing the user and his friends.
+                // Now benchmark serializing the user and his follows.
                 nStart = new Date().getTime();
-                self.user.toHash({friends:true});
+                self.user.toHash({follows:true});
                 nTotal = new Date().getTime() - nStart;
-                AppConfig.log('Serialize user & '+nTestSize+' friends: '+nTotal+' ms');
+                AppConfig.log('Serialize user & '+nTestSize+' follows: '+nTotal+' ms');
 
                 cb();
             }
         ],function(err){AppConfig.wrapTest(err,test)});
     }
-    ,removeFriends:function(test) {
+    ,removeFollowers:function(test) {
         var self = this;
         test.expect(2);
         async.waterfall([
             function(cb){
-                async.forEachLimit(self.aFriends,100,function(friend,callback) {
-                    self.user.setExtra('friends',friend,callback);
+                async.forEachLimit(self.aFollows,100,function(follower,callback) {
+                    self.user.setExtra('follows',follower,callback);
                 },function(err){
                     cb(err,null);
                 });
             }
             ,function(o,cb){
-                test.equal(self.user.friends.nTotal,nTestSize);
+                test.equal(self.user.follows.nTotal,nTestSize);
                 cb(null,null);
             }
             ,function(o,cb){
-                async.forEachLimit(self.aFriends,1,function(friend,callback) {
-                    self.user.deleteExtra('friends',friend,callback);
+                async.forEachLimit(self.aFollows,1,function(follower,callback) {
+                    self.user.deleteExtra('follows',follower,callback);
                 },function(err){
                     cb(err,null);
                 });
             }
             ,function(o,cb){
-                test.equal(self.user.friends.nTotal,0);
+                test.equal(self.user.follows.nTotal,0);
                 cb(null,null);
             }
         ],function(err){AppConfig.wrapTest(err,test)});

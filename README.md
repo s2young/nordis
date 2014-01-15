@@ -100,7 +100,7 @@ The Nordis base class provides all your CRUD boilerplate methods. You can create
 
 
 ### 4. Collection Class
-The Nordis collection provides support for getting paged data easily, as well as getting the total number of items in the collection regardless of the size of the page you request. Collections are defined in configuration, including how they are sorted and the query parameters required to pull the collection directly from MySql. They are stored in Redis using Redis' Sorted Set data type, a powerful and fast tool for storing collections. Again, if the data isn't in Redis we'll check MySql.
+The Nordis collection provides support for getting paged data easily, as well as getting the total number of items in the collection regardless of the size of the page you request. Collections are defined in configuration, including how they are sorted and the query parameters required to pull the collection directly from MySql. They are stored in Redis using Redis' Sorted Set data type, a powerful tool for storing collections. Again, if the data isn't in Redis we'll check MySql, using the query defined in config for the collection. In other words, ALL your queries are defined in config.
 
 ### 5. Nested Property Lookups
 Almost never does a resource exist in a model without relationships with other resources. Twitter users, for example, have followers. Nordis allows you to retrieve a complex document relating to the resource including collections of data (a list of follows, for example; or just the first page of follows).

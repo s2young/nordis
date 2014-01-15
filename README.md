@@ -10,7 +10,7 @@ Nordis Highlights:
 and columns in MySql for you.
 
 ```
-    hClasses:{
+    User:{
         nClass:1
         hProperties:{
             id:{

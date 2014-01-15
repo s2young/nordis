@@ -78,10 +78,30 @@ Almost never does a resource exist in a model without relationships with other r
 
 Node.js example:
 ```Javascript
+    var Base = require('nordis').Base;
+    
     Base.lookup({sClass:'User',hQuery:{id:1234},hExtras:{follows:true}},function(err,oUser){
         // You now have retrieved the User with id==1234, along with ALL his follows.
         console.log('USER HAS '+oUser.follows.nTotal+' followers!');
     });
+```
+
+REST example:
+```Javascript
+    var request = require('request');
+
+    request.get({uri:'http://yourapi/user/1234'},function(error, response, body){
+        
+        // The API boilerplate returns just the data on the user
+        var hResult = JSON.parse(body); 
+        
+        // We can convert that into a full-blown User object like this:
+        var user = Base.lookup({sClass:'User',hData:hResult});
+        
+        console.log(user);
+        
+    });
+
 ```
 
 ### 6. API Boilerplate & Apiary Docs 

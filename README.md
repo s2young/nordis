@@ -60,12 +60,15 @@ The Nordis base class provides all your CRUD boilerplate methods. You can create
         console.log(user); // Now you've got your user.
     });
     
-    // Lookup via secondary key (email)
+    // LOOKUP VIA SECONDARY KEY
     // In the provided example, the User class includes an email property that is marked as unique.
     // Doing so gives you the ability to do Redis lookups as if email was the primary key:
     Base.looup({sClass:'User',hQuery:{email:'joe@gmail.com'}},function(err,user){
         console.log(user); // Now you've got your user.
     });
+    
+    // I personally use the secondary key to create unique, obfuscated string ids (guids) for objects
+    // so I don't have to use numeric ids in my RESTful calls.
 ```
 
 
@@ -79,10 +82,41 @@ Node.js example:
 ```Javascript
     var Base = require('nordis').Base;
     
-    Base.lookup({sClass:'User',hQuery:{id:1234},hExtras:{follows:true}},function(err,user){
+    // LOOKUP ALL FOLLOWS
+    Base.lookup({
+        sClass:'User',
+        hQuery:{
+            id:1234
+        },
+        hExtras:{
+            follows:true
+        }
+    },function(err,user){
         // You now have retrieved the User with id==1234, along with ALL his follows.
         console.log('USER HAS '+user.follows.nTotal+' followers!');
     });
+    
+    // ALL FOLLOWS + follower_user property.
+    // You can go as deeply into the document as you like. A Follow item only gives me the ids of the
+    // follower and followed.  I want the name/email of the follower_user (see example config for model details):
+    Base.lookup({
+        sClass:'User',
+        hQuery:{
+            id:1234
+        },
+        hExtras:{
+            follows:{
+                hExtras:{
+                    follower_user:true
+                }
+            }
+        }
+    },function(err,user){
+        // You now have retrieved the User with id==1234, along with ALL his follows.
+        console.log('USER HAS '+user.follows.nTotal+' followers!');
+        console.log('THE FIRST FOLLOWER NAME IS: '+user.follows.first().follower_user.get('name'));
+    });
+    
 ```
 
 REST example:

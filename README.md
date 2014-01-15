@@ -8,7 +8,7 @@ Objectives:
 -------------
 
 ### 1. Code-first.
-Define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables and columns in MySql for you. Here is a snippet of the included, example configuration file that defines the 'User' class:
+Define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables and columns in MySql for you. Here is a snippet of the included, example configuration file that defines a 'User' and 'Follow' class:
 
 ```Javascript
     User:{
@@ -34,6 +34,33 @@ Define your model in the configuration file and then go to work. Nordis will sav
             }
         }
     }
+    ,Follow:{
+            hProperties:{
+                id:{sType:'Number',bUnique:true,sSample:'3'}
+                ,followed_id:{sType:'Number',sSample:'1'}
+                ,follower_id:{sType:'Number',sSample:'2'                }
+                ,rank:{sType:'Number',sSample:'0'}
+            }
+            ,nClass:2
+            ,hExtras:{
+                followed_user:{
+                    sType:'Object'
+                    ,sClass:'User'
+                    ,aKey:['followed_id','id']
+                    ,fnQuery:function(oSelf){
+                        return {id:oSelf.get('followed_id')}
+                    }
+                }
+                ,follower_user:{
+                    sType:'Object'
+                    ,sClass:'User'
+                    ,aKey:['follower_id','id']
+                    ,fnQuery:function(oSelf){
+                        return {id:oSelf.get('follower_id')}
+                    }
+                }
+            }
+        }
 ```
 
 ### 2. Redis + MySql as DB
@@ -46,32 +73,34 @@ The Nordis base class provides all your CRUD boilerplate methods. You can create
     var Base = require('nordis').Base;
     
     // CREATE NEW USER
+    var user = Base.lookup({sClass:'User'}); // New instance of User class.
     
-    // Instantiate empty User object
-    var user = Base.lookup({sClass:'User'});
-    
-    // Set some properties
+    // Set some properties and save.
     user.set('name','Joe User');
     user.set('email','joe@gmail.com');
-    
-    // Save the user
-    user.save(null,function(err){
-        // Now you've saved your user.
-        console.log(user);
+    user.save(function(err){
+        console.log(user);// Now you've saved your user.
     });
     
-    // LOOKUP EXISTING USER
-    
-    // Lookup user wih id of 1234.
+    // LOOKUP EXISTING USER (wih id of 1234)
     Base.lookup({sClass:'User',hQuery:{id:1234}},function(err,user){
-        // Now you've got your user.
-        console.log(user);
+        console.log(user); // Now you've got your user.
     });
+    
+    // LOOKUP VIA SECONDARY KEY
+    // In the provided example, the User class includes an email property that is marked as unique.
+    // Doing so gives you the ability to do Redis lookups as if email was the primary key:
+    Base.looup({sClass:'User',hQuery:{email:'joe@gmail.com'}},function(err,user){
+        console.log(user); // Now you've got your user.
+    });
+    
+    // I personally use the secondary key to create unique, obfuscated string ids (guids) for objects
+    // so I don't have to use numeric ids in my RESTful calls.
 ```
 
 
 ### 4. Collection Class
-The Nordis collection provides support for getting paged data easily, as well as getting the total number of items in the collection regardless of the size of the page you request. Collections are defined in configuration, including how they are sorted and the query parameters required to pull the collection directly from MySql. They are stored in Redis using Redis' Sorted Set data type, a powerful and fast tool for storing collections. Again, if the data isn't in Redis we'll check MySql.
+The Nordis collection provides support for getting paged data easily, as well as getting the total number of items in the collection regardless of the size of the page you request. Collections are defined in configuration, including how they are sorted and the query parameters required to pull the collection directly from MySql. They are stored in Redis using Redis' Sorted Set data type, a powerful tool for storing collections. Again, if the data isn't in Redis we'll check MySql, using the query defined in config for the collection. In other words, ALL your queries are defined in config.
 
 ### 5. Nested Property Lookups
 Almost never does a resource exist in a model without relationships with other resources. Twitter users, for example, have followers. Nordis allows you to retrieve a complex document relating to the resource including collections of data (a list of follows, for example; or just the first page of follows).
@@ -80,10 +109,41 @@ Node.js example:
 ```Javascript
     var Base = require('nordis').Base;
     
-    Base.lookup({sClass:'User',hQuery:{id:1234},hExtras:{follows:true}},function(err,user){
+    // LOOKUP ALL FOLLOWS
+    Base.lookup({
+        sClass:'User',
+        hQuery:{
+            id:1234
+        },
+        hExtras:{
+            follows:true
+        }
+    },function(err,user){
         // You now have retrieved the User with id==1234, along with ALL his follows.
         console.log('USER HAS '+user.follows.nTotal+' followers!');
     });
+    
+    // ALL FOLLOWS + follower_user property.
+    // You can go as deeply into the document as you like. A Follow item only gives me the ids of the
+    // follower and followed.  I want the name/email of the follower_user (see example config for model details):
+    Base.lookup({
+        sClass:'User',
+        hQuery:{
+            id:1234
+        },
+        hExtras:{
+            follows:{
+                hExtras:{
+                    follower_user:true
+                }
+            }
+        }
+    },function(err,user){
+        // You now have retrieved the User with id==1234, along with ALL his follows.
+        console.log('USER HAS '+user.follows.nTotal+' followers!');
+        console.log('THE FIRST FOLLOWER NAME IS: '+user.follows.first().follower_user.get('name'));
+    });
+    
 ```
 
 REST example:

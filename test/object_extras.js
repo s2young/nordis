@@ -12,7 +12,7 @@ module.exports = {
                 self.user = Base.lookup({sClass:'User'});
                 self.user.set('name','TestUser');
                 self.user.set('email','test@test.com');
-                self.user.save(null,cb);
+                self.user.save(cb);
             }
             ,function(cb){
                 // Create but don't save the follower object.

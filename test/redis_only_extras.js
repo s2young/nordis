@@ -11,7 +11,7 @@ module.exports = {
         self.user = Base.lookup({sClass:'User'});
         self.user.set('name','TestUser');
         self.user.set('email','test@test.com');
-        self.user.save(null,callback);
+        self.user.save(callback);
     }
     ,tearDown:function(callback) {
         var self = this;

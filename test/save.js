@@ -11,7 +11,7 @@ module.exports = {
             var user = Base.lookup({sClass:'User'});
             user.set('name','TestUser');
             user.set('email','test'+n+'@test.com');
-            user.save(null,cback);
+            user.save(cback);
         };
         var q = async.queue(createUser,10);
         q.drain = callback;
@@ -128,7 +128,7 @@ module.exports = {
             var sale = Base.lookup({sClass:'Sale'});
             sale.set('user_id',user.getKey());
             sale.set('amount',100.00);
-            sale.save(null,function(err){
+            sale.save(function(err){
                 test.equal(sale.bOverridden,true);
                 AppConfig.wrapTest(err,test);
             });

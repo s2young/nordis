@@ -14,6 +14,12 @@ var p = Sale.prototype;
 // In this example, I'm just going to tack something onto the object for my unit test to confirm.
 p.save = function(hOpts,fnCallback) {
     var oSelf = this;
+
+    if (hOpts instanceof Function) {
+        fnCallback = hOpts;
+        hOpts = undefined;
+    }
+
     p.save.super_.call(oSelf,hOpts,function(err){
         oSelf.bOverridden = true;
         fnCallback(err,oSelf);

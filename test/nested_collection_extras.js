@@ -23,7 +23,7 @@ module.exports = {
                     self.user = Base.lookup({sClass:'User'});
                     self.user.set('name','TestUser');
                     self.user.set('email','test@test.com');
-                    self.user.save(null,cb);
+                    self.user.save(cb);
                 }
                 ,function(cb) {
                     // Create n follower records  (n = nTestSize);
@@ -35,14 +35,14 @@ module.exports = {
                                 follower_user = Base.lookup({sClass:'User'});
                                 follower_user.set('name','TestFollower '+n);
                                 follower_user.set('email','testfollower'+n+'@test.com');
-                                follower_user.save(null,cb);
+                                follower_user.save(cb);
                             }
                             ,function(follower_user,cb) {
                                 var follow = Base.lookup({sClass:'Follow'});
                                 follow.set('followed_id',self.user.getKey());
                                 follow.set('follower_id',follower_user.getKey());
                                 follow.set('rank',n);
-                                follow.save(null,cb);
+                                follow.save(cb);
                             }
                             ,function(follower,cb) {
                                 self.user.setExtra('follows',follower,cb);
@@ -56,7 +56,7 @@ module.exports = {
                                     followerOfFollower.set('followed_id',follower_user.getKey());
                                     followerOfFollower.set('follower_id',oLastUser.getKey());
                                     followerOfFollower.set('rank',1);
-                                    followerOfFollower.save(null,cb);
+                                    followerOfFollower.save(cb);
                                 } else
                                     cb(null,null);
                             }

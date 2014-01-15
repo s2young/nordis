@@ -5,9 +5,9 @@ Node.js framework for rapid web application and API development that utilizes th
 of mind provided by a relational database.
 
 Nordis Highlights:
+-------------
 
-1. Code-first. You define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables
-and columns in MySql for you. Here is a snippet of the included, example configuration file that defines the 'User' class:
+### 1. Code-first. You define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables and columns in MySql for you. Here is a snippet of the included, example configuration file that defines the 'User' class:
 
 ```
     User:{

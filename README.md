@@ -4,18 +4,16 @@ nordis
 Node.js framework for rapid web application and API development that utilizes the speed of Redis without sacrificing the piece
 of mind provided by a relational database.
 
-Nordis Highlights:
+Objectives:
 -------------
 
 ### 1. Code-first.
 Define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables and columns in MySql for you. Here is a snippet of the included, example configuration file that defines the 'User' class:
 
-```
+```Javascript
     User:{
-        // Each class is assigned a number for namespacing in redis.
-        nClass:1
-         // Properties can be mapped to existing tables and columns, but this assumes a clean slate
-        hProperties:{
+        nClass:1 // Each class is assigned a number for namespacing in redis.
+        hProperties:{ // Properties can be mapped to existing tables and columns, but this assumes a clean slate
             id:{sType:'Number',bUnique:true,sSample:'1'}
             ,sid:{sType:'String',bUnique:true,nLength:36,sSample:'Yf8uIoP'}
             ,name:{sType:'String',sSample:'Joe User'}

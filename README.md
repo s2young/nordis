@@ -9,6 +9,72 @@ Nordis Highlights:
 1. Code-first. You define your model in the configuration file and then go to work. Nordis will save data to Redis, as well as create tables
 and columns in MySql for you.
 
+```
+    hClasses:{
+        nClass:1
+        hProperties:{
+            id:{
+                sType:'Number'
+                ,bUnique:true
+                ,sSample:'1'
+            }
+            ,sid:{
+                sType:'String'
+                ,bUnique:true
+                ,nLength:36
+                ,sSample:'Yf8uIoP'
+            }
+            ,created:{
+                sType:'Timestamp'
+                ,bOnCreate:true
+                ,sSample:'1389625960'
+            }
+            ,updated:{
+                sType:'Timestamp'
+                ,bOnUpdate:true
+                ,sSample:'1389625960'
+            }
+            ,name:{
+                sType:'String'
+                ,sSample:'Joe User'
+            }
+            ,password:{
+                sType:'String'
+                ,bPrivate:true
+                ,sSample:'password'
+            }
+            ,email:{
+                sType:'String'
+                ,bUnique:true
+                ,sSample:'joe@gmail.com'
+            }
+            ,referrer_id:{
+                sType:'Number'
+                ,sSample:null
+            }
+        }
+        ,hExtras:{
+            friends:{
+                sType:'Collection'
+                ,sClass:'Friend'
+                ,sOrderBy:'rank'
+                ,bReverse:true
+                ,fnQuery:function(oSelf){
+                    return {user_id:oSelf.getKey()}
+                }
+            }
+            ,referring_user:{
+                sType:'Object'
+                ,sClass:'User'
+                ,aKey:['referrer_id','id']
+                ,fnQuery:function(oObj){
+                    return {id:oObj.get('referrer_id')}
+                }
+            }
+        }
+    }
+```
+
 2. Redis + MySql as DB. Nordis stores objects in both Redis and MySql and will always pull from Redis first if the object is available,
 unless you specify otherwise in your code. This means consistently fast look-ups without losing the peace-of-mind that
 a relational db provides.  Plugins for Postgres and other relational dbs shouldn't be too hard to add over time.

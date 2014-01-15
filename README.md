@@ -80,9 +80,9 @@ Node.js example:
 ```Javascript
     var Base = require('nordis').Base;
     
-    Base.lookup({sClass:'User',hQuery:{id:1234},hExtras:{follows:true}},function(err,oUser){
+    Base.lookup({sClass:'User',hQuery:{id:1234},hExtras:{follows:true}},function(err,user){
         // You now have retrieved the User with id==1234, along with ALL his follows.
-        console.log('USER HAS '+oUser.follows.nTotal+' followers!');
+        console.log('USER HAS '+user.follows.nTotal+' followers!');
     });
 ```
 
@@ -90,18 +90,18 @@ REST example:
 ```Javascript
     var request = require('request');
 
-    request.get({uri:'http://yourapi/user/1234'},function(error, response, body){
-        
-        // The API boilerplate returns just the data on the user
-        var hResult = JSON.parse(body); 
-        
-        // We can convert that into a full-blown User object like this:
-        var user = Base.lookup({sClass:'User',hData:hResult});
-        
-        console.log(user);
-        
+    // Retrieve user and his follows using nordis API boilerplate middleware.
+    request.get({uri:'http://yourapi/user/1234?hExtras[follows]=true'},function(error, response, body){
+        var user = JSON.parse(body);
+        console.log('USER HAS '+user.follows.nTotal+' followers!');
     });
-
+    
+    // In provided sample conf.js, we also define a specific endpoint for getting user follows: 
+    request.get({uri:'http://yourapi/user/1234/follows'},function(error, response, body){
+        // In this case, we don't get the user on the document, only the collection of follows.
+        var follows = JSON.parse(body);
+        console.log('USER HAS '+follows.nTotal+' followers!');
+    });
 ```
 
 ### 6. API Boilerplate & Apiary Docs 

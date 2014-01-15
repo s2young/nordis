@@ -48,6 +48,10 @@ module.exports = {
                     q.push(n);
                 }
             }
+            // Flush any previously tracked stats.
+            ,function(cb) {
+                AppConfig.flushStats(cb);
+            }
             // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
             ,function(cb) {
                 AppConfig.init(null,function(err){
@@ -65,18 +69,24 @@ module.exports = {
         ],callback);
     }
     ,tearDown:function(callback) {
+        var self = this;
         async.waterfall([
             function(cb) {
-                new Collection({sClass:'User',hQuery:{sWhere:'email IS NOT NULL'}},cb);
+                new Collection({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
             }
             ,function(users,cb) {
                 users.delete(cb);
             }
             ,function(ignore,cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:AppConfig.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},cb);
+                var hQuery = {};
+                hQuery[AppConfig.hClasses.Friend.sNumKeyProperty] = 'NOT NULL';
+                new Collection({sClass:'Friend',hQuery:hQuery},cb);
             }
             ,function(friends,cb) {
                 friends.delete(cb);
+            }
+            ,function(ignore,cb) {
+                AppConfig.flushStats(cb);
             }
             ,function(ignore,cb){
                 if (server)

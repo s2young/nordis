@@ -97,13 +97,15 @@ module.exports = {
                 var nEndingMemory = res.match(/used_memory\:([^\r]*)/)[1];
                 AppConfig.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
 
-                new Collection({sClass:'User',hQuery:{sWhere:'email IS NOT NULL'}},cb);
+                new Collection({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);
             }
             ,function(ignore,cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:AppConfig.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},cb);
+                var hQuery = {};
+                hQuery[AppConfig.hClasses.Friend.sNumKeyProperty] = 'NOT NULL';
+                new Collection({sClass:'Friend',hQuery:hQuery},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);

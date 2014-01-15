@@ -81,7 +81,9 @@ module.exports = {
     ,tearDown:function(callback) {
         async.series([
             function(cb){
-                new Collection({sClass:'Friend',hQuery:{sWhere:AppConfig.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},function(err,cColl){
+                var hQuery = {};
+                hQuery[AppConfig.hClasses.Friend.sNumKeyProperty] = 'NOT NULL';
+                new Collection({sClass:'Friend',hQuery:hQuery},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -89,7 +91,9 @@ module.exports = {
                 });
             }
             ,function(cb){
-                new Collection({sClass:'User',hQuery:{sWhere:AppConfig.hClasses.Friend.sNumKeyProperty+' IS NOT NULL'}},function(err,cColl){
+                var hQuery = {};
+                hQuery[AppConfig.hClasses.Friend.sNumKeyProperty] = 'NOT NULL';
+                new Collection({sClass:'User',hQuery:hQuery},function(err,cColl){
                     if (err)
                         cb(err);
                     else

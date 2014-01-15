@@ -30,7 +30,7 @@ module.exports = {
                 });
             }
             ,function(cb) {
-                new Collection({sClass:'Sale',hQuery:{sWhere:'id IS NOT NULL'}},function(err,cColl){
+                new Collection({sClass:'Sale',hQuery:{id:'NOT NULL'}},function(err,cColl){
                     if (err)
                         cb(err);
                     else

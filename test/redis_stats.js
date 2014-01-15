@@ -32,39 +32,22 @@ module.exports = {
                 self.user.set('email','test@test.com');
                 self.user.save(null,cb);
             }
+            //Process stats .
+            ,function(callback){
+                var dStart = new Date(new Date().getTime()-100000);
+                var dEnd = new Date();
+                AppConfig.processStats(dStart,dEnd,callback);
+            }
+            // Delete all stats, just in case a previous test triggered some tracking we don't care about.
             ,function(cb) {
                 Base.lookup({sClass:'App'},function(err,oResult){
                     self.oApp = oResult;
                     cb(err);
                 });
             }
-            // Delete all stats, just in case a previous test triggered some tracking we don't care about.
+            // Flush any previously tracked stats.
             ,function(cb) {
-                // Flush all stats.
-                var q = async.queue(function(hOpts,cback){
-                    if (hOpts.sStat && hOpts.sGrain) {
-                        var hExtras = {};
-                        hExtras[hOpts.sStat] = {hExtras:{}};
-                        hExtras[hOpts.sStat][hOpts.sGrain] = true;
-                        self.oApp.loadExtras(hExtras,function(err){
-                            if (err)
-                                cback(err);
-                            else if (self.oApp[hOpts.sStat] && self.oApp[hOpts.sStat][hOpts.sGrain])
-                                self.oApp[hOpts.sStat][hOpts.sGrain].delete(cback);
-                            else
-                                cback();
-                        });
-                    } else
-                        cback();
-                },1);
-                q.drain = cb;
-
-                for (var sStat in AppConfig.hStats) {
-                    ['hour','day','month','year'].forEach(function(sGrain){
-                        q.push({sStat:sStat,sGrain:sGrain});
-                    });
-                    q.push({});
-                }
+                AppConfig.flushStats(cb);
             }
             // Start up the api.
             ,function(cb) {
@@ -88,32 +71,9 @@ module.exports = {
             function(cb) {
                 self.user.delete(cb);
             }
+            // Flush any previously tracked stats.
             ,function(cb) {
-                // Flush all stats.
-                var q = async.queue(function(hOpts,cback){
-                    if (hOpts.sStat && hOpts.sGrain) {
-                        var hExtras = {};
-                        hExtras[hOpts.sStat] = {hExtras:{}};
-                        hExtras[hOpts.sStat][hOpts.sGrain] = true;
-                        self.oApp.loadExtras(hExtras,function(err){
-                            if (err)
-                                cback(err);
-                            else if (self.oApp[hOpts.sStat] && self.oApp[hOpts.sStat][hOpts.sGrain])
-                                self.oApp[hOpts.sStat][hOpts.sGrain].delete(cback);
-                            else
-                                cback();
-                        });
-                    } else
-                        cback();
-                },1);
-                q.drain = cb;
-
-                for (var sStat in AppConfig.hStats) {
-                    ['hour','day','month','year'].forEach(function(sGrain){
-                        q.push({sStat:sStat,sGrain:sGrain});
-                    });
-                    q.push({});
-                }
+                AppConfig.flushStats(cb);
             }
             ,function(cb){
                 if (server)

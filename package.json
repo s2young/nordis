@@ -16,10 +16,13 @@
       ,"request":"*"
       ,"generic-pool":"*"
       ,"mysql":"*"
-      ,"nodeunit":"*"
       ,"redis":"*"
       ,"validator":"*"
       ,"winston":"*"
+  }
+  ,"devDependencies":{
+    "express":"*"
+    ,"nodeunit":"*"
   }
 }
 

@@ -112,12 +112,10 @@ module.exports.hSettings = {
                                 POST:{
                                     sTitle:'Update (or Create) User'
                                     ,sDescription:'You can also create a NEW user by leaving the sid out.'
-                                    ,bTrackStats:true
                                 }
                                 ,GET:{
                                     sTitle:'Retrieve a User'
                                     ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'follows\' collection up to a total of ONE record (nSize:1). On that follower, we want the related follower_user property (which is a User object).\n\n            {"hExtras":{follows:{nSize:1,hExtras:{follower_user:true}}}}'
-                                    ,bTrackStats:true
                                     ,fnApiCallOutput:function(req,AppConfig,fnCallback){
                                         if (fnCallback)
                                             // Nordis has a toHash method as the default serialization for each class, but you can override it here. In this case, we're just going ahead with the default serialization.
@@ -128,7 +126,6 @@ module.exports.hSettings = {
                                 }
                                 ,DELETE:{
                                     sTitle:'Delete a User'
-                                    ,bTrackStats:true
                                 }
                             }
                         }
@@ -191,8 +188,8 @@ module.exports.hSettings = {
                                 GET:{
                                     sTitle:'Retrieve Follow Collection'
                                     ,sDescription:'This api call is an example of how to define a custom function (fnApiCallProcessor) to track stats or check security credentials on an endpoint. Also, this example has a custom output function (fnApiCallOutput) which customizes what the returning document looks like. Both are defined in the config file.'
-                                    ,bTrackStats:true
                                     ,hSample:{sClass:'Follow',aObjects:[{id:3,followed_id:1,follower_id:2,rank:1,follower_user:{id:2,sid:'H0Jd56g6',created:1389625960,updated:1389625960,name:'Joe Follower',email:'follower@gmail.com',referrer_id:'1'}}],nTotal:1}
+                                    ,bDisallowExtras:false
                                     ,fnApiCallProcessor:function(req,AppConfig,fnCallback){
                                         AppConfig.trackStat('api_requests',['/user/{id}/follows'],fnCallback);
                                     }

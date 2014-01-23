@@ -5,7 +5,7 @@
 module.exports.hSettings = {
     global: {
         sLanguage:'en'
-        ,sLogLevel:'warn'
+        ,sLogLevel:'info'
         ,hOptions:{
             MySql:{
                 sSchema:'nordis',
@@ -189,23 +189,10 @@ module.exports.hSettings = {
                                     sTitle:'Retrieve Follow Collection'
                                     ,sDescription:'This api call is an example of how to define a custom function (fnApiCallProcessor) to track stats or check security credentials on an endpoint. Also, this example has a custom output function (fnApiCallOutput) which customizes what the returning document looks like. Both are defined in the config file.'
                                     ,hSample:{sClass:'Follow',aObjects:[{id:3,followed_id:1,follower_id:2,rank:1,follower_user:{id:2,sid:'H0Jd56g6',created:1389625960,updated:1389625960,name:'Joe Follower',email:'follower@gmail.com',referrer_id:'1'}}],nTotal:1}
-                                    ,bDisallowExtras:false
                                     ,fnApiCallProcessor:function(req,AppConfig,fnCallback){
+                                        // Setting default extras for this endpoint.  This is where you could completely ignore and/or override what the api user is asking for.
+                                        req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follows:{hExtras:{follower_user:true}}};
                                         AppConfig.trackStat('api_requests',['/user/{id}/follows'],fnCallback);
-                                    }
-                                    ,fnApiCallOutput:function(req,AppConfig,fnCallback){
-                                        // We're going to provide a default hExtras if it's not passed in by the middleware.
-                                        req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follower_user:true};
-                                        // For production use, there will be a callback. The apiary.js script, which produces API docs, does not provide a callback and expects a return statement.
-                                        if (fnCallback)
-                                            req.hNordis.oResult.loadExtras(req.hNordis.hExtras,function(err){
-                                                if (err)
-                                                    fnCallback(err);
-                                                else
-                                                    fnCallback(null,req.hNordis.oResult.toHash(req.hNordis.hExtras));
-                                            });
-                                        else
-                                            return req.hNordis.oResult.toHash(req.hNordis.hExtras);
                                     }
                                 }
                             }

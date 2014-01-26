@@ -2,8 +2,10 @@ var AppConfig     = require('./../../lib/AppConfig'),
     Base    = require('./../../lib/Base');
 
 AppConfig.init(null,function(){
-    Base.lookup({sClass:'App',hExtras:{unique_users:{hExtras:{day:true}}}},function(err,oApp){
-        console.log(oApp);
-        AppConfig.exit();
+    var user = Base.lookup({sClass:'User'});
+    user.set('email','test@gmail.com');
+    user.save(function(err){
+        console.log(err);
+
     });
 });

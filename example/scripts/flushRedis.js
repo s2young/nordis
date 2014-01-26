@@ -3,7 +3,8 @@ var async   = require('async'),
 
 process.env.sApp = 'flushRedis.js';
 /**
- * This deletes everything in redis!! Don't screw with it.
+ * This deletes everything in redis, except the nSeedID which Nordis uses to hand out primary key ids. Don't remove that key! If you do you'll need to find the highest primary key id in your data
+ * set and reset the nSeedID key.
  */
 AppConfig.Redis.acquire(function(err,oClient){
     oClient.keys('*',function(err,aKeys){
@@ -32,4 +33,4 @@ AppConfig.Redis.acquire(function(err,oClient){
             AppConfig.exit();
         }
     });
-})
+});

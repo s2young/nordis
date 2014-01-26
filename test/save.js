@@ -136,4 +136,15 @@ module.exports = {
         });
 
     }
+    ,requiredPropertyCheck:function(test){
+        test.expect(1);
+
+        var user = Base.lookup({sClass:'User'});
+        user.set('email','test@gmail.com');
+        user.save(function(err){
+            console.log(err);
+            test.equals(err,'Must set required properties: name,email');
+            AppConfig.wrapTest(null,test);
+        });
+    }
 };

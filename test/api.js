@@ -95,110 +95,110 @@ module.exports = {
         ],callback)
 
     }
-//    ,lookupUser:function(test) {
-//        var self = this;
-//        test.expect(1);
-//
-//        async.waterfall([
-//            function(callback){
-//                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()},function(error, response, body){
-//                    if (error)
-//                        callback(error);
-//                    else {
-//                        try {
-//                            callback(error,JSON.parse(body));
-//                        } catch (err) {
-//                            AppConfig.error(body);
-//                        }
-//                    }
-//
-//                });
-//            }
-//            ,function(hResult,callback){
-//                var user = Base.lookup({sClass:'User',hData:hResult});
-//                test.equal(user.getKey(),self.user.getKey());
-//                callback();
-//            }
-//        ],function(err){ AppConfig.wrapTest(err,test); });
-//    }
-//    ,lookupUserAndFollowers:function(test) {
-//        var self = this;
-//        test.expect(2);
-//
-//        // This time, we'll request the user's follows collection along with the user himself.
-//        var hData = {
-//            hExtras:{
-//                follows:{
-//                    hExtras:{
-//                        follower_user:true // We'll get each follower user object on the follows collection.
-//                    }
-//                }
-//            }
-//        };
-//
-//        async.waterfall([
-//            function(callback){
-//                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),qs:hData},function(error, response, body){
-//                    callback(error,JSON.parse(body));
-//                });
-//            }
-//            ,function(hResult,callback){
-//                var user = Base.lookup({sClass:'User',hData:hResult});
-//                test.equal(user.getKey(),self.user.getKey());
-//                test.equal(hResult.follows.nTotal,nTestSize);
-//
-//                callback();
-//            }
-//        ],function(err){ AppConfig.wrapTest(err,test); });
-//    }
-//    ,changeUserName:function(test) {
-//        // This test submits a save.json call on the existing user, changing his name.
-//        var self = this;
-//        test.expect(1);
-//
-//        var sNewName = 'Dummy';
-//        async.waterfall([
-//            function(callback){
-//                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),form:{name:sNewName}},function(error, response, body){
-//                    callback(error,body);
-//                });
-//            }
-//            ,function(body,callback){
-//                var hResult = JSON.parse(body);
-//                test.equal(hResult.name,sNewName);
-//                callback();
-//            }
-//        ],function(err){ AppConfig.wrapTest(err,test); });
-//    }
-//    ,badClassInRequest:function(test) {
-//        test.expect(1);
-//
-//        async.waterfall([
-//            function(callback){
-//                request.post({uri:'http://localhost:'+nPort+'/badclass'},function(error, response, body){
-//                    test.equal(response.statusCode,500);
-//                    callback(error,body);
-//                });
-//            }
-//        ],function(err){ AppConfig.wrapTest(err,test); });
-//    }
-//    ,lookupUserByNumberID:function(test) {
-//        var self = this;
-//        test.expect(1);
-//
-//        async.waterfall([
-//            function(callback){
-//                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getKey()},function(error, response, body){
-//                    callback(error,JSON.parse(body));
-//                });
-//            }
-//            ,function(hResult,callback){
-//                var user = Base.lookup({sClass:'User',hData:hResult});
-//                test.equal(user.getKey(),self.user.getKey());
-//                callback();
-//            }
-//        ],function(err){ AppConfig.wrapTest(err,test); });
-//    }
+    ,lookupUser:function(test) {
+        var self = this;
+        test.expect(1);
+
+        async.waterfall([
+            function(callback){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()},function(error, response, body){
+                    if (error)
+                        callback(error);
+                    else {
+                        try {
+                            callback(error,JSON.parse(body));
+                        } catch (err) {
+                            AppConfig.error(body);
+                        }
+                    }
+
+                });
+            }
+            ,function(hResult,callback){
+                var user = Base.lookup({sClass:'User',hData:hResult});
+                test.equal(user.getKey(),self.user.getKey());
+                callback();
+            }
+        ],function(err){ AppConfig.wrapTest(err,test); });
+    }
+    ,lookupUserAndFollowers:function(test) {
+        var self = this;
+        test.expect(2);
+
+        // This time, we'll request the user's follows collection along with the user himself.
+        var hData = {
+            hExtras:{
+                follows:{
+                    hExtras:{
+                        follower_user:true // We'll get each follower user object on the follows collection.
+                    }
+                }
+            }
+        };
+
+        async.waterfall([
+            function(callback){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),qs:hData},function(error, response, body){
+                    callback(error,JSON.parse(body));
+                });
+            }
+            ,function(hResult,callback){
+                var user = Base.lookup({sClass:'User',hData:hResult});
+                test.equal(user.getKey(),self.user.getKey());
+                test.equal(hResult.follows.nTotal,nTestSize);
+
+                callback();
+            }
+        ],function(err){ AppConfig.wrapTest(err,test); });
+    }
+    ,changeUserName:function(test) {
+        // This test submits a save.json call on the existing user, changing his name.
+        var self = this;
+        test.expect(1);
+
+        var sNewName = 'Dummy';
+        async.waterfall([
+            function(callback){
+                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),form:{name:sNewName}},function(error, response, body){
+                    callback(error,body);
+                });
+            }
+            ,function(body,callback){
+                var hResult = JSON.parse(body);
+                test.equal(hResult.name,sNewName);
+                callback();
+            }
+        ],function(err){ AppConfig.wrapTest(err,test); });
+    }
+    ,badClassInRequest:function(test) {
+        test.expect(1);
+
+        async.waterfall([
+            function(callback){
+                request.post({uri:'http://localhost:'+nPort+'/badclass'},function(error, response, body){
+                    test.equal(response.statusCode,500);
+                    callback(error,body);
+                });
+            }
+        ],function(err){ AppConfig.wrapTest(err,test); });
+    }
+    ,lookupUserByNumberID:function(test) {
+        var self = this;
+        test.expect(1);
+
+        async.waterfall([
+            function(callback){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getKey()},function(error, response, body){
+                    callback(error,JSON.parse(body));
+                });
+            }
+            ,function(hResult,callback){
+                var user = Base.lookup({sClass:'User',hData:hResult});
+                test.equal(user.getKey(),self.user.getKey());
+                callback();
+            }
+        ],function(err){ AppConfig.wrapTest(err,test); });
+    }
     ,loadFollowersDirectly:function(test) {
         var self = this;
         test.expect(1);

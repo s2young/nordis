@@ -58,6 +58,7 @@ module.exports.hSettings = {
                     ,name:{
                         sType:'String'
                         ,sSample:'Joe User'
+                        ,bRequired:true
                     }
                     ,password:{
                         sType:'String'
@@ -68,6 +69,7 @@ module.exports.hSettings = {
                         sType:'String'
                         ,bUnique:true
                         ,sSample:'joe@gmail.com'
+                        ,bRequired:true
                     }
                     ,referrer_id:{
                         sType:'Number'

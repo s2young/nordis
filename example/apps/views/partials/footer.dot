@@ -1,0 +1,28 @@
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            window.aAngularMods = [];
+
+            requirejs.config({
+                baseUrl: '/assets/js',
+                enforceDefine: false,
+                paths: {
+                    angular: [
+                        '//ajax.googleapis.com/ajax/libs/angularjs/1.2.4/angular',
+                        'angular.min'
+                    ]
+                    ,nordis:['nordis.angular.0.0.5']
+                    ,moment:['moment.min']
+                }
+            });
+            // Wire up our angular app.
+            require(['angular'], function() {
+                require(['nordis'], function() {
+                    angular.bootstrap(document.getElementsByTagName('body')[0], ['nordis']);
+                });
+            });
+        </script>
+    </body>
+</html>

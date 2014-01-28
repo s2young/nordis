@@ -159,7 +159,7 @@ module.exports = {
         var sNewName = 'Dummy';
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),form:{name:sNewName}},function(error, response, body){
+                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),form:{name:sNewName,email:'test@test.com'}},function(error, response, body){
                     callback(error,body);
                 });
             }

@@ -1,0 +1,79 @@
+[[ hData.sTitle = 'Web App Stats'; ]]
+[[#def.loadfile('/partials/header.dot')]]
+
+<script type="text/javascript">
+    function StatsCtrl($scope,helpers,$element) {
+        $scope.hits;
+        // You probably would process your stats via script/cron etc. But this demonstrates two things:
+        // 1) a custom endpoint that isn't class-related in your API, and 2) how to process the stats you've been tracking.
+        $scope.processStats = function(){
+            helpers.post({sPath:'/process_stats'},function(){
+                $scope.loadStats();
+            });
+        };
+        $scope.loadStats = function(stat){
+            // You could wrap all this into a server-side page if you like.
+            helpers.get({sPath:'/hits/day'},function(result){
+                $scope.hits = result;
+            });
+            helpers.get({sPath:'/hits/month'},function(result){
+                $scope.hits = result;
+            });
+        };
+
+        $scope.getDate = function(nTime) {
+            var sTime = moment(nTime).format('MM/DD');
+            if (new Date(nTime).getFullYear() != new Date().getFullYear())
+                sTime = moment(nTime).format('MM/DD/YYYY');
+            return sTime;
+        };
+        $scope.getMonth = function(nTime) {
+            var sTime = moment(nTime).format('MMM');
+            if (new Date(nTime).getFullYear() != new Date().getFullYear())
+                sTime = moment(nTime).format('MMM YYYY');
+            return sTime;
+        };
+        // $element is the div with the ng-controller attribute in it.
+        angular.element($element).removeClass('hide');
+
+        // Load up  moment.js for nice date display.
+        require(['moment'], function() {
+            $scope.loadStats();
+        });
+    }
+</script>
+<div class="row" ng-controller="StatsCtrl">
+    <div class="col-lg-7">
+        <h4>Hits By Day</h4>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="white-space:nowrap;">Date (GMT)</th>
+                    <th style="width:100%;">Hits</th>
+                </tr>
+            </thead>
+            <tr ng-repeat="day in hits.day.aObjects | orderBy:'date'">
+                <th style="white-space:nowrap;" ng-bind="getDate(day.date);"></th>
+                <td ng-bind="day.count"></td>
+            </tr>
+        </table>
+        <h4>Hits By Month</h4>
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th style="white-space:nowrap;">Month</th>
+                <th style="width:100%;">Hits</th>
+            </tr>
+            </thead>
+            <tr ng-repeat="month in hits.day.aObjects | orderBy:'date'">
+                <th style="white-space:nowrap;" ng-bind="getMonth(month.date);"></th>
+                <td ng-bind="month.count"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-lg-5">
+        I've exposed the processStats method in the App singleton via the API so you can re-process stats and re-fresh the page and see the stats change.<br/><br/>
+        <button class="btn btn-info" ng-click="processStats()">Process Stats</button>
+    </div>
+</div>
+[[#def.loadfile('/partials/footer.dot')]]

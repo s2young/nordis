@@ -1,7 +1,10 @@
 /**
- *
- *
+ * This configuration file is the heart of a Nordis-based app. It defines database connections, log levels,
+ * your data model, and any API endpoints you want to expose to users.
  */
+var Base; // We're going to need the Base class is api override functions below.
+var Collection; // And Collection.
+
 module.exports.hSettings = {
     global: {
         sLanguage:'en'
@@ -30,6 +33,39 @@ module.exports.hSettings = {
             sTitle:'Nordis Sample API'
             ,sDescription:'This API is a simple output of the classes provided in this simple configuration example. No authentication is required for any endpoint, but real-world examples should include it.'
             ,sHost:'http://api.example.com'
+            ,hEndpoints:{
+                '/process_stats':{
+                    sDescription:'Custom endpoint for the demo app to trigger stat processing method.'
+                    ,hVerbs:{
+                        GET:{
+                            fnApiCallProcessor:function(req,AppConfig,fnCallback){
+                                AppConfig.processStats(fnCallback);
+                            }
+                        }
+                    }
+                }
+                ,'/userlist':{
+                    sDescription:'Again, no security implemented here. Just a demo of a collection and its paging capabilities.'
+                    ,hVerbs:{
+                        GET:{
+                            sTitle:'Retrieve All Users'
+                            ,fnApiCallProcessor:function(req,AppConfig,fnCallback) {
+                                if (!fnCallback)
+                                    return {aObjects:[],sClass:'User'};
+                                else {
+                                    if (!Collection) Collection = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Collection'); // You would use require('nordis').Collection;
+                                    console.log('1');
+                                    new Collection({sClass:'User',hQuery:{sid:'IS NOT NULL'},nSize:req.query.nSize||20,nFirstID:req.query.nFirstID||null},function(err,coll){
+                                        console.log('HEY!');
+                                        console.log(coll);
+                                        fnCallback(err,coll);
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         ,hClasses:{
             User:{
@@ -114,6 +150,25 @@ module.exports.hSettings = {
                                 POST:{
                                     sTitle:'Update (or Create) User'
                                     ,sDescription:'You can also create a NEW user by leaving the sid out.'
+                                    ,fnApiCallProcessor:function(req,AppConfig,fnCallback){
+                                        // Locate the user.
+                                        if (!Base) Base = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Base'); // You would use require('nordis').Base;
+                                        var email = (req.body.email) ? req.body.email.toLowerCase() : '';
+                                        Base.lookup({sClass:'User',hQuery:{email:email,name:req.body.name}},function(err,user){
+                                            if (err)
+                                                fnCallback(err);
+                                            else {
+                                                // This will overwrite an existing user if found in the db. You would implement
+                                                // checks here for security stuff.
+                                                user.setData({
+                                                    email:email
+                                                    ,name:req.body.name
+                                                    ,password:req.body.password // In a real app, I would hash this.
+                                                });
+                                                user.save(fnCallback);
+                                            }
+                                        });
+                                    }
                                 }
                                 ,GET:{
                                     sTitle:'Retrieve a User'
@@ -236,6 +291,16 @@ module.exports.hSettings = {
                         fnCallback('This stat requires a User object as first param.');
                     else
                         fnCallback(null,aParams[0].getKey());
+                }
+            }
+            ,hits:{
+                sDescription:'Total number of hits to the web, regardless of user.'
+                ,fnValidate:function(aParams,fnCallback){
+                    // The first param should be the api endpoint path.
+                    if (!aParams || !aParams[0])
+                        fnCallback('This stat requires an url path string as the first param.');
+                    else
+                        fnCallback(null,aParams[0]);
                 }
             }
             ,api_requests:{

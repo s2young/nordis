@@ -1,0 +1,52 @@
+[[ hData.sTitle = 'Hello '+hData.user.get('name'); ]]
+[[#def.loadfile('/partials/header.dot')]]
+
+<div class="row">
+    <div class="col-lg-6 alert">
+        <h4>Hi [[=hData.user.get('name')]]!</h4>
+        The Nordis middleware loaded you up based on the url path. Use the form at right to update your user record if desired.
+    </div>
+    <div class="col-lg-5">
+        <script type="text/javascript">
+            function UserCtrl($scope,helpers,$element) {
+                // the user object is what our form populates below.
+                $scope.user = [[=JSON.stringify(hData.user.toHash())]];
+
+                $scope.save = function(){
+                    helpers.post({sPath:'/user/new',hData:$scope.user},function(result){
+                        console.log(result);
+                    });
+                }
+                // $element is the div with the ng-controller attribute in it.
+                angular.element($element).removeClass('hide');
+            }
+        </script>
+        <div class="form well well-sm" ng-controller="UserCtrl">
+            <h5>Your Account</h5>
+            <p>
+                This is a super-simple example of how to load the context on the server-side using the Nordis
+                middleware and bind it to your page. In this example, I'm just stringifying the user object
+                into the Angular controller for client-side binding to the page.
+            </p>
+            <hr/>
+            <div role="form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-control" id="name" ng-model="user.name" placeholder="Full Name">
+                </div>
+                <div class="form-group">
+                    <label>Email address</label>
+                    <input type="email" class="form-control" id="email2" ng-model="user.email" placeholder="Email Address">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" ng-model="user.password" on-keyup="save()" keys="[13]" placeholder="Password">
+                </div>
+                <button type="submit" class="btn btn-default" ng-click="save()">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+[[#def.loadfile('/partials/footer.dot')]]

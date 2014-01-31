@@ -16,7 +16,12 @@
                     helpers.post({sPath:'/user/new',hData:$scope.user},function(result){
                         console.log(result);
                     });
-                }
+                };
+                $scope.delete = function(user){
+                    helpers.delete({sPath:'/user/'+user.sid},function(result){
+                        window.location = '/';
+                    });
+                };
                 // $element is the div with the ng-controller attribute in it.
                 angular.element($element).removeClass('hide');
             }
@@ -43,6 +48,7 @@
                     <input type="password" class="form-control" ng-model="user.password" on-keyup="save()" keys="[13]" placeholder="Password">
                 </div>
                 <button type="submit" class="btn btn-default" ng-click="save()">Update</button>
+                <button type="submit" class="btn btn-danger" ng-click="delete(user)">Delete</button>
             </div>
         </div>
     </div>

@@ -1,7 +1,5 @@
-if (!window.aAngularMods)
-    window.aAngularMods = ['ui.bootstrap'];
-
-angular.module('nordis', window.aAngularMods)
+angular.module('nordis', [])
+    // onKeyup is a directive used in input forms so that hitting a key can trigger something in your controller.
     .directive('onKeyup', function($parse) {
         return function(scope, elm, attrs) {
             var keyupFn = $parse(attrs.onKeyup);
@@ -24,9 +22,7 @@ angular.module('nordis', window.aAngularMods)
             });
         };
     })
-//    .config(function($compileProvider){
-//        $compileProvider.urlSanitizationWhitelist(/^\s*(https?|ftp|mailto|file|tel|itms-services):/);
-//    })
+    // These helpers have functions for Collection-related utilities, like updating & removing items.
     .factory('helpers',function($rootScope,$http,$location){
         var self = this;
 
@@ -39,16 +35,7 @@ angular.module('nordis', window.aAngularMods)
         }, true);
 
         return {
-            fadeIn:function($element){
-                angular.element($element).addClass('in').removeClass('out');
-            },
-            findItem:function(hOpts,aItems) {
-                var i = this.findIndex(hOpts,aItems);
-                if (i >= 0)
-                    return aItems[i];
-                else
-                    return;
-            },
+            // This function finds the index of an item in a collection.
             findIndex:function(hOpts,aItems) {
                 if (aItems)
                     for (var i = 0; i < aItems.length; i++) {
@@ -60,55 +47,41 @@ angular.module('nordis', window.aAngularMods)
                         if (bPass) return i;
                     }
             },
+            // Remove an item from a collection. Just pass in the object and the collection.
             remove:function(hItem,cColl) {
                 if (hItem && hItem.id && cColl && cColl.aObjects) {
-                    hItem.bRemoved = true;
-                    this.update({id:hItem.id},hItem,cColl.aObjects,null,cColl);
+                    var i = this.findIndex({id:hItem.id},cColl.aObjects);
+                    if (i) cColl.aObjects.splice(i,1);
                 }
             }
-            ,update:function(hOpts,hItem,aItems,bPrepend,cColl) {
-                if (aItems) {
-                    var i = this.findIndex(hOpts,aItems);
-                    if (i >= 0) {
-                        if (hItem.bRemoved) {
-                            aItems.splice(i,1);
-                            if (cColl)
-                                cColl.nTotal--;
-                        } else
-                            aItems.splice(i,1,hItem);
-
-                    } else if (!hItem.bRemoved) {
-                        if (bPrepend) {
-                            aItems.splice(0,0,hItem);
-                        } else {
-                            aItems.push(hItem);
-                        }
-                        if (cColl)
-                            cColl.nTotal++;
+            // Update a collection with an item, if the item already exists it is replaced.
+            ,update:function(hItem,cColl) {
+                if (cColl) {
+                    if (!cColl.aObjects) cColl.aObjects = [];
+                    var i = this.findIndex({id:hItem.id},cColl.aObjects);
+                    if (i >= 0)
+                        cColl.aObjects.splice(i,1,hItem);
+                    else if (!hItem.bRemoved) {
+                        cColl.aObjects.push(hItem);
+                        cColl.nTotal++;
                         return true;
                     }
                 }
                 return;
             },
+            // Emit an event from any controller to the root scope.
             emit:function(sEvent,Value,Value2,Value3) {
                 $rootScope.$broadcast(sEvent,Value,Value2,Value3);
             },
-            onNav:function(sCtrl,element,fnCallback){
-                if (sCtrl && sCtrl+'Ctrl' == element.attr('ng-controller')) {
-                    if (!$(element).is(':visible')) {
-                        $(element).fadeIn();
-                        if (fnCallback) fnCallback();
-                    }
-                } else
-                    $(element).hide();
-
-            },
+            // I use this to display an alert modal with option buttons.
             confirmCommand: function(hOpts,fnCallback,fnNoCallback) {
                 this.emit('onConfirm',hOpts,fnCallback,fnNoCallback);
             },
+            // Used to handle error messages and such. The event handler is in the header.dot partial.
             alert:function(hMsg) {
                 this.emit('onAlert',hMsg);
             },
+            // Grab items from the query string.
             query:function(name) {
                 name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
                 var regexS = "[\\?&]" + name + "=([^&#]*)";
@@ -119,6 +92,7 @@ angular.module('nordis', window.aAngularMods)
                 } else
                     return decodeURIComponent(results[1].replace(/\+/g, " "));
             },
+            // Load a collection via api call.
             loadPage:function(cColl,fnResultHandler,fnErrorHandler){
                 var self = this;
                 var hData = (cColl.hData) ? cColl.hData : {};
@@ -136,7 +110,7 @@ angular.module('nordis', window.aAngularMods)
 
                     if (hResult.aObjects) {
                         for (var i = 0; i < hResult.aObjects.length; i++) {
-                            self.update({id:hResult.aObjects[i].id},hResult.aObjects[i],cColl.aObjects,cColl.bPrepend);
+                            self.update(hResult.aObjects[i],cColl);
                         }
                     }
                     if (fnResultHandler)
@@ -148,46 +122,16 @@ angular.module('nordis', window.aAngularMods)
                         console.log(hResult);
                 });
             },
+            // When a collection has an nNextID property from the API, it means there are more items.
+            // Just call this method to get the next page.
             next:function(cColl,fnResultHandler,fnErrorHandler) {
                 var self = this;
-
                 if ((cColl.nNextID || cColl.nMin) && !cColl.bLoading) {
                     if (cColl.nNextID) cColl.nFirstID = cColl.nNextID;
                     self.loadPage(cColl,fnResultHandler,fnErrorHandler);
                 }
-            },
-            refresh:function(cColl,fnCallback){
-                var self = this;
-                cColl.aObjects = [];
-                delete cColl.nFirstID;
-                delete cColl.nNextID;
-                self.loadPage(cColl,fnCallback);
-            },
-            search:function(cColl,fnCallback){
-                var self = this;
-                if (cColl && cColl.sPath && (cColl.sTerm || cColl.sLastTerm)) {
-                    if (cColl.sLastTerm != cColl.sTerm) {
-                        cColl.nTotal = 0;
-                        cColl.nCount = 0;
-                        cColl.aObjects = [];
-                    }
-                    if (cColl.sTerm)
-                        this.get({sPath:cColl.sPath,hData:{sClass:cColl.sClass,sTerm:cColl.sTerm,nSize:cColl.nSize,hExtras:cColl.hExtras},oObj:cColl,bShowLoader:cColl.bShowLoader},function(hResult){
-                            if (hResult.aObjects.length) {
-                                cColl.nNextID = hResult.nNextID;
-                                cColl.nTotal = hResult.nTotal;
-                                cColl.sClass = hResult.sClass;
-                                for (var n = 0; n < hResult.aObjects.length; n++) {
-                                    self.update({id:hResult.aObjects[n].id},hResult.aObjects[n],cColl.aObjects);
-                                }
-                            }
-                            cColl.sLastTerm = cColl.sTerm;
-                            if (!cColl.bKeepTerm) cColl.sTerm = '';
-                            if (fnCallback)
-                                fnCallback(hResult);
-                        });
-                }
             }
+            // Handles GET requests to the API.
             ,get:function(hOpts,fnCallback,fnErrorHandler){
                 hOpts.sMethod = 'GET';
                 if (hOpts.hExtras) {
@@ -221,6 +165,7 @@ angular.module('nordis', window.aAngularMods)
                 }
                 this.callAPI(hOpts,fnCallback,fnErrorHandler);
             }
+            // Handles POST requests to the API.
             ,post:function(hOpts,fnCallback,fnErrorHandler){
                 hOpts.sMethod = 'POST';
                 if (hOpts.hExtras) {
@@ -229,10 +174,12 @@ angular.module('nordis', window.aAngularMods)
                 }
                 this.callAPI(hOpts,fnCallback,fnErrorHandler);
             }
+            // Handles DELETE requests to the API.
             ,delete:function(hOpts,fnCallback,fnErrorHandler){
                 hOpts.sMethod = 'DELETE';
                 this.callAPI(hOpts,fnCallback,fnErrorHandler);
             }
+            // This method is shared by POST, GET, and DELETE methods.
             ,callAPI:function(hOpts,fnCallback,fnErrorHandler){
                 var self = this;
                 var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod : 'GET';
@@ -272,9 +219,7 @@ angular.module('nordis', window.aAngularMods)
             isValidEmail:function(sEmail) {
                 var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
                 return re.test(sEmail);
-            },
-            sFocus:($location.path()) ? $location.path().substring(1) : ''
-            //sFocus:(window.location.search && window.location.search.match(/\?([^&#]*)/)) ? self.sFocus = window.location.search.match(/\?([^&#]*)/)[1] : ''
+            }
         }
     })
     .filter('startFrom', function() {
@@ -283,5 +228,3 @@ angular.module('nordis', window.aAngularMods)
             return input.slice(start);
         }
     });
-//noinspection JSUndeclaredVariable
-//!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");

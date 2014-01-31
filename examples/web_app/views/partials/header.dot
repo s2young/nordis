@@ -87,7 +87,7 @@
     <div class="hide" ng-controller="ConfirmCtrl" ng-show="msg!=null">
         <div class="fade" ng-click="dismiss()"></div>
         <div class="alert alert-warning alert-dismissable navbar-fixed-top" style="margin:38px 40px 0px 40px;z-index:1032;">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="dismiss()">&times;</button>
             <h4 ng-bind="msg.head" ng-show="msg.head"></h4>
             <span ng-bind="msg.body" ng-show="msg.body"></span>
             <div class="pull-right">

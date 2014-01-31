@@ -3,8 +3,6 @@
             </div>
         </div>
         <script>
-            window.aAngularMods = [];
-
             requirejs.config({
                 baseUrl: '/assets/js',
                 enforceDefine: false,

@@ -14,19 +14,14 @@
 <div class="hide" ng-controller="IndexCtrl">
     <ul class="nav nav-tabs">
         <li ng-class="{true:'active',false:''}[tab=='Welcome']"><a style="cursor: pointer;" ng-click="showTab('Welcome');">Welcome</a></li>
-        <li ng-class="{true:'active',false:''}[tab=='Data']"><a style="cursor: pointer;" ng-click="showTab('Data');">API Boilerplate</a></span></a></li>
-        <li ng-class="{true:'active',false:''}[tab=='Tools']"><a ng-click="showTab('Tools');" style="cursor:pointer;">Tools</a></li-->
+        <li ng-class="{true:'active',false:''}[tab=='Data']"><a style="cursor: pointer;" ng-click="showTab('Data');">API Boilerplate</a></li>
+        <li ng-class="{true:'active',false:''}[tab=='Tools']"><a style="cursor:pointer;" ng-click="showTab('Tools');">Tools</a></li>
     </ul>
 
-    <div class="col-lg-12" ng-switch="tab">
+    <div class="well well-sm col-lg-12 alert" ng-switch="tab">
         <div ng-switch-when="Welcome">
-            <h4>Welcome!</h4>
-            Welcome to the Nordis sample web app! This site only has a couple of pages, but it demos a couple
-            of key features.<br/><br/>
+            This site only has a couple of pages, but it demos a couple of key features.<br/><br/>
             <ol>
-                <li>
-
-                </li>
                 <li>
                     <a style="cursor: pointer;" ng-click="showTab('Data');">API Boilerplate</a>.
                     Again, the template engine you use is up to you, but I use <a href="http://olado.github.io/doT/index.html">doT</a>.
@@ -43,7 +38,7 @@
                 </li>
             </ol>
         </div>
-        <div class="alert" ng-switch-when="Data">
+        <div ng-switch-when="Data">
             <script type="text/javascript">
                 function NewUserCtrl($scope,helpers,$element) {
                     // helpers is my custom directive with helper functions. Used here for AJAX interactions.
@@ -77,39 +72,49 @@
                     angular.element($element).removeClass('hide');
                 }
             </script>
-            <div class="form well well-sm" ng-controller="NewUserCtrl">
-                <h5>Get Started</h5>
-                <p>
-                    This form allows you to create a new user record. All records are displayed in a collection below.
-                    There is no security or session management here. It's bare-bones - on purpose.
-                </p>
-                <hr/>
-                <div role="form">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" class="form-control" id="name" ng-model="newuser.name" placeholder="Full Name">
-                    </div>
-                    <div class="form-group">
-                        <label>Email address</label>
-                        <input type="email" class="form-control" id="email2" ng-model="newuser.email" placeholder="Email Address">
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" class="form-control" ng-model="newuser.password" on-keyup="save()" keys="[13]" placeholder="Password">
-                    </div>
-                    <button type="submit" class="btn btn-default" ng-click="save()">Sign Up</button>
+            <div class="row" ng-controller="NewUserCtrl">
+                <div class="col-lg-12" style="margin-bottom:60px;">
+                    <p>
+                        Nordis is equipped with API middleware (compatible with ExpressJS), that does the following:<br/><br/>
+                        <ol>
+                            <li>Configuration of API - Use the configuration file to define all exposed endpoints in your API. Anything not matching config will simply be passed back to your ExpressJS app.</li>
+                            <li>Object Lookup - Based on a semantic path pattern, you can retrieve desired objects from your model. For example, the endpoint /user/{id} will load up a user..</li>
+                            <li>Object Property Change - When POST method is used, the middleware will update the context object with the posted values. The middleware does not save the changes. that is up to you to do via the available override mechanisms.</li>
+                            <li>API Documentation - the endpoints you define in your config file can be instantly documented via apiary.io. The example API used in the Nordis library is <a href="http://docs.nordis.apiary.io/">documented here</a>.</li>
+                        </ol>
+                    </p>
                 </div>
-                <hr/>
-                <h5>Existing Users</h5>
-                <p>Here is a collection demo.</p>
-                <table class="table table-hover">
-                    <tr ng-repeat="user in users.aObjects | orderBy:'created'">
-                        <td><a href="/user/{{user.sid}}" ng-bind="user.name"></a></td>
-                    </tr>
-                </table>
+
+                <div class="form col-lg-6">
+                    <h4>Create User</h4>
+                    <div role="form">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" id="name" ng-model="newuser.name" placeholder="Full Name">
+                        </div>
+                        <div class="form-group">
+                            <label>Email address</label>
+                            <input type="email" class="form-control" id="email2" ng-model="newuser.email" placeholder="Email Address">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" class="form-control" ng-model="newuser.password" on-keyup="save()" keys="[13]" placeholder="Password">
+                        </div>
+                        <button type="submit" class="btn btn-default" ng-click="save()">Sign Up</button>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <h5>Existing Users</h5>
+                    <p>This is a demo for collections - retrieving, binding, and paging.</p>
+                    <table class="table table-hover">
+                        <tr ng-repeat="user in users.aObjects | orderBy:'created'">
+                            <td><a href="/user/{{user.sid}}" ng-bind="user.name"></a></td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="alert" ng-switch-when="Tools">
+        <div ng-switch-when="Tools">
             The tools you use on the client-side of your web app are your choice. Nordis is on the server-side. However, this sample
             web app uses a few tools that I personally prefer that you may be interested in:<br/><br/>
 

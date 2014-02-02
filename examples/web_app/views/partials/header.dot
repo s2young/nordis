@@ -3,9 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <title>[[=hData.sTitle]]</title>
-    <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/assets/css/journal.bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/slate.bootstrap.min.css">
     <script src="/assets/js/require.js"></script>
     <style type="text/css">
         .fade {
@@ -20,9 +19,133 @@
             height: 100%;
             z-index: 1031; /* makes the div the second most top layer, so it’ll lay on top of everything else EXCEPT for divs with a higher z-index (meaning the #overlay ruleset) */
         }
+        #circleG{
+            width:149.33333333333334px;
+        }
+        .circleG{
+            background-color:#FFFFFF;
+            float:left;
+            height:32px;
+            margin-left:17px;
+            width:32px;
+            -moz-animation-name:bounce_circleG;
+            -moz-animation-duration:1.0499999999999998s;
+            -moz-animation-iteration-count:infinite;
+            -moz-animation-direction:linear;
+            -moz-border-radius:21px;
+            -webkit-animation-name:bounce_circleG;
+            -webkit-animation-duration:1.0499999999999998s;
+            -webkit-animation-iteration-count:infinite;
+            -webkit-animation-direction:linear;
+            -webkit-border-radius:21px;
+            -ms-animation-name:bounce_circleG;
+            -ms-animation-duration:1.0499999999999998s;
+            -ms-animation-iteration-count:infinite;
+            -ms-animation-direction:linear;
+            -ms-border-radius:21px;
+            -o-animation-name:bounce_circleG;
+            -o-animation-duration:1.0499999999999998s;
+            -o-animation-iteration-count:infinite;
+            -o-animation-direction:linear;
+            -o-border-radius:21px;
+            animation-name:bounce_circleG;
+            animation-duration:1.0499999999999998s;
+            animation-iteration-count:infinite;
+            animation-direction:linear;
+            border-radius:21px;
+        }
+
+        #circleG_1{
+            -moz-animation-delay:0.20999999999999996s;
+            -webkit-animation-delay:0.20999999999999996s;
+            -ms-animation-delay:0.20999999999999996s;
+            -o-animation-delay:0.20999999999999996s;
+            animation-delay:0.20999999999999996s;
+        }
+
+        #circleG_2{
+            -moz-animation-delay:0.48999999999999994s;
+            -webkit-animation-delay:0.48999999999999994s;
+            -ms-animation-delay:0.48999999999999994s;
+            -o-animation-delay:0.48999999999999994s;
+            animation-delay:0.48999999999999994s;
+        }
+
+        #circleG_3{
+            -moz-animation-delay:0.63s;
+            -webkit-animation-delay:0.63s;
+            -ms-animation-delay:0.63s;
+            -o-animation-delay:0.63s;
+            animation-delay:0.63s;
+        }
+
+        @-moz-keyframes bounce_circleG{
+            0%{
+            }
+
+            50%{
+                background-color:#1A44ED}
+
+            100%{
+            }
+
+        }
+
+        @-webkit-keyframes bounce_circleG{
+            0%{
+            }
+
+            50%{
+                background-color:#1A44ED}
+
+            100%{
+            }
+
+        }
+
+        @-ms-keyframes bounce_circleG{
+            0%{
+            }
+
+            50%{
+                background-color:#1A44ED}
+
+            100%{
+            }
+
+        }
+
+        @-o-keyframes bounce_circleG{
+            0%{
+            }
+
+            50%{
+                background-color:#1A44ED}
+
+            100%{
+            }
+
+        }
+
+        @keyframes bounce_circleG{
+            0%{
+            }
+
+            50%{
+                background-color:#1A44ED}
+
+            100%{
+            }
+
+        }
     </style>
 </head>
 <body style="padding:80px 25px 0px 25px;">
+    <div class="hide" style="position:absolute; top:10px; right:10px; z-index:3000;" id="circleG" ng-show="loading" ng-controller="LoadingCtrl">
+        <div id="circleG_1" class="circleG"></div>
+        <div id="circleG_2" class="circleG"></div>
+        <div id="circleG_3" class="circleG"></div>
+    </div>
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
         <div class="navbar-header">
             <a class="navbar-brand" href="/">Nordis</a>
@@ -95,5 +218,3 @@
             </div>
         </div>
     </div>
-
-    <img ng-show="loading" class="navbar-fixed-top hide" style="margin:auto;margin-top:-10px;" src="/assets/horizontal-loader.gif" ng-controller="LoadingCtrl"/>

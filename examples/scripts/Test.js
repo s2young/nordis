@@ -2,10 +2,7 @@ var AppConfig     = require('./../../lib/AppConfig'),
     Base    = require('./../../lib/Base');
 
 AppConfig.init(null,function(){
-    var user = Base.lookup({sClass:'User'});
-    user.set('email','test@gmail.com');
-    user.save(function(err){
-        console.log(err);
-
+    Base.lookup({sClass:'User',hQuery:{id:123}},function(err,user){
+        console.log(user);
     });
 });

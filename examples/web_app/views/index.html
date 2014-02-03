@@ -20,7 +20,7 @@
 
     <div class="well well-sm col-lg-12 alert" ng-switch="tab">
         <div ng-switch-when="Welcome">
-            This site only has a couple of pages, but it demos a couple of key features.<br/><br/>
+            This simple site demos a couple of key, nordis features.<br/><br/>
             <ol>
                 <li>
                     <a style="cursor: pointer;" ng-click="showTab('Data');">API Boilerplate</a>.
@@ -53,7 +53,7 @@
                                 helpers.update(result,$scope.users);
                                 helpers.confirmCommand({
                                     head:'Welcome New Member!',
-                                    body:'Your user page is ready!',
+                                    body:'The user collection on this page has been updated, and your user page is ready!',
                                     buttons:[
                                         {class:'btn btn-sm',label:'Load Page',callback:function(){
                                             window.location = '/user/'+result.sid;

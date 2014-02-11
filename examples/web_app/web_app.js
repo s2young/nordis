@@ -165,6 +165,12 @@ var configureRoutes = function(){
         render(req,res,null,'stats');
     });
     /**
+     * Page for building a config file from scratch.
+     */
+    exp_app.get('/configurator',function(req,res){
+        render(req,res,null,'configurator');
+    });
+    /**
      * This endpoint allows an api-style request for stats on the /stats page.
      */
     exp_app.get('/hits/:grain',function(req,res){

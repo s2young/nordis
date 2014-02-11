@@ -1,0 +1,134 @@
+[[ hData.sTitle = 'Configurator'; ]]
+[[#def.loadfile('/partials/header.dot')]]
+<script type="text/javascript">
+    function ConfigCtrl($scope,helpers,$element) {
+        $scope.tab = 'DBs';
+        $scope.showTab = function(tab){
+            $scope.tab = tab;
+        };
+        $scope.hOptions = {};
+
+        angular.element($element).removeClass('hide');
+    }
+</script>
+<div class="hide" ng-controller="ConfigCtrl">
+    <ul class="nav nav-tabs">
+        <li ng-class="{true:'active',false:''}[tab=='DBs']"><a style="cursor: pointer;" ng-click="showTab('DBs');">Databases</a></li>
+        <li ng-class="{true:'active',false:''}[tab=='Model']"><a style="cursor: pointer;" ng-click="showTab('Model');">Model</a></li>
+        <li ng-class="{true:'active',false:''}[tab=='API']"><a style="cursor:pointer;" ng-click="showTab('API');">API</a></li>
+        <li ng-class="{true:'active',false:''}[tab=='Logging']"><a style="cursor:pointer;" ng-click="showTab('Logging');">Logging</a></li>
+        <li ng-class="{true:'active',false:''}[tab=='Output']"><a style="cursor:pointer;" ng-click="showTab('Output');">Output</a></li>
+    </ul>
+
+    <div class="well well-sm col-lg-12 alert" ng-switch="tab">
+        <div ng-switch-when="DBs">
+            Let's start by defining your MySql and Redis database connections. <br/><br/>
+
+
+
+        </div>
+        <div ng-switch-when="Data">
+            <script type="text/javascript">
+                function NewUserCtrl($scope,helpers,$element) {
+                    // helpers is my custom directive with helper functions. Used here for AJAX interactions.
+                    $scope.helpers = helpers;
+
+                    // the newuser object is what our form populates below.
+                    $scope.newuser = {};
+                    $scope.users = {sPath:'/userlist',aObjects:[],nSize:3};
+
+                    $scope.save = function(){
+                        if ($scope.newuser.name && $scope.newuser.email && $scope.newuser.password)
+                            helpers.post({sPath:'/user/new',hData:$scope.newuser},function(result){
+                                helpers.update(result,$scope.users);
+                                $scope.newuser = {};
+                            });
+                        else
+                            helpers.alert({head:'Name, email and password are all required.'});
+                    }
+
+                    helpers.loadPage($scope.users);
+                    // $element is the div with the ng-controller attribute in it.
+                    angular.element($element).removeClass('hide');
+                }
+            </script>
+            <div ng-controller="NewUserCtrl">
+                <div class="col-lg-12" style="margin-bottom:60px;">
+                    <p>
+                        Nordis comes with API middleware (compatible with ExpressJS), that does the following:<br/><br/>
+                    <ol>
+                        <li>Configuration of API - Use the configuration file to define all exposed endpoints in your API. Anything not matching config will simply be passed back to your ExpressJS app.</li>
+                        <li>Object Lookup - Based on a semantic path pattern, you can retrieve desired objects from your model. For example, the endpoint /user/{id} will load up a user..</li>
+                        <li>Object Property Change - When POST method is used, the middleware will update the context object with the posted values. The middleware does not save the changes. that is up to you to do via the available override mechanisms.</li>
+                        <li>API Documentation - the endpoints you define in your config file can be instantly documented via apiary.io. The example API used in the Nordis library is <a href="http://docs.nordis.apiary.io/">documented here</a>.</li>
+                    </ol>
+                    </p>
+                </div>
+
+                <table class="table">
+                    <tr>
+                        <td>
+                            <h4>Create User</h4>
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" class="form-control" id="name" ng-model="newuser.name" placeholder="Full Name">
+                            </div>
+                            <div class="form-group">
+                                <label>Email address</label>
+                                <input type="email" class="form-control" id="email2" ng-model="newuser.email" placeholder="Email Address">
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" class="form-control" ng-model="newuser.password" on-keyup="save()" keys="[13]" placeholder="Password">
+                            </div>
+                            <button type="submit" class="btn btn-default" ng-click="save()">Sign Up</button>
+                        </td>
+                        <td>
+                            <h4>Existing Users</h4>
+                            <p>This is a demo for collections - retrieving, binding, and paging.</p>
+                            <table class="table">
+                                <tr ng-repeat="user in users.aObjects | orderBy:'created'">
+                                    <td><a href="/user/{{user.sid}}" ng-bind="user.name"></a></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button ng-show="users.nNextID" ng-click="helpers.next(users)" class="btn btn-sm">Next Page</button>
+                                        <span class="pull-right">{{users.aObjects.length}} Of {{users.nTotal}} Loaded</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div ng-switch-when="Tools">
+            The tools you use on the client-side of your web app are your choice. Nordis is on the server-side. However, this sample
+            web app uses a few tools that I personally prefer that you may be interested in:<br/><br/>
+
+            <ol>
+                <li>
+                    <a href="http://angularjs.org" target="_blank">Angular.js</a> for client-side data-binding and API interactions.
+                </li>
+                <li>
+                    There is additionally a home-brewed set of <a href="https://github.com/s2young/nordis/blob/master/example/apps/assets/js/nordis.angular.0.0.5.js">directives and helper functions here</a> that help with
+                    those calls, as well as updating and paging through collections. Use and modify as you like, or roll your own.
+                </li>
+                <li>
+                    <a href="http://requirejs.org" target="_blank">Require.js</a> for asynchronous loading of javascript. Makes page-load feel faster,
+                    and on more complicated web apps you can load dependencies as needed for more intricate pages or apps.
+                </li>
+            </ol>
+        </div>
+        <div ng-switch-when="Config">
+            Nordis is completely config-driven. This helps you define your app in a clear, concise way. Your model, relationships, queries, and api endpoints are all defined in a structured way.
+            I'm working on the Configurator, a page on this site that can help you define your config in a wizard-y way.<br/><br/>
+
+            <a href="/configurator"
+        </div>
+        <div ng-switch-when="Output">
+
+        </div>
+    </div>
+</div>
+[[#def.loadfile('/partials/footer.dot')]]

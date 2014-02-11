@@ -54,7 +54,7 @@ module.exports = {
                 // Look up via primary key.
                 var nStart2 = new Date().getTime();
                 var hQuery = {};
-                hQuery[AppConfig.hClasses.User.sNumKeyProperty] = user.getKey();
+                hQuery[AppConfig.hClasses.User.sKeyProperty] = user.getKey();
 
                 Base.lookup({sClass:'User',hQuery:hQuery},function(err,user2){
                     nTotalTime2 += (new Date().getTime()-nStart2);
@@ -92,7 +92,7 @@ module.exports = {
 
                     nStart = new Date().getTime();
                     var hQuery = {};
-                    hQuery[AppConfig.hClasses.User.sNumKeyProperty] = user.getKey();
+                    hQuery[AppConfig.hClasses.User.sKeyProperty] = user.getKey();
                     Base.lookup({sClass:'User',sSource:'MySql',hQuery:hQuery},callback);
                 }
                 ,function(user,callback) {

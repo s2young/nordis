@@ -104,7 +104,7 @@ module.exports = {
             }
             ,function(ignore,cb){
                 var hQuery = {};
-                hQuery[AppConfig.hClasses.Follow.sNumKeyProperty] = 'NOT NULL';
+                hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
                 new Collection({sClass:'Follow',hQuery:hQuery},cb);
             }
             ,function(cColl,cb) {

@@ -63,7 +63,6 @@ angular.module('nordis', [])
                         cColl.aObjects.splice(i,1,hItem);
                     else if (!hItem.bRemoved) {
                         cColl.aObjects.push(hItem);
-                        cColl.nTotal++;
                         return true;
                     }
                 }
@@ -189,14 +188,12 @@ angular.module('nordis', [])
                     self.emit('onLoad');
                     if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
-                    console.log(sMethod+': '+hOpts.sPath);
                     $http[sMethod.toLowerCase()](hOpts.sPath,hOpts.hData)
                         .success(function(hResult,nStatus){
                             if (hOpts.oObj)
                                 hOpts.oObj.bLoading = false;
 
                             self.emit('onUnload');
-
                             if (hResult && hResult.sException) {
                                 if (fnErrorHandler)
                                     fnErrorHandler(hResult);

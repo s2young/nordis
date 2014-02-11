@@ -8,16 +8,29 @@ var Collection; // And Collection.
 module.exports.hSettings = {
     global: {
         sLanguage:'en'
-        ,sLogLevel:'debug'
+        ,sLogLevel:'warn'
         ,hOptions:{
             MySql:{
-                sSchema:'nordis',
-                sHost:'localhost',
-                sUser:'root',
-                nMaxConnections:10,
-                nTimeoutMilliseconds:10000,
-                bDebugMode:false,
-                bSkip:false
+                default:{
+                    sSchema:'nordis',
+                    sHost:'localhost',
+                    sUser:'root',
+                    sPassword:'',
+                    nMaxConnections:20,
+                    nTimeoutMilliseconds:10000,
+                    bDebugMode:false,
+                    bSkip:false
+                }
+                ,secondary:{
+                    sSchema:'nordis_secondary',
+                    sHost:'localhost',
+                    sUser:'root',
+                    sPassword:'',
+                    nMaxConnections:10,
+                    nTimeoutMilliseconds:10000,
+                    bDebugMode:false,
+                    bSkip:false
+                }
             },
             Redis:{
                 sWriteServer:'127.0.0.1',
@@ -74,12 +87,12 @@ module.exports.hSettings = {
                 hProperties:{
                     id:{
                         sType:'Number'
-                        ,bUnique:true
+                        ,bPrimary:true
                         ,sSample:'1'
                     }
                     ,sid:{
                         sType:'String'
-                        ,bUnique:true
+                        ,bSecondary:true
                         ,nLength:36
                         ,sSample:'Yf8uIoP'
                     }
@@ -200,9 +213,9 @@ module.exports.hSettings = {
             ,Follow:{
                 hProperties:{
                     id:{
-                        sType:'Number',
-                        bUnique:true,
-                        sSample:'3'
+                        sType:'Number'
+                        ,bPrimary:true
+                        ,sSample:'3'
                     }
                     ,followed_id:{
                         sType:'Number'
@@ -268,7 +281,7 @@ module.exports.hSettings = {
             ,Sale:{
                 nClass:3
                 ,hProperties:{
-                    id:{bUnique:true,sType:'Number'}
+                    id:{bPrimary:true,sType:'Number'}
                     ,user_id:{sType:'Number'}
                     ,amount:{sType:'Decimal',nMax:20,nScale:2}
                 }
@@ -277,20 +290,20 @@ module.exports.hSettings = {
             }
         }
         ,hStats:{
-            users:{
-                sDescription:'Total number of new user accounts created during the period.'
-                ,fnQuery:function(oSelf,dStart,dEnd,AppConfig,callback){
-                    // This is a mysql query that will return the count for the passed-in period, allowing recreation
-                    // of data from mysql in case of redis data problem or building retro-active stats.
-                    var sRange = (dStart && dEnd) ? ' AND created >='+dStart.getTime()+' AND created<'+dEnd.getTime() : '';
-                    var sSql = 'SELECT COUNT(*) AS nCount FROM UserTbl WHERE '+sRange;
-                    AppConfig.MySql.execute(null,sSql,null,function(err,res){
-                        var nCount =  (res && res.length && res[0].nCount) ? res[0].nCount : 0;
-                        callback(err,nCount);
-                    });
-                }
-            }
-            ,unique_users:{
+//            users:{
+//                sDescription:'Total number of new user accounts created during the period.'
+//                ,fnQuery:function(oSelf,dStart,dEnd,AppConfig,callback){
+//                    // This is a mysql query that will return the count for the passed-in period, allowing recreation
+//                    // of data from mysql in case of redis data problem or building retro-active stats.
+//                    var sRange = (dStart && dEnd) ? ' AND created >='+dStart.getTime()+' AND created<'+dEnd.getTime() : '';
+//                    var sSql = 'SELECT COUNT(*) AS nCount FROM UserTbl WHERE '+sRange;
+//                    AppConfig.MySql.execute(null,sSql,null,function(err,res){
+//                        var nCount =  (res && res.length && res[0].nCount) ? res[0].nCount : 0;
+//                        callback(err,nCount);
+//                    });
+//                }
+//            },
+            unique_users:{
                 sDescription:'Total number of unique users active during the period.'
                 ,fnValidate:function(aParams,callback){
                     // This function makes sure the proper, related object is passed into the AppConfig.trackStat method

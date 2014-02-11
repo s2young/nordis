@@ -69,6 +69,7 @@ module.exports = {
         ],callback);
     }
     ,tearDown:function(callback) {
+        var self = this;
         async.waterfall([
             function(cb) {
                 new Collection({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
@@ -78,7 +79,7 @@ module.exports = {
             }
             ,function(ignore,cb){
                 var hQuery = {};
-                hQuery[AppConfig.hClasses.Follow.sNumKeyProperty] = 'NOT NULL';
+                hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
                 new Collection({sClass:'Follow',hQuery:hQuery},cb);
             }
             ,function(follows,cb) {
@@ -90,10 +91,10 @@ module.exports = {
             ,function(ignore,cb){
                 if (server)
                     server.close();
+
                 cb();
             }
-        ],callback)
-
+        ],callback);
     }
     ,lookupUser:function(test) {
         var self = this;

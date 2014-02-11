@@ -48,7 +48,7 @@ module.exports = {
         var nStart = new Date().getTime();
         // Lookup user by primary key (nID) and request some extras.
         var hQuery = {};
-        hQuery[AppConfig.hClasses.User.sNumKeyProperty] = self.user.getKey();
+        hQuery[AppConfig.hClasses.User.sKeyProperty] = self.user.getKey();
         Base.lookup({
             sClass:'User'
             ,hQuery:hQuery

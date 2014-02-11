@@ -18,7 +18,7 @@ var processClass = function(sClass,callback) {
             hExtras[sExtra] = true;
         }
     var hQuery = {};
-    hQuery[AppConfig.hClasses[sClass].sNumKeyProperty||AppConfig.hClasses[sClass].sStrKeyProperty] = 'IS NOT NULL';
+    hQuery[AppConfig.hClasses[sClass].sKeyProperty] = 'IS NOT NULL';
 
     // Lookup each item in the class.
     new Collection({sClass:sClass,hQuery:hQuery,hExtras:hExtras},function(err,coll){

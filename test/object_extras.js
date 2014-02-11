@@ -57,7 +57,7 @@ module.exports = {
                 nStart = new Date().getTime();
                 // Lookup user by primary, numeric key and request some extras.
                 var hQuery = {};
-                hQuery[AppConfig.hClasses.User.sNumKeyProperty] = self.user.getKey();
+                hQuery[AppConfig.hClasses.User.sKeyProperty] = self.user.getKey();
                 Base.lookup({
                     sClass:'User'
                     ,hQuery:hQuery
@@ -84,7 +84,7 @@ module.exports = {
                 nStart = new Date().getTime();
 
                 var hQuery = {};
-                hQuery[self.user.getSettings().sNumKeyProperty] = self.user.getKey();
+                hQuery[self.user.getSettings().sKeyProperty] = self.user.getKey();
 
                 Base.lookup({
                     sClass:'User'
@@ -118,7 +118,7 @@ module.exports = {
             ,function(user,callback){
                 // Now, try and lookup the follower (follower) via the referred user (user).
                 var hQuery = {};
-                hQuery[self.user.getSettings().sNumKeyProperty] = self.user.getKey();
+                hQuery[self.user.getSettings().sKeyProperty] = self.user.getKey();
                 Base.lookup({
                     sClass:'User'
                     ,hQuery:hQuery
@@ -139,7 +139,7 @@ module.exports = {
 
         var nStart= new Date().getTime();
         var hQuery = {};
-        hQuery[AppConfig.hClasses.User.sNumKeyProperty] = self.user.getKey();
+        hQuery[AppConfig.hClasses.User.sKeyProperty] = self.user.getKey();
 
         Base.lookup({sClass:'User',hQuery:hQuery,sSource:'MySql'},function(err,user){
             AppConfig.log(user.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');

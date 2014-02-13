@@ -28,8 +28,10 @@ module.exports = {
         async.series([
             function(cb) {
                 self.user = Base.lookup({sClass:'User'});
-                self.user.set('name','TestUser');
-                self.user.set('email','test@test.com');
+                self.user.setData({
+                    name:'TestUser'
+                    ,email:'test@test.com'
+                });
                 self.user.save(cb);
             }
             //Process stats .
@@ -37,13 +39,6 @@ module.exports = {
                 var dStart = new Date(new Date().getTime()-100000);
                 var dEnd = new Date();
                 AppConfig.processStats(dStart,dEnd,callback);
-            }
-            // Delete all stats, just in case a previous test triggered some tracking we don't care about.
-            ,function(cb) {
-                Base.lookup({sClass:'App'},function(err,oResult){
-                    self.oApp = oResult;
-                    cb(err);
-                });
             }
             // Flush any previously tracked stats.
             ,function(cb) {
@@ -137,13 +132,14 @@ module.exports = {
             }
             // Load up the app singleton and its stat collections for each granularity.
             ,function(callback){
-                self.oApp.loadExtras({
+                AppConfig.oApp.loadExtras({
                     api_requests:{hExtras:{hour:true}}
                 },callback);
             }
             // Validate our counts - which should be ONE because no matter the test size there's just one user being tracked here.
             ,function(callback) {
-                var nApiRequests = (self.oApp.api_requests && self.oApp.api_requests.hour && self.oApp.api_requests.hour.first()) ? self.oApp.api_requests.hour.first().get('count') : 0;
+
+                var nApiRequests = (AppConfig.oApp.api_requests && AppConfig.oApp.api_requests.hour && AppConfig.oApp.api_requests.hour.first()) ? AppConfig.oApp.api_requests.hour.first().get('count') : 0;
                 test.equal(nApiRequests,1);
                 callback();
             }

@@ -9,6 +9,7 @@ module.exports.hSettings = {
     global: {
         sLanguage:'en'
         ,sLogLevel:'warn'
+        ,bTraceMode:true
         ,hOptions:{
             MySql:{
                 default:{

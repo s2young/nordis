@@ -33,15 +33,19 @@ module.exports = {
                         async.waterfall([
                             function(cb) {
                                 follower_user = Base.lookup({sClass:'User'});
-                                follower_user.set('name','TestFollower '+n);
-                                follower_user.set('email','testfollower'+n+'@test.com');
+                                follower_user.setData({
+                                    name:'TestFollower '+n
+                                    ,email:'testfollower'+n+'@test.com'
+                                });
                                 follower_user.save(cb);
                             }
                             ,function(follower_user,cb) {
                                 var follow = Base.lookup({sClass:'Follow'});
-                                follow.set('followed_id',self.user.getKey());
-                                follow.set('follower_id',follower_user.getKey());
-                                follow.set('rank',n);
+                                follow.setData({
+                                    followed_id:self.user.getKey()
+                                    ,follower_id:follower_user.getKey()
+                                    ,rank:n
+                                });
                                 follow.save(cb);
                             }
                             ,function(follower,cb) {
@@ -53,9 +57,11 @@ module.exports = {
                             ,function(oLastUser,cb){
                                 if (oLastUser.getKey()) {
                                     var followerOfFollower = Base.lookup({sClass:'Follow'});
-                                    followerOfFollower.set('followed_id',follower_user.getKey());
-                                    followerOfFollower.set('follower_id',oLastUser.getKey());
-                                    followerOfFollower.set('rank',1);
+                                    followerOfFollower.setData({
+                                        followed_id:follower_user.getKey()
+                                        ,follower_id:oLastUser.getKey()
+                                        ,rank:1
+                                    });
                                     followerOfFollower.save(cb);
                                 } else
                                     cb(null,null);
@@ -99,6 +105,10 @@ module.exports = {
                     else
                         cColl.delete(cb);
                 });
+            }
+            ,function(cb){
+                AppConfig.printTrace();
+                cb();
             }
         ],callback);
     }

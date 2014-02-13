@@ -17,7 +17,7 @@ module.exports = {
             hProperties:{
                 id:{
                     sType:'Number'
-                    ,bUnique:true
+                    ,bPrimary:true
                 }
                 ,sid:{
                     sType:'String'

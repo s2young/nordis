@@ -38,7 +38,6 @@ module.exports = {
                 });
             }
         ],callback);
-
     }
     ,lookupViaRedis:function(test){
         test.expect(nTestSize*2);
@@ -74,77 +73,77 @@ module.exports = {
             q.push(n);
         }
     }
-    ,lookupViaMySql:function(test){
-        test.expect((nTestSize*2));
-
-        var nTotalTime = 0;
-        var nTotalTime2 = 0;
-        var lookupUser = function(n,cb) {
-            var nStart;
-            async.waterfall([
-                function(callback){
-                    nStart = new Date().getTime();
-                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:{email:'test'+n+'@test.com'}},callback);
-                }
-                ,function(user,callback){
-                    nTotalTime += (new Date().getTime()-nStart);
-                    test.equal(user.get('email'),'test'+n+'@test.com');
-
-                    nStart = new Date().getTime();
-                    var hQuery = {};
-                    hQuery[AppConfig.hClasses.User.sKeyProperty] = user.getKey();
-                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:hQuery},callback);
-                }
-                ,function(user,callback) {
-                    nTotalTime2 += (new Date().getTime()-nStart);
-                    test.equal(user.get('email'),'test'+n+'@test.com');
-                    callback();
-                }
-            ],cb);
-        };
-        var q = async.queue(lookupUser,10);
-        q.drain = function(err){
-            AppConfig.log('Total time (MySql): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup;');
-            AppConfig.log('Total time (MySql): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
-            AppConfig.wrapTest(err,test);
-        };
-
-        for (var n = 0; n < nTestSize; n++) {
-            q.push(n);
-        }
-    }
-    ,lookupViaWhereClause:function(test) {
-        test.expect(1);
-        Base.lookup({sClass:'User',hQuery:{sWhere:'name=\'TestUser\' AND email=\'test0@test.com\''}},function(err,user){
-            if (user) test.equal(user.get('email'),'test0@test.com');
-            AppConfig.wrapTest(err,test);
-        });
-    }
-    ,classOverride:function(test){
-        test.expect(2);
-        Base.lookup({sClass:'User',hQuery:{sWhere:'name=\'TestUser\' AND email=\'test0@test.com\''}},function(err,user){
-            if (user) test.equal(user.get('email'),'test0@test.com');
-
-            var sale = Base.lookup({sClass:'Sale'});
-            sale.set('user_id',user.getKey());
-            sale.set('amount',100.00);
-            sale.save(function(err){
-                test.equal(sale.bOverridden,true);
-                AppConfig.wrapTest(err,test);
-            });
-
-        });
-
-    }
-    ,requiredPropertyCheck:function(test){
-        test.expect(1);
-
-        var user = Base.lookup({sClass:'User'});
-        user.set('email','test@gmail.com');
-        user.save(function(err){
-            console.log(err);
-            test.equals(err,'Must set required properties: name,email');
-            AppConfig.wrapTest(null,test);
-        });
-    }
+//    ,lookupViaMySql:function(test){
+//        test.expect((nTestSize*2));
+//
+//        var nTotalTime = 0;
+//        var nTotalTime2 = 0;
+//        var lookupUser = function(n,cb) {
+//            var nStart;
+//            async.waterfall([
+//                function(callback){
+//                    nStart = new Date().getTime();
+//                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:{email:'test'+n+'@test.com'}},callback);
+//                }
+//                ,function(user,callback){
+//                    nTotalTime += (new Date().getTime()-nStart);
+//                    test.equal(user.get('email'),'test'+n+'@test.com');
+//
+//                    nStart = new Date().getTime();
+//                    var hQuery = {};
+//                    hQuery[AppConfig.hClasses.User.sKeyProperty] = user.getKey();
+//                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:hQuery},callback);
+//                }
+//                ,function(user,callback) {
+//                    nTotalTime2 += (new Date().getTime()-nStart);
+//                    test.equal(user.get('email'),'test'+n+'@test.com');
+//                    callback();
+//                }
+//            ],cb);
+//        };
+//        var q = async.queue(lookupUser,10);
+//        q.drain = function(err){
+//            AppConfig.log('Total time (MySql): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup;');
+//            AppConfig.log('Total time (MySql): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
+//            AppConfig.wrapTest(err,test);
+//        };
+//
+//        for (var n = 0; n < nTestSize; n++) {
+//            q.push(n);
+//        }
+//    }
+//    ,lookupViaWhereClause:function(test) {
+//        test.expect(1);
+//        Base.lookup({sClass:'User',hQuery:{sWhere:'name=\'TestUser\' AND email=\'test0@test.com\''}},function(err,user){
+//            if (user) test.equal(user.get('email'),'test0@test.com');
+//            AppConfig.wrapTest(err,test);
+//        });
+//    }
+//    ,classOverride:function(test){
+//        test.expect(2);
+//        Base.lookup({sClass:'User',hQuery:{sWhere:'name=\'TestUser\' AND email=\'test0@test.com\''}},function(err,user){
+//            if (user) test.equal(user.get('email'),'test0@test.com');
+//
+//            var sale = Base.lookup({sClass:'Sale'});
+//            sale.set('user_id',user.getKey());
+//            sale.set('amount',100.00);
+//            sale.save(function(err){
+//                test.equal(sale.bOverridden,true);
+//                AppConfig.wrapTest(err,test);
+//            });
+//
+//        });
+//
+//    }
+//    ,requiredPropertyCheck:function(test){
+//        test.expect(1);
+//
+//        var user = Base.lookup({sClass:'User'});
+//        user.set('email','test@gmail.com');
+//        user.save(function(err){
+//            console.log(err);
+//            test.equals(err,'Must set required properties: name,email');
+//            AppConfig.wrapTest(null,test);
+//        });
+//    }
 };

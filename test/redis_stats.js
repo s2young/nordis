@@ -138,14 +138,11 @@ module.exports = {
             }
             // Validate our counts - which should be ONE because no matter the test size there's just one user being tracked here.
             ,function(callback) {
-
                 var nApiRequests = (AppConfig.oApp.api_requests && AppConfig.oApp.api_requests.hour && AppConfig.oApp.api_requests.hour.first()) ? AppConfig.oApp.api_requests.hour.first().get('count') : 0;
                 test.equal(nApiRequests,1);
                 callback();
             }
-
         ],function(err){ AppConfig.wrapTest(err,test); });
-
     }
 //    ,totalStatSuccess:function(test){
 //        var sStat = 'unique_users';

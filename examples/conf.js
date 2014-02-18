@@ -34,13 +34,15 @@ module.exports.hSettings = {
                 }
             },
             Redis:{
-                sWriteServer:'127.0.0.1',
-                nWritePort:6379,
-                nMaxConnections:200,
-                nTimeoutMilliseconds:3000,
-                nReapIntervalMilliseconds:2000,
-                bDebugMode:false,
-                bSkip:false
+                default:{
+                    sHost:'127.0.0.1',
+                    nPort:6379
+                }
+                ,statsdb:{
+                    sHost:'127.0.0.1'
+                    ,nPort:6379
+                    ,nDb:1
+                }
             }
         }
         ,hApi:{
@@ -291,6 +293,7 @@ module.exports.hSettings = {
             }
         }
         ,hStats:{
+            sDbAlias:'statsdb'
 //            users:{
 //                sDescription:'Total number of new user accounts created during the period.'
 //                ,fnQuery:function(oSelf,dStart,dEnd,AppConfig,callback){
@@ -304,7 +307,7 @@ module.exports.hSettings = {
 //                    });
 //                }
 //            },
-            unique_users:{
+            ,unique_users:{
                 sDescription:'Total number of unique users active during the period.'
                 ,fnValidate:function(aParams,callback){
                     // This function makes sure the proper, related object is passed into the AppConfig.trackStat method

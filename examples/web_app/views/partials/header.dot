@@ -4,8 +4,30 @@
     <meta charset="utf-8" />
     <title>[[=hData.sTitle]]</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/assets/css/slate.bootstrap.min.css">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/detail-theme/css/bootstrap/bootstrap-overrides.css" type="text/css" rel="stylesheet" />
+
+    <!-- libraries -->
+    <link href="/assets/detail-theme/css/lib/font-awesome.css" type="text/css" rel="stylesheet" />
+
+    <!-- global styles -->
+    <link rel="stylesheet" type="text/css" href="/assets/detail-theme/css/compiled/layout.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/detail-theme/css/compiled/elements.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/detail-theme/css/compiled/icons.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/detail-theme/css/compiled/index.css" />
+    <!-- open sans font -->
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css' />
+
+    <!-- lato font -->
+    <link href='//fonts.googleapis.com/css?family=Lato:300,400,700,900,300italic,400italic,700italic,900italic' rel='stylesheet' type='text/css' />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    [[=hData.sInclude]]
     <script src="/assets/js/require.js"></script>
+
     <style type="text/css">
         .fade {
             position: absolute;  /* makes the div go into a position that’s absolute to the browser viewing area */
@@ -140,17 +162,7 @@
         }
     </style>
 </head>
-<body style="padding:80px 25px 0px 25px;">
-    <div class="hide" style="position:absolute; top:10px; right:10px; z-index:3000;" id="circleG" ng-show="loading" ng-controller="LoadingCtrl">
-        <div id="circleG_1" class="circleG"></div>
-        <div id="circleG_2" class="circleG"></div>
-        <div id="circleG_3" class="circleG"></div>
-    </div>
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="/">Nordis</a>
-        </div>
-    </nav>
+<body>
     <script type="text/javascript">
         function ErrorCtrl($scope,$element) {
             $scope.exception;
@@ -200,6 +212,11 @@
             angular.element($element).removeClass('hide');
         }
     </script>
+    <div class="hide" style="position:absolute; top:10px; right:10px; z-index:3000;" id="circleG" ng-show="loading" ng-controller="LoadingCtrl">
+        <div id="circleG_1" class="circleG"></div>
+        <div id="circleG_2" class="circleG"></div>
+        <div id="circleG_3" class="circleG"></div>
+    </div>
     <div class="hide" ng-controller="ErrorCtrl" ng-show="exception" >
         <div class="fade" ng-click="dismiss()"></div>
         <div class="col-lg-9 alert alert-danger alert-dismissable navbar-fixed-top" style="margin:38px 40px 0px 40px;z-index:1032;">
@@ -218,3 +235,126 @@
             </div>
         </div>
     </div>
+
+    <header class="navbar navbar-inverse" role="banner">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" id="menu-toggler">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">
+                <img src="/assets/detail-theme/img/logo.png" alt="logo" />
+            </a>
+        </div>
+    </header>
+    <!-- end navbar -->
+
+    <!-- sidebar -->
+    <script type="text/javascript">
+        function NavCtrl($scope,$element) {
+            $scope.page = window.location.pathname;
+            angular.element(document.querySelector('#'+$scope.page.replace('/','pointer'))).removeClass('hide');
+        }
+    </script>
+    <div id="sidebar-nav" ng-controller="NavCtrl">
+        <ul id="dashboard-menu">
+            <li ng-class="{true:'active',false:''}[page=='/']">
+                <div class="pointer hide" id="pointer">
+                    <div class="arrow"></div>
+                    <div class="arrow_border"></div>
+                </div>
+                <a href="/">
+                    <i class="icon-home"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li ng-class="{true:'active',false:''}[page=='/api']">
+                <div class="pointer hide" id="pointerapi">
+                    <div class="arrow"></div>
+                    <div class="arrow_border"></div>
+                </div>
+                <a href="/api">
+                    <i class="icon-cogs"></i>
+                    <span>API</span>
+                </a>
+            </li>
+            <li ng-class="{true:'active',false:''}[page=='/stats']">
+                <div class="pointer hide" id="pointerstats">
+                    <div class="arrow"></div>
+                    <div class="arrow_border"></div>
+                </div>
+                <a class="dropdown-toggle" href="/stats">
+                    <i class="icon-signal"></i>
+                    <span>Charts</span>
+                </a>
+            </li>
+            <!--li>
+                <a class="dropdown-toggle" href="#">
+                    <i class="icon-edit"></i>
+                    <span>Forms</span>
+                    <i class="icon-chevron-down"></i>
+                </a>
+                <ul class="submenu">
+                    <li><a href="form-showcase.html">Form showcase</a></li>
+                    <li><a href="form-wizard.html">Form wizard</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="gallery.html">
+                    <i class="icon-picture"></i>
+                    <span>Gallery</span>
+                </a>
+            </li>
+            <li>
+                <a href="calendar.html">
+                    <i class="icon-calendar-empty"></i>
+                    <span>Calendar</span>
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-toggle" href="tables.html">
+                    <i class="icon-th-large"></i>
+                    <span>Tables</span>
+                    <i class="icon-chevron-down"></i>
+                </a>
+                <ul class="submenu">
+                    <li><a href="tables.html">Custom tables</a></li>
+                    <li><a href="datatables.html">DataTables</a></li>
+                </ul>
+            </li>
+            <li>
+                <a class="dropdown-toggle ui-elements" href="#">
+                    <i class="icon-code-fork"></i>
+                    <span>UI Elements</span>
+                    <i class="icon-chevron-down"></i>
+                </a>
+                <ul class="submenu">
+                    <li><a href="ui-elements.html">UI Elements</a></li>
+                    <li><a href="icons.html">Icons</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="personal-info.html">
+                    <i class="icon-cog"></i>
+                    <span>My Info</span>
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-toggle" href="#">
+                    <i class="icon-share-alt"></i>
+                    <span>Extras</span>
+                    <i class="icon-chevron-down"></i>
+                </a>
+                <ul class="submenu">
+                    <li><a href="code-editor.html">Code editor</a></li>
+                    <li><a href="grids.html">Grids</a></li>
+                    <li><a href="signin.html">Sign in</a></li>
+                    <li><a href="signup.html">Sign up</a></li>
+                </ul>
+            </li-->
+        </ul>
+    </div>
+    <!-- end sidebar -->
+    <div class="content">

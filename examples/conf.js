@@ -54,7 +54,7 @@ module.exports.hSettings = {
                     sDescription:'Custom endpoint for the demo app to trigger stat processing method.'
                     ,sClass:'Stat'
                     ,hVerbs:{
-                        GET:{
+                        POST:{
                             fnApiCallProcessor:function(req,AppConfig,callback){
                                 AppConfig.processStats(callback);
                             }
@@ -192,10 +192,12 @@ module.exports.hSettings = {
                                     sTitle:'Retrieve a User'
                                     ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'follows\' collection up to a total of ONE record (nSize:1). On that follower, we want the related follower_user property (which is a User object).\n\n            {"hExtras":{follows:{nSize:1,hExtras:{follower_user:true}}}}'
                                     ,fnApiCallOutput:function(req,AppConfig,callback){
-                                        if (callback)
+                                        if (callback) {
+                                            AppConfig.trackStat('api_requests',['/user/{id}']);
+                                            AppConfig.trackStat('hits',[req.hNordis.sPath]);
                                             // Nordis has a toHash method as the default serialization for each class, but you can override it here. In this case, we're just going ahead with the default serialization.
                                             callback(null,req.hNordis.oResult.toHash(req.hNordis.hExtras));
-                                        else
+                                        } else
                                             return req.hNordis.oResult.toHash(req.hNordis.hExtras);
                                     }
                                 }

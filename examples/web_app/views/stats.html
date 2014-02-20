@@ -1,79 +1,149 @@
 [[ hData.sTitle = 'Web App Stats'; ]]
+
+[[ hData.sInclude = '<link href="/assets/detail-theme/css/lib/bootstrap.datepicker.css" type="text/css" rel="stylesheet" /><script src="/assets/js/d3.min.js"></script><script src="/assets/js/nv.d3.min.js"></script>'; ]]
 [[#def.loadfile('/partials/header.dot')]]
 
 <script type="text/javascript">
     function StatsCtrl($scope,helpers,$element) {
-        $scope.hits;
+        $scope.stat = '/hits/day';
+        $scope.title = 'Hits';
+        $scope.start;$scope.end;nv;d3;$scope.moment;
+
+        $scope.getDate = function(date) {
+            if (date)
+                return date.format('MM/DD/YYYY');
+            else
+                return '';
+        };
         // You probably would process your stats via script/cron etc. But this demonstrates two things:
         // 1) a custom endpoint that isn't class-related in your API, and 2) how to process the stats you've been tracking.
         $scope.processStats = function(){
             helpers.post({sPath:'/process_stats'},function(){
-                $scope.loadStats();
+                $scope.loadStats($scope.stat,$scope.title);
             });
         };
-        $scope.loadStats = function(stat){
+        $scope.loadStats = function(stat,title){
+            if (!$scope.start) {
+                $scope.end = $scope.moment();
+                $scope.start = $scope.moment().subtract('month',6);
+            }
+
+            $('.start').datepicker().on('changeDate', function (ev) {
+                console.log('start');
+                console.log(ev);
+                console.log($(this).val());
+            });
+            $('.end').datepicker().on('changeDate', function (ev) {
+                console.log('end');
+                console.log(ev);
+                console.log($(this).val());
+            });
+
+            if (stat) $scope.stat = stat;
             // You could wrap all this into a server-side page if you like.
-            helpers.get({sPath:'/hits/day'},function(result){
-                $scope.hits = result;
-            });
-            helpers.get({sPath:'/hits/month'},function(result){
-                $scope.hits = result;
+            helpers.get({sPath:$scope.stat},function(result){
+
+//                nv.addGraph(function() {
+//                    var chart = nv.models.lineChart()
+//                                    .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
+//                                    .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
+//                                    .transitionDuration(350)  //how fast do you want the lines to transition?
+//                                    .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
+//                                    .showYAxis(true)        //Show the y-axis
+//                                    .showXAxis(true)        //Show the x-axis
+//                            ;
+//
+//
+//                    var x = d3.time.scale()
+//                            .domain([new Date(2012, 0, 1), new Date(2012, 11, 31)])
+//                            .range([0, width]);
+//
+//                    chart.xAxis     //Chart x-axis settings
+//                            .axisLabel('Time (ms)')
+//                            .tickFormat(d3.format(',r'));
+//
+//                    chart.yAxis     //Chart y-axis settings
+//                            .axisLabel('Voltage (v)')
+//                            .tickFormat(d3.format('.02f'));
+//
+//                    /* Done setting the chart up? Time to render it!*/
+//                    var myData = sinAndCos();   //You need data...
+//
+//                    d3.select('#chart svg')    //Select the <svg> element you want to render the chart in.
+//                            .datum(myData)         //Populate the <svg> element with chart data...
+//                            .call(chart);          //Finally, render the chart!
+//
+//                    //Update the chart when window resizes.
+//                    nv.utils.windowResize(function() { chart.update() });
+//                    return chart;
+//                });
+                // TODO - handle different screen sizes and resize somehow.
+
             });
         };
 
-        $scope.getDate = function(nTime) {
-            var sTime = moment(nTime).format('MM/DD');
-            if (new Date(nTime).getFullYear() != new Date().getFullYear())
-                sTime = moment(nTime).format('MM/DD/YYYY');
-            return sTime;
-        };
-        $scope.getMonth = function(nTime) {
-            var sTime = moment(nTime).format('MMM');
-            if (new Date(nTime).getFullYear() != new Date().getFullYear())
-                sTime = moment(nTime).format('MMM YYYY');
-            return sTime;
-        };
-        // $element is the div with the ng-controller attribute in it.
-        angular.element($element).removeClass('hide');
-
-        // Load up  moment.js for nice date display.
-        require(['moment'], function() {
+        require(['moment','datepicker'], function(moment){
+            $scope.moment = moment;
+            angular.element($element).removeClass('hide');
             $scope.loadStats();
         });
     }
 </script>
-<div class="row" ng-controller="StatsCtrl">
-    <div class="col-lg-7">
-        <h4>Hits By Day</h4>
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th style="white-space:nowrap;">Date (GMT)</th>
-                    <th style="width:100%;">Hits</th>
-                </tr>
-            </thead>
-            <tr ng-repeat="day in hits.day.aObjects | orderBy:'date'">
-                <th style="white-space:nowrap;" ng-bind="getDate(day.date);"></th>
-                <td ng-bind="day.count"></td>
-            </tr>
-        </table>
-        <h4>Hits By Month</h4>
-        <table class="table table-hover">
-            <thead>
-            <tr>
-                <th style="white-space:nowrap;">Month</th>
-                <th style="width:100%;">Hits</th>
-            </tr>
-            </thead>
-            <tr ng-repeat="month in hits.day.aObjects | orderBy:'date'">
-                <th style="white-space:nowrap;" ng-bind="getMonth(month.date);"></th>
-                <td ng-bind="month.count"></td>
-            </tr>
-        </table>
+<div class="hide" ng-controller="StatsCtrl">
+    <div id="main-stats">
+        <div class="row stats-row">
+            <div class="col-md-3 col-sm-3 stat">
+                <div class="data">
+                    <span class="number">2457</span>
+                    visits
+                </div>
+                <span class="date">Today</span>
+            </div>
+            <div class="col-md-3 col-sm-3 stat">
+                <div class="data">
+                    <span class="number">3240</span>
+                    users
+                </div>
+                <span class="date">February 2013</span>
+            </div>
+            <div class="col-md-3 col-sm-3 stat">
+                <div class="data">
+                    <span class="number">322</span>
+                    orders
+                </div>
+                <span class="date">This week</span>
+            </div>
+            <div class="col-md-3 col-sm-3 stat last">
+                <div class="data">
+                    <button class="btn btn-info" ng-click="processStats()">Process Stats</button>
+                </div>
+                <span class="date">get latest data</span>
+            </div>
+        </div>
     </div>
-    <div class="col-lg-5">
-        I've exposed the processStats method in the App singleton via the API so you can re-process stats and re-fresh the page and see the stats change.<br/><br/>
-        <button class="btn btn-info" ng-click="processStats()">Process Stats</button>
+    <div id="pad-wrapper">
+        <h4>
+            Hits
+        </h4>
+        <div class="row chart">
+            <div class="col-md-12">
+                <div class="pull-left">
+                    <div class="btn-group" style="margin-right:20px;">
+                        <button ng-class="{true:'glow left active',false:'glow left'}[stat=='/hits/day']" ng-click="loadStats('/hits/day');">DAY</button>
+                        <button ng-class="{true:'glow middle active',false:'glow middle'}[stat=='/hits/month']" ng-click="loadStats('/hits/month');">MONTH</button>
+                        <button ng-class="{true:'glow right active',false:'glow right'}[stat=='/hits/year']" ng-click="loadStats('/hits/year');">YEAR</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="glow left start" data-date-format="mm/dd/yyyy" data-date="{{getDate(start)}}"><i class="icon-calendar-empty"></i> {{getDate(start)}}</button>
+                        <button class="glow middle"><i class="icon-double-angle-right"></i></button>
+                        <button class="glow right end"><i class="icon-calendar-empty"></i> {{getDate(end)}}</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div id="chart" style="width: 900px; height: 500px;"></div>
+            </div>
+        </div>
     </div>
 </div>
 [[#def.loadfile('/partials/footer.dot')]]

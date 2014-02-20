@@ -122,7 +122,7 @@ var configureDOT = function(){
 var configureExpress = function(){
     exp_app
         .use('/assets',express.static(__dirname+'/assets'))// This tells express where to find static assets (js, css, etc).
-        .use(express.favicon(__dirname+'/assets/favicon.ico'))// I would use nginx to host static images in a real-world app.
+        .use(express.favicon(__dirname+'/assets/favicon.png'))// I would use nginx to host static images in a real-world app.
         .use(express.bodyParser())
         .use(function(req,res,next){
             // I'm storing my page 'context' in a hash called 'hData.'  This context will
@@ -164,6 +164,10 @@ var configureRoutes = function(){
     exp_app.get('/stats', function (req, res) {
         render(req,res,null,'stats');
     });
+
+    exp_app.get('/api', function (req, res) {
+        render(req,res,null,'api');
+    });
     /**
      * Page for building a config file from scratch.
      */
@@ -176,12 +180,13 @@ var configureRoutes = function(){
     exp_app.get('/hits/:grain',function(req,res){
         var hExtras = {};
         hExtras[req.params.grain] = true;
-        Base.lookup({sClass:'hits',hExtras:hExtras},function(err,hits){
+        var oApp = Base.lookup({sClass:'App'});
+        oApp.loadExtras({hits:{hExtras:hExtras}},function(err){
             if (err)
                 res.end(err.toString());
             else
-                res.end(JSON.stringify(hits.toHash(hExtras)));
-        })
+                res.end(JSON.stringify(oApp.hits[req.params.grain].toHash()));
+        });
     });
     /**
      * And a user's detail page.

@@ -15,17 +15,14 @@ async.series([
         var aDates = [];
         var n = 0;
         while (n < nTestSize) {
-            var hour = Math.floor(Math.random()*23);
-            var date = Math.floor(Math.random()*27);
-            var month = Math.floor(Math.random()*11);
-            aDates.push(moment({month:month,date:date,hour:hour}));
+            var daysback = Math.floor(Math.random()*365);
+            var date = moment().subtract('days',daysback);
+            aDates.push(date);
             n++;
         }
         async.forEach(aDates,function(date,cb){
             //Simulate homepage hit.
-            AppConfig.trackStat('hits',['/'],cb,date.toDate());
-            if (date.hour() % 2)
-                AppConfig.trackStat('hits',['/'],null,date.toDate());
+            AppConfig.trackStat('hits',['/'],cb,date.toDate(),Math.floor(Math.random()*100));
 
         },callback);
     }

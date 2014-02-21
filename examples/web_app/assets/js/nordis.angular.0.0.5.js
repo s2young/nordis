@@ -152,8 +152,9 @@ angular.module('nordis', [])
 
                     hOpts.sPath += '?'
                     for (var sItem in hOpts.hData) {
+                        console.log(sItem);
                         switch (sItem) {
-                            case 'nSize':case 'nFirstID':case 'nMin':case 'sTerm':
+                            case 'nSize':case 'nFirstID':case 'nMin':case 'sTerm':case 'nMax':
                                 hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
                                 break;
                             case 'hExtras':

@@ -25,7 +25,7 @@
     <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
-    [[=hData.sInclude]]
+    [[=hData.sInclude||'']]
     <script src="/assets/js/require.js"></script>
 
     <style type="text/css">

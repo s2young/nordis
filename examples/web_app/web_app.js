@@ -179,7 +179,7 @@ var configureRoutes = function(){
      */
     exp_app.get('/hits/:grain',function(req,res){
         var hExtras = {};
-        hExtras[req.params.grain] = true;
+        hExtras[req.params.grain] = {nMin:req.query.nMin,nMax:req.query.nMax};
         var oApp = Base.lookup({sClass:'App'});
         oApp.loadExtras({hits:{hExtras:hExtras}},function(err){
             if (err)

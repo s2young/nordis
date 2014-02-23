@@ -193,8 +193,6 @@ module.exports.hSettings = {
                                     ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'follows\' collection up to a total of ONE record (nSize:1). On that follower, we want the related follower_user property (which is a User object).\n\n            {"hExtras":{follows:{nSize:1,hExtras:{follower_user:true}}}}'
                                     ,fnApiCallOutput:function(req,AppConfig,callback){
                                         if (callback) {
-                                            AppConfig.trackStat('api_requests',['/user/{id}']);
-                                            AppConfig.trackStat('hits',[req.hNordis.sPath]);
                                             // Nordis has a toHash method as the default serialization for each class, but you can override it here. In this case, we're just going ahead with the default serialization.
                                             callback(null,req.hNordis.oResult.toHash(req.hNordis.hExtras));
                                         } else
@@ -275,7 +273,7 @@ module.exports.hSettings = {
                                     ,fnApiCallProcessor:function(req,AppConfig,callback){
                                         // Setting default extras for this endpoint.  This is where you could completely ignore and/or override what the api user is asking for.
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follows:{hExtras:{follower_user:true}}};
-                                        AppConfig.trackStat('api_requests',['/user/{id}/follows'],callback);
+                                        callback();
                                     }
                                 }
                             }
@@ -311,33 +309,34 @@ module.exports.hSettings = {
 //            },
             ,unique_users:{
                 sDescription:'Total number of unique users active during the period.'
-                ,fnValidate:function(aParams,callback){
+                ,fnValidate:function(user,callback){
                     // This function makes sure the proper, related object is passed into the AppConfig.trackStat method
                     // and returns a string that will help uniquely identify the stat in Redis.
-                    if (!aParams[0] || !aParams[0].sClass == 'User')
+                    if (!user || !user.sClass == 'User')
                         callback('This stat requires a User object as first param.');
                     else
-                        callback(null,aParams[0].getKey());
+                        callback(null,user.getKey());
                 }
             }
             ,hits:{
                 sDescription:'Total number of hits to the web, regardless of user.'
-                ,fnValidate:function(aParams,callback){
+                ,bTrackParams:true
+                ,fnValidate:function(path,callback){
                     // The first param should be the api endpoint path.
-                    if (!aParams || !aParams[0])
-                        callback('This stat requires an url path string as the first param.');
+                    if (!path)
+                        callback('This stat requires a url path string as the first param.');
                     else
-                        callback(null,aParams[0]);
+                        callback(null,path);
                 }
             }
             ,api_requests:{
                 sDescription:'Total number of hits to the api, regardless of user.'
-                ,fnValidate:function(aParams,callback){
+                ,fnValidate:function(endpoint,callback){
                     // The first param should be the api endpoint path.
-                    if (!aParams || !aParams[0])
+                    if (!endpoint)
                         callback('This stat requires an api endpoint string as the first param.');
                     else
-                        callback(null,aParams[0]);
+                        callback(null,endpoint);
                 }
             }
             ,misconfigured_stat:{

@@ -140,8 +140,10 @@ var configureExpress = function(){
             // Also, in our example we hacked in our stats endpoints directly as express-handled paths, so we're gonna skip those too.
             if (!req.hNordis.hEndpoint && !req.hNordis.sPath.match(/hits/)) {
                console.log('Tracking: '+req.hNordis.sPath);
-                AppConfig.trackStat('hits',[req.hNordis.sPath],next);
-            } else
+                AppConfig.trackStat('hits',req.hNordis.sPath,next);
+            } else if (req.hNordis.hEndpoint)
+                AppConfig.trackStat('api_requests',req.hNordis.sPath,next);
+            else
                 next();
         })
         .set('view engine','html')

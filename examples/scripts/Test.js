@@ -22,7 +22,7 @@ async.series([
         }
         async.forEach(aDates,function(date,cb){
             //Simulate homepage hit.
-            AppConfig.trackStat('hits',['/'],cb,date.toDate(),Math.floor(Math.random()*100));
+            AppConfig.trackStat('hits','/',cb,date.toDate(),Math.floor(Math.random()*100));
 
         },callback);
     }

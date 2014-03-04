@@ -23,8 +23,14 @@ async.series([
         async.forEach(aDates,function(date,cb){
             //Simulate homepage hit.
             AppConfig.trackStat('hits','/',cb,date.toDate(),Math.floor(Math.random()*100));
-
-        },callback);
+        },function(){
+            async.forEach(aDates,function(date,cb){
+                if (date.valueOf() % 2)
+                    AppConfig.trackStat('hits','/user',cb,date.toDate(),Math.floor(Math.random()*100));
+                else
+                    cb();
+            },callback);
+        });
     }
     //Process stats .
     ,function(callback){

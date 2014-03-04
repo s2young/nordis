@@ -16,7 +16,12 @@
             <li>
                 <a href="/stats">Page Stats</a>. The web app is tracking hits and those hits are displayed on the stats page.
                 Nordis supports configuring those stats you want to track, and then provides convenience methods for tracking
-                stats, processing them and displaying them.
+                stats, processing them and displaying them. You can configure the following types of stats for tracking:
+                <ul>
+                    <li><b>Db Stats</b> - Some stats you want to simply pull out of your db. Nordis supports db-stat definition.</li>
+                    <li><b>Aggregate Counts</b>  - You want a simple total hits count for all pages on your site? No problem. Redis is great at counting increments.</li>
+                    <li><b>Aggregate Counts + Break-Out Filters</b> - Count the total hits, but also count hits per-page - defined as one stat in your config.</li>
+                </ul>
             </li>
         </ol>
     </div>

@@ -1,6 +1,6 @@
 var express     = require('express'),
-    async       = require('async'),
     request     = require('request'),
+    async       = require('async'),
     Base        = require('./../../lib/Base'),
     Collection  = require('./../../lib/Collection'),
     Middleware  = require('./../../lib/Utils/Middleware'),
@@ -48,10 +48,6 @@ module.exports = {
                     q.push(n);
                 }
             }
-            // Flush any previously tracked stats.
-            ,function(cb) {
-                AppConfig.flushStats(cb);
-            }
             // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
             ,function(cb) {
                 AppConfig.init(null,function(err){
@@ -85,13 +81,9 @@ module.exports = {
             ,function(follows,cb) {
                 follows.delete(cb);
             }
-            ,function(ignore,cb) {
-                AppConfig.flushStats(cb);
-            }
             ,function(ignore,cb){
                 if (server)
                     server.close();
-
                 cb();
             }
         ],callback);

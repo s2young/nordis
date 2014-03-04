@@ -1,13 +1,16 @@
 [[ hData.sTitle = 'Web App Stats'; ]]
 
-[[ hData.sInclude = '<link href="/assets/detail-theme/css/lib/bootstrap.datepicker.css" type="text/css" rel="stylesheet" /><script src="/assets/js/d3.min.js"></script><script src="/assets/js/nv.d3.min.js"></script>'; ]]
+[[ hData.sInclude = '<link href="/assets/detail-theme/css/lib/bootstrap.datepicker.css" type="text/css" rel="stylesheet" /><link href="/assets/js/nvd3/nv.d3.min.css" type="text/css" rel="stylesheet" /><script src="/assets/js/nvd3/d3.v3.js"></script><script src="/assets/js/nvd3/nv.d3.min.js"></script><link href="/assets/js/nvd3/select2.css" type="text/css" rel="stylesheet" />'; ]]
 [[#def.loadfile('/partials/header.dot')]]
-
 <script type="text/javascript">
     function StatsCtrl($scope,helpers,$element) {
         $scope.stat = 'hits';
         $scope.grain = 'day';
         $scope.title = 'Hits';
+        $scope.filters;
+        $scope.filter_count = 0;
+        $scope.chart;
+
         $scope.start;$scope.end;nv;d3;$scope.moment;
 
         $scope.getDate = function(date) {
@@ -36,26 +39,47 @@
             helpers.get({sPath:'/'+$scope.stat+'/'+$scope.grain,hData:{nMin:$scope.start.valueOf(),nMax:$scope.end.valueOf()}},function(result){
 
                 nv.addGraph(function() {
-                    var chart = nv.models.lineChart()
-                                .margin({left: 70})
-                                .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-                                //.transitionDuration(350)  //how fast do you want the lines to transition?
-                                .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
-                                .showXAxis(true)
-                                .showYAxis(true);
+                    $scope.chart = nv.models.lineChart()
+                            .margin({left: 40,right:0})  //Adjust chart margins to give the x-axis some breathing room.
+                            .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
+                            .transitionDuration(350)  //how fast do you want the lines to transition?
+                            .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
+                            .showYAxis(true)        //Show the y-axis
+                            .showXAxis(true)        //Show the x-axis
 
                     var values = [];
-                    var max = 0;
+                    var max = 10;
+                    $scope.filter_count = 0;
+                    $scope.filters = null;
 
                     result.aObjects.forEach(function(item){
                         if (item.count > max) max = item.count;
                         values.push({x:item.date,y:item.count});
+                        if (item.filters) {
+                            var item_filters = JSON.parse(item.filters);
+                            for (var key in item_filters) {
+                                if (!$scope.filters) $scope.filters = {};
+                                if (!$scope.filters[key]) {
+                                    $scope.filters[key] = {values:[],key:key,text:$scope.stat+'- '+key};
+                                    $scope.filter_count++;
+                                }
+                            }
+                        }
                     });
+                    // Do another pass if we have filters because we need data points for all the lines in the graph.
+                    if ($scope.filter_count) {
+                        result.aObjects.forEach(function(item){
+                            var item_filters = {};
+                            if (item.filters) item_filters = JSON.parse(item.filters);
+                            for (var key in $scope.filters) {
+                                $scope.filters[key].values.push({x:item.date,y:item_filters[key]||0});
+                            }
+                        });
+                        $scope.filters[$scope.stat] = {values:values,key:$scope.stat,id:$scope.stat,text:$scope.stat+'- All',selected:true};
+                    }
+                    console.log($scope.filters);
 
-                    var x = d3.scale.identity().domain([$scope.start,$scope.end]);
-                    chart.xAxis
-                        .scale(x)
-                        .axisLabel($scope.grain)
+                    $scope.chart.xAxis
                         .tickFormat(function(d) {
                             switch ($scope.grain) {
                                 case 'day':
@@ -71,19 +95,51 @@
                                     return $scope.moment(d).format('HH');
                                     break;
                             }
-
                         });
-                    var y = d3.scale.identity().domain([2,max]);
-                    chart.yAxis.axisLabel($scope.stat);
 
-                    d3.select('#chart svg')
-                        .datum([{values:values,key:$scope.stat,area:true}])
-                        .call(chart);
+                    $scope.chart.xDomain([$scope.start,$scope.end]);
+                    $scope.chart.yDomain([0,max+10]);
 
-                    nv.utils.windowResize(function() { chart.update() });
-                    return chart;
+
+                    if ($scope.filter_count) {
+                        d3.select('#chart svg')
+                                .datum([{values:values,key:$scope.stat}])
+                                .call($scope.chart);
+
+                        $('#sel2').select2({
+                            placeholder: "Select a Filter"
+                            ,allowClear: true
+                            ,tags:function(){
+                                var tags = [];
+                                for (var key in $scope.filters) {
+                                    tags.push({id:$scope.filters[key].key,text:$scope.filters[key].text});
+                                }
+                                return tags;
+                            }
+                            ,multiple:true
+                            ,formatNoMatches: function() {
+                                return '';
+                            }
+                        });
+                        $('#sel2').select2('data',{id:$scope.stat,text:$scope.stat+' - All'});
+                        $('#sel2').on('change',function(e){
+                            var filters = [];
+                            for (var i = 0; i < e.val.length; i++) {
+                                filters.push($scope.filters[e.val[i]]);
+                            }
+                            d3.select('#chart svg')
+                                    .datum(filters)
+                                    .call($scope.chart);
+                        });
+
+                    } else
+                        d3.select('#chart svg')
+                                .datum($scope.filters)
+                                .call($scope.chart);
+
+                    nv.utils.windowResize(function() { $scope.chart.update() });
+                    return $scope.chart;
                 });
-                // TODO - handle different screen sizes and resize somehow.
 
             });
         };
@@ -97,15 +153,18 @@
             $('.end').attr('data-date',$scope.getDate($scope.end));
             $('.start').datepicker('setValue',$scope.start.toDate()).on('changeDate', function (ev) {
                 $scope.start = $scope.moment(ev.date.valueOf());
-                $scope.loadStats();
+                $scope.chart.xDomain([$scope.start,$scope.end]);
+                $scope.chart.update();
+
             });
             $('.end').datepicker().on('changeDate', function (ev) {
                 $scope.end = $scope.moment(ev.date.valueOf());
-                $scope.loadStats();
+                $scope.chart.xDomain([$scope.start,$scope.end]);
+                $scope.chart.update();
             });
         };
 
-        require(['moment','datepicker'], function(moment){
+        require(['moment','datepicker','select2'], function(moment){
             $scope.moment = moment;
             angular.element($element).removeClass('hide');
             $scope.setDatePicker();
@@ -158,6 +217,7 @@
                     <button class="glow middle"><i class="icon-double-angle-right"></i></button>
                     <button class="glow right end"><i class="icon-calendar-empty"></i> {{getDate(end)}}</button>
                 </div>
+                <div id="sel2" style="width:200px;"></div>
             </div>
         </div>
         <div class="row chart">

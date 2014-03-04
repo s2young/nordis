@@ -7,8 +7,7 @@ var Collection; // And Collection.
 
 module.exports.hSettings = {
     global: {
-        sLanguage:'en'
-        ,sLogLevel:'warn'
+        sLogLevel:'warn'
         ,bTraceMode:false
         ,hOptions:{
             MySql:{
@@ -35,8 +34,10 @@ module.exports.hSettings = {
             },
             Redis:{
                 default:{
-                    sHost:'127.0.0.1',
-                    nPort:6379
+                    sHost:'127.0.0.1'
+                    ,nPort:6379
+                    ,nMaxMemory:524288000
+                    ,sMaxMemoryPolicy:'allkeys-lru'
                 }
                 ,statsdb:{
                     sHost:'127.0.0.1'
@@ -273,7 +274,8 @@ module.exports.hSettings = {
                                     ,fnApiCallProcessor:function(req,AppConfig,callback){
                                         // Setting default extras for this endpoint.  This is where you could completely ignore and/or override what the api user is asking for.
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follows:{hExtras:{follower_user:true}}};
-                                        callback();
+                                        // Track the api request. This is for the redis_stats.js unit test.
+                                        AppConfig.trackStat('api_requests',req.hNordis.sPath,callback);
                                     }
                                 }
                             }
@@ -294,7 +296,7 @@ module.exports.hSettings = {
         }
         ,hStats:{
             sDbAlias:'statsdb'
-//            users:{
+//            ,users:{
 //                sDescription:'Total number of new user accounts created during the period.'
 //                ,fnQuery:function(oSelf,dStart,dEnd,AppConfig,callback){
 //                    // This is a mysql query that will return the count for the passed-in period, allowing recreation
@@ -306,23 +308,24 @@ module.exports.hSettings = {
 //                        callback(err,nCount);
 //                    });
 //                }
-//            },
-            ,unique_users:{
-                sDescription:'Total number of unique users active during the period.'
+//            }
+            ,active_users:{
+                sDescription:'Total number of unique users active during the period. Multiple hits by one user count as one unique. Thus, we do not set bFilters=true, because we are\'t keeping filter-level counts and summing them up.'
+                ,bFilters:false
                 ,fnValidate:function(user,callback){
                     // This function makes sure the proper, related object is passed into the AppConfig.trackStat method
                     // and returns a string that will help uniquely identify the stat in Redis.
-                    if (!user || !user.sClass == 'User')
-                        callback('This stat requires a User object as first param.');
+                    if (!user || user.sClass != 'User' || !user.getKey())
+                        callback('This stat requires a valid User object as first param.');
                     else
                         callback(null,user.getKey());
                 }
             }
             ,hits:{
-                sDescription:'Total number of hits to the web, regardless of user.'
-                ,bTrackParams:true
+                sDescription:'Total number of hits to the web, including page-level filters.'
+                ,bFilters:true
                 ,fnValidate:function(path,callback){
-                    // The first param should be the api endpoint path.
+                    // This stat is just a flat, total count. No filter required.
                     if (!path)
                         callback('This stat requires a url path string as the first param.');
                     else
@@ -341,11 +344,6 @@ module.exports.hSettings = {
             }
             ,misconfigured_stat:{
                 sDescription:'This stat is missing the fnValidate function, and is here for unit testing purposes.'
-            }
-        }
-        ,hErrorStrings:{
-            500:{
-                en:'Malformed request.'
             }
         }
     }

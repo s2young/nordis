@@ -8,13 +8,7 @@
                 baseUrl: '/assets/js',
                 enforceDefine: false,
                 shim: {
-                    d3: {
-                        exports: 'd3'
-                    }
-                    ,nvd3:{
-                        exports:'nv'
-                    }
-                    ,moment:{
+                    moment:{
                         exports:'moment'
                     }
                 }
@@ -31,10 +25,9 @@
                         '//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min'
                         ,'jquery.2.1.0.min'
                     ]
-                    ,d3:'d3.min'
-                    ,nvd3:'nv.d3.min'
                     ,datepicker:'bootstrap.datepicker'
                     ,nordis:'nordis.angular.0.0.5'
+                    ,select2:'nvd3/select2.min'
                     ,moment:['//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min','moment.min']
                 }
             });

@@ -309,14 +309,15 @@ module.exports.hSettings = {
 //                    });
 //                }
 //            }
-            ,active_users:{
-                sDescription:'Total number of unique users active during the period. Multiple hits by one user count as one unique. Thus, we do not set bFilters=true, because we are\'t keeping filter-level counts and summing them up.'
-                ,bFilters:false
-                ,fnValidate:function(user,callback){
+            ,uniques:{
+                sDescription:'Total number of unique users active during the period. Multiple hits by one user count as one unique.'
+                ,fnValidate:function(params,callback){
                     // This function makes sure the proper, related object is passed into the AppConfig.trackStat method
                     // and returns a string that will help uniquely identify the stat in Redis.
-                    if (!user || user.sClass != 'User' || !user.getKey())
-                        callback('This stat requires a valid User object as first param.');
+                    if (!params || !params[0] || params[0].sClass != 'User')
+                        callback('This stat requires a User object as first param.');
+                    else if (!params || !params[1])
+                        callback('This stat requires a url path string as the second param.');
                     else
                         callback(null,user.getKey());
                 }

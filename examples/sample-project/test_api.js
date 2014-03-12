@@ -1,8 +1,8 @@
-var Base = require('nordis').Base,
-    express = require('express'),
-    request = require('request'),
-    Middleware = require('nordis').Middleware,
-    App = require('nordis').AppConfig;
+var Base        = require('nordis').Base,
+    express     = require('express'),
+    request     = require('request'),
+    Middleware  = require('nordis').Middleware,
+    App         = require('nordis').AppConfig;
 
 
 // Initialize your app. You may either set your environment variables or pass them into the init method.
@@ -25,12 +25,15 @@ App.init({
 
         // Here's how you might call the above app from a script
         // This is an API request that is equivalent to what we did in test.js.
-        request.post('http://localhost:2000/user/new',{form:{
-            name:'Johnny',email:'john@gmail.com'
-        }},function(result){
-            App.log('HELLOOOOO '+result.name+'!');
-            App.exit();
-        })
+        request.post('http://localhost:2000/user/new',{form:{name:'Johnny',email:'john@gmail.com'}},function(err,res,body){
+            if (err)
+                App.error(err);
+            else {
+                var result = JSON.parse(body);
+                App.log('HELLOOOO '+result.name+'!');
+                App.exit();
+            }
+        });
     }
 
 });

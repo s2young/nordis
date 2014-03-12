@@ -1,0 +1,9 @@
+{
+    "author": "Stuart Young",
+    "name": "sample-nordis-app",
+    "description": "This is a bare-bones starter project structure for a nordis-based app.",
+    "version": "0.0.1",
+    "dependencies": {
+        "nordis":"git://github.com/s2young/nordis.git"
+    }
+}

@@ -17,6 +17,7 @@
       ,"request":"*"
       ,"generic-pool":"*"
       ,"mysql":"*"
+      ,"dot":"*"
       ,"redis":"*"
       ,"validator":"*"
       ,"winston":"*"

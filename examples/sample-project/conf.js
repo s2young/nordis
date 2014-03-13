@@ -29,6 +29,7 @@ module.exports.hSettings = {
                     ,updated:{sType:'Timestamp',bOnUpdate:true,sSample:'1389625960'}
                     ,name:{sType:'String'}
                     ,email:{sType:'String'}
+                    ,balance:{sType:'Decimal',nMax:7,nScale:2}
                     ,type:{
                         sType:'Number'
                             ,hOptions:{

@@ -130,6 +130,11 @@ module.exports.hSettings = {
                         sType:'Number'
                         ,sSample:null
                     }
+                    ,balance:{
+                        sType:'Decimal'
+                        ,nMax:7
+                        ,nScale:2
+                    }
                 }
                 ,nClass:1
                 ,hExtras:{

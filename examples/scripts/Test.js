@@ -4,42 +4,9 @@ var async       = require('async'),
     AppConfig   = require('./../../lib/AppConfig'),
     Base        = require('./../../lib/Base');
 
-var nTestSize = 100;
+AppConfig.init(function(){
+    var user = Base.lookup({sClass:'User'});
+    user.set('balance',4.5);
 
-async.series([
-    function(callback) {
-        AppConfig.init(callback);
-    }
-    // Fake some stat counts using random dates.
-    ,function(callback) {
-        var aDates = [];
-        var n = 0;
-        while (n < nTestSize) {
-            var daysback = Math.floor(Math.random()*365);
-            var date = moment().subtract('days',daysback);
-            aDates.push(date);
-            n++;
-        }
-        async.forEach(aDates,function(date,cb){
-            //Simulate homepage hit.
-            AppConfig.trackStat('hits','/',cb,date.toDate(),Math.floor(Math.random()*100));
-        },function(){
-            async.forEach(aDates,function(date,cb){
-                if (date.valueOf() % 2)
-                    AppConfig.trackStat('hits','/user',cb,date.toDate(),Math.floor(Math.random()*100));
-                else
-                    cb();
-            },callback);
-        });
-    }
-    //Process stats .
-    ,function(callback){
-        AppConfig.processStats(callback);
-    }
-],function(err){
-    if (err)
-        AppConfig.error(err);
-
-    //server.close();
-    AppConfig.exit();
+    console.log(user.get('balance'));
 });

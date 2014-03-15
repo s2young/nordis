@@ -21,7 +21,6 @@
       ,"redis":"*"
       ,"validator":"*"
       ,"winston":"*"
-      ,"csv":"*"
   }
   ,"devDependencies":{
     "express":"*"

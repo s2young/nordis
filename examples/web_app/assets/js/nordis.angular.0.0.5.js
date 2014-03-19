@@ -1,5 +1,4 @@
 angular.module('nordis', [])
-    // onKeyup is a directive used in input forms so that hitting a key can trigger something in your controller.
     .directive('onKeyup', function($parse) {
         return function(scope, elm, attrs) {
             var keyupFn = $parse(attrs.onKeyup);
@@ -22,7 +21,6 @@ angular.module('nordis', [])
             });
         };
     })
-    // These helpers have functions for Collection-related utilities, like updating & removing items.
     .factory('helpers',function($rootScope,$http,$location){
         var self = this;
 
@@ -48,17 +46,21 @@ angular.module('nordis', [])
                     }
             },
             // Remove an item from a collection. Just pass in the object and the collection.
-            remove:function(hItem,cColl) {
-                if (hItem && hItem.id && cColl && cColl.aObjects) {
-                    var i = this.findIndex({id:hItem.id},cColl.aObjects);
+            remove:function(hItem,cColl,sKey) {
+                sKey = (sKey) ? sKey : 'id';
+                if (hItem && hItem[sKey] && cColl && cColl.aObjects) {
+                    var hLookup = {};hLookup[sKey] = hItem[sKey];
+                    var i = this.findIndex(hLookup,cColl.aObjects);
                     if (i) cColl.aObjects.splice(i,1);
                 }
             }
             // Update a collection with an item, if the item already exists it is replaced.
-            ,update:function(hItem,cColl) {
+            ,update:function(hItem,cColl,sKey) {
+                sKey = (sKey) ? sKey : 'id';
                 if (cColl) {
                     if (!cColl.aObjects) cColl.aObjects = [];
-                    var i = this.findIndex({id:hItem.id},cColl.aObjects);
+                    var hLookup = {};hLookup[sKey] = hItem[sKey];
+                    var i = this.findIndex(hLookup,cColl.aObjects);
                     if (i >= 0)
                         cColl.aObjects.splice(i,1,hItem);
                     else if (!hItem.bRemoved) {

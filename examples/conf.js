@@ -7,7 +7,8 @@ var Collection; // And Collection.
 
 module.exports.hSettings = {
     global: {
-        sLogLevel:'warn'
+        version:'1.0.0'
+        ,sLogLevel:'warn'
         ,bTraceMode:false
         ,hOptions:{
             MySql:{
@@ -173,6 +174,7 @@ module.exports.hSettings = {
                             ,hVerbs:{
                                 POST:{
                                     sTitle:'Update (or Create) User'
+                                    ,sAlias:'save'
                                     ,sDescription:'You can also create a NEW user by leaving the sid out.'
                                     ,fnApiCallProcessor:function(req,AppConfig,callback){
                                         // Locate the user.
@@ -196,6 +198,7 @@ module.exports.hSettings = {
                                 }
                                 ,GET:{
                                     sTitle:'Retrieve a User'
+                                    ,sAlias:'lookup'
                                     ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'follows\' collection up to a total of ONE record (nSize:1). On that follower, we want the related follower_user property (which is a User object).\n\n            {"hExtras":{follows:{nSize:1,hExtras:{follower_user:true}}}}'
                                     ,fnApiCallOutput:function(req,AppConfig,callback){
                                         if (callback) {
@@ -207,6 +210,7 @@ module.exports.hSettings = {
                                 }
                                 ,DELETE:{
                                     sTitle:'Delete a User'
+                                    ,sAlias:'del'
                                     ,fnApiCallOutput:function(req,AppConfig,callback) {
                                         if (!req.hNordis.oResult.getKey())
                                             callback('User not found.');

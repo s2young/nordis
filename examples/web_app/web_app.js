@@ -123,8 +123,10 @@ var configureExpress = function(){
     exp_app
         .use('/assets',express.static(__dirname+'/assets'))// This tells express where to find static assets (js, css, etc).
         .use(express.favicon(__dirname+'/assets/favicon.png'))// I would use nginx to host static images in a real-world app.
+        .use(NordisMiddleware.clientHelper)
         .use(express.bodyParser())
         .use(function(req,res,next){
+            res.header('Access-Control-Allow-Origin', '*');
             // I'm storing my page 'context' in a hash called 'hData.'  This context will
             // be passed to the template rendering engine for server-side data-binding.
             req.hData = {};

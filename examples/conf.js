@@ -7,9 +7,13 @@ var Collection; // And Collection.
 
 module.exports.hSettings = {
     global: {
-        version:'1.0.0'
+        sConfVersion:'1.0.0'
         ,sLogLevel:'warn'
         ,bTraceMode:false
+        ,hConstants:{
+            aAngularMods:['ngCookies']
+            ,sNordisHost:'http://localhost:2003'
+        }
         ,hOptions:{
             MySql:{
                 default:{
@@ -278,6 +282,7 @@ module.exports.hSettings = {
                             ,hVerbs:{
                                 GET:{
                                     sTitle:'Retrieve Follow Collection'
+                                    ,sAlias:'lookup'
                                     ,sDescription:'This api call is an example of how to define a custom function (fnApiCallProcessor) to track stats or check security credentials on an endpoint. Also, this example has a custom output function (fnApiCallOutput) which customizes what the returning document looks like. Both are defined in the config file.'
                                     ,hSample:{sClass:'Follow',aObjects:[{id:3,followed_id:1,follower_id:2,rank:1,follower_user:{id:2,sid:'H0Jd56g6',created:1389625960,updated:1389625960,name:'Joe Follower',email:'follower@gmail.com',referrer_id:'1'}}],nTotal:1}
                                     ,fnApiCallProcessor:function(req,AppConfig,callback){

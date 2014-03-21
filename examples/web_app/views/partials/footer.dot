@@ -26,15 +26,19 @@
                         ,'jquery.2.1.0.min'
                     ]
                     ,datepicker:'bootstrap.datepicker'
-                    ,nordis:'nordis.angular.0.0.5'
+                    ,nordis_conf:'/_nordis_client/version'
                     ,select2:'nvd3/select2.min'
                     ,moment:['//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min','moment.min']
                 }
             });
-            // Wire up our angular app.
-            require(['angular','jquery'], function() {
-                require(['nordis','bootstrap'], function() {
-                    angular.bootstrap(document.getElementsByTagName('body')[0], ['nordis']);
+            // Wire up our angular app. This includes checking the /_nordis_client/version.js file for the latest version of the
+            // nordis client js file. Then we 'hack' requirejs with the version-specific url and wire up.
+            require(['angular','jquery','nordis_conf'], function() {
+                require(['bootstrap'], function(nordis_conf) {
+                    requirejs.s.contexts._.config.paths.nordis = '/_nordis_client_'+nordis_conf.version;
+                    require(['nordis'], function() {
+                        angular.bootstrap(document.getElementsByTagName('body')[0], ['nordis']);
+                    });
                 });
             });
         </script>

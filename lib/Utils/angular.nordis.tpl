@@ -1,6 +1,6 @@
-if (!sNordisHost) sNordisHost = '';
-
-angular.module('nordis', [])
+if (!window.sNordisHost) window.sNordisHost = '[[=hData.sNordisHost||""]]';
+if (!window.aAngularMods) window.aAngularMods = [[? hData.aAngularMods ]][[=JSON.stringify(hData.aAngularMods)]][[??]][][[?]];
+angular.module('nordis', window.aAngularMods)
     .directive('onKeyup', function($parse) {
         return function(scope, elm, attrs) {
             var keyupFn = $parse(attrs.onKeyup);
@@ -192,7 +192,7 @@ angular.module('nordis', [])
                     self.emit('onLoad');
                     if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
-                    $http[sMethod.toLowerCase()](sNordisHost+hOpts.sPath,hOpts.hData)
+                    $http[sMethod.toLowerCase()](window.sNordisHost+hOpts.sPath,hOpts.hData)
                         .success(function(hResult,nStatus){
                             if (hOpts.oObj)
                                 hOpts.oObj.bLoading = false;
@@ -216,10 +216,6 @@ angular.module('nordis', [])
                                 self.alert(hResult);
                         });
                 }
-            },
-            isValidEmail:function(sEmail) {
-                var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                return re.test(sEmail);
             }
         }
     })
@@ -229,4 +225,26 @@ angular.module('nordis', [])
             return input.slice(start);
         }
     })
-
+    .factory('AppConfig',function(helpers){
+        return {hClasses:{
+                [[for (var sClass in hData.hClasses) {]][[? hData.sComma ]][[=hData.sComma]][[?]][[=sClass]]:{
+                    hProperties:[[=JSON.stringify(hData.hClasses[sClass])]]
+                    ,hApi:{[[? hData.hApiCalls[sClass] ]][[~hData.hApiCalls[sClass] :hCall:nIndex]]
+                        [[? nIndex ]],[[?]][[=hCall.sAlias]]:function(hQuery,hData,hExtras,callback){
+                             helpers.[[=hCall.sMethod]]({sPath:'/[[=sClass.toLowerCase()]]/'+hQuery.sid,hData:hData,hExtras:hExtras},function(err,res){
+                                 delete res.txid;
+                                 callback(err,res);
+                             });
+                         }[[~]]
+                    [[?]]}
+                }[[hData.sComma=',';]][[}]]
+            }
+        };
+    })
+    [[for (var sClass in hData.hApiCalls) {]].factory('[[=sClass]]',function(AppConfig){
+        var [[=sClass]] = {};
+        for (var sEndpoint in AppConfig.hClasses.[[=sClass]].hApi) {
+            [[=sClass]][sEndpoint] = AppConfig.hClasses.[[=sClass]].hApi[sEndpoint];
+        }
+        return [[=sClass]];
+    })[[}]]

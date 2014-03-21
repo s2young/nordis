@@ -23,6 +23,38 @@ angular.module('nordis', window.aAngularMods)
             });
         };
     })
+    .directive('nordisOnload',function(){
+            // This allows the display of an element with the nordis.angular.js file emits an onLoad event. for use with spinners, loaders, progress-bars, etc.
+            return {
+                restrict: 'A'
+                ,replace: false
+                ,transclude: true
+                ,link: function(scope, element, attrs) {
+
+                    switch (attrs.nordisOnload) {
+                        case 'show':
+                            angular.element(element).attr('style', 'visibility:hidden;');
+                            scope.$on('onLoad',function(e){
+                                angular.element(element).attr('style', 'visibility:visible;');
+                            });
+                            scope.$on('onUnload',function(e){
+                                angular.element(element).attr('style', 'visibility:hidden;');
+                            });
+                            break;
+                        case 'hide':
+                            angular.element(element).attr('style', 'visibility:visible;');
+                            scope.$on('onLoad',function(e){
+                                angular.element(element).attr('style', 'visibility:hidden;');
+                            });
+                            scope.$on('onUnload',function(e){
+                                angular.element(element).attr('style', 'visibility:visible;');
+                            });
+                            break;
+                    }
+                },
+                template:'<span><span ng-transclude></span></span>'
+            }
+        })
     .factory('helpers',function($rootScope,$http,$location){
         var self = this;
 

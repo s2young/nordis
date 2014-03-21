@@ -65,10 +65,10 @@ angular.module('nordis', window.aAngularMods)
                     var i = this.findIndex(hLookup,cColl.aObjects);
                     if (i >= 0)
                         cColl.aObjects.splice(i,1,hItem);
-                    else if (!hItem.bRemoved) {
+                    else
                         cColl.aObjects.push(hItem);
-                        return true;
-                    }
+                    if (cColl.aObjects.length > cColl.nCount) cColl.nCount = cColl.aObjects.length;
+                    if (cColl.aObjects.length > cColl.nTotal) cColl.nTotal = cColl.aObjects.length;
                 }
                 return;
             },

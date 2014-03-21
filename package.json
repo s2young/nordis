@@ -21,6 +21,7 @@
       ,"redis":"*"
       ,"validator":"*"
       ,"winston":"*"
+      ,"uglify-js":"*"
   }
   ,"devDependencies":{
     "express":"*"

@@ -23,6 +23,36 @@ angular.module('nordis', window.aAngularMods)
             });
         };
     })
+    .directive('modalDialog', function() {
+        return {
+            restrict: 'E',
+            scope: {
+                show: '='
+            },
+            replace: true, // Replace with the template below
+            transclude: true, // we want to insert custom content inside the directive
+            link: function(scope, element, attrs) {
+                scope.dialogStyle = {};
+
+                if (attrs.width)
+                    scope.dialogStyle.width = attrs.width;
+                if (attrs.height)
+                    scope.dialogStyle.height = attrs.height;
+                if (attrs.zindex)
+                    scope.dialogStyle['z-index'] = attrs.zindex;
+                if (attrs.bgcolor)
+                    scope.dialogStyle['background-color'] = attrs.bgcolor;
+
+                scope.hideModal = function() {
+                    scope.show = false;
+                };
+                scope.$on('onClose',function(e){
+                    scope.show = false;
+                })
+            },
+            template: '<div class="ng-modal" ng-show="show"><div class="ng-modal-overlay" ng-click="hideModal()"></div><div class="ng-modal-dialog" ng-style="dialogStyle"><div class="ng-modal-dialog-content" ng-transclude></div></div></div>'
+        };
+    })
     .directive('nordisOnload',function(){
             // This allows the display of an element with the nordis.angular.js file emits an onLoad event. for use with spinners, loaders, progress-bars, etc.
             return {

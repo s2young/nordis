@@ -221,8 +221,11 @@ angular.module('nordis', window.aAngularMods)
     })
     .filter('startFrom', function() {
         return function(input, start) {
-            start = +start; //parse to int
-            return input.slice(start);
+            if (input) {
+                start = +start; //parse to int
+                return input.slice(start);
+            } else
+                return 0;
         }
     })
     .factory('AppConfig',function(helpers){

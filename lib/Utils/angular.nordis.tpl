@@ -99,17 +99,30 @@ angular.module('nordis', window.aAngularMods)
             loadPage:function(cColl,fnResultHandler,fnErrorHandler,sKey){
                 var self = this;
                 var hData = (cColl.hData) ? cColl.hData : {};
-                hData.nSize = cColl.nSize;
-                hData.nFirstID = cColl.nNextID;
-                if (cColl.hExtras) hData.hExtras = cColl.hExtras;
+                if (cColl.hExtras)
+                    hData.hExtras = cColl.hExtras;
+                else if (cColl.nSize || cColl.nFirstID || cColl.sFirstID || cColl.nMin || cColl.nMax)
+                    hData.hExtras = {};
+
+                if (cColl.nSize) hData.hExtras.nSize = cColl.nSize;
+                if (cColl.nFirstID) hData.hExtras.sFirstID = cColl.sFirstID;
+                if (cColl.sFirstID) hData.hExtras.sFirstID = cColl.sFirstID;
+                if (cColl.nMin) hData.hExtras.nMin = cColl.nMin;
+                if (cColl.nMax) hData.hExtras.nMax = cColl.nMax;
+
 
                 self.get({sPath:cColl.sPath,hData:hData,bShowLoader:cColl.bShowLoader,oObj:cColl},function(hResult){
                     cColl.nTotal = hResult.nTotal;
                     cColl.nSize = hResult.nSize;
                     cColl.nCount = hResult.nCount;
-                    cColl.nNextID = hResult.nNextID;
+                    cColl.nNextID = hResult.sNextID||hResult.nNextID;
+                    cColl.sNextID = hResult.sNextID;
+
                     if (!cColl.aObjects) cColl.aObjects = [];
                     delete hResult.nFirstID;
+                    delete hResult.sFirstID;
+                    delete hResult.nMin;
+                    delete hResult.nMax;
 
                     if (hResult.aObjects) {
                         for (var i = 0; i < hResult.aObjects.length; i++) {
@@ -125,12 +138,12 @@ angular.module('nordis', window.aAngularMods)
                         console.log(hResult);
                 });
             },
-            // When a collection has an nNextID property from the API, it means there are more items.
-            // Just call this method to get the next page.
             next:function(cColl,fnResultHandler,fnErrorHandler,sKey) {
                 var self = this;
-                if ((cColl.nNextID || cColl.nMin) && !cColl.bLoading) {
-                    if (cColl.nNextID) cColl.nFirstID = cColl.nNextID;
+                if ((cColl.nNextID || cColl.sNextID || cColl.nMin) && !cColl.bLoading) {
+                    if (cColl.nNextID || cColl.sNextID) cColl.sFirstID = cColl.nNextID || cColl.sNextID;
+                    delete (cColl.nNextID);
+                    delete (cColl.sNextID);
                     self.loadPage(cColl,fnResultHandler,fnErrorHandler,sKey);
                 }
             }
@@ -157,7 +170,7 @@ angular.module('nordis', window.aAngularMods)
                     hOpts.sPath += '?'
                     for (var sItem in hOpts.hData) {
                         switch (sItem) {
-                            case 'nSize':case 'nFirstID':case 'nMin':case 'sTerm':case 'nMax':
+                            case 'nSize':case 'nFirstID':case 'sFirstID':case 'nMin':case 'sTerm':case 'nMax':
                             hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
                             break;
                             case 'hExtras':

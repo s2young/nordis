@@ -96,7 +96,7 @@ angular.module('nordis', window.aAngularMods)
                     return decodeURIComponent(results[1].replace(/\+/g, " "));
             },
             // Load a collection via api call.
-            loadPage:function(cColl,fnResultHandler,fnErrorHandler){
+            loadPage:function(cColl,fnResultHandler,fnErrorHandler,sKey){
                 var self = this;
                 var hData = (cColl.hData) ? cColl.hData : {};
                 hData.nSize = cColl.nSize;
@@ -113,7 +113,7 @@ angular.module('nordis', window.aAngularMods)
 
                     if (hResult.aObjects) {
                         for (var i = 0; i < hResult.aObjects.length; i++) {
-                            self.update(hResult.aObjects[i],cColl);
+                            self.update(hResult.aObjects[i],cColl,sKey);
                         }
                     }
                     if (fnResultHandler)
@@ -127,11 +127,11 @@ angular.module('nordis', window.aAngularMods)
             },
             // When a collection has an nNextID property from the API, it means there are more items.
             // Just call this method to get the next page.
-            next:function(cColl,fnResultHandler,fnErrorHandler) {
+            next:function(cColl,fnResultHandler,fnErrorHandler,sKey) {
                 var self = this;
                 if ((cColl.nNextID || cColl.nMin) && !cColl.bLoading) {
                     if (cColl.nNextID) cColl.nFirstID = cColl.nNextID;
-                    self.loadPage(cColl,fnResultHandler,fnErrorHandler);
+                    self.loadPage(cColl,fnResultHandler,fnErrorHandler,sKey);
                 }
             }
             // Handles GET requests to the API.

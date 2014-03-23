@@ -1,7 +1,8 @@
-if (!window.sNordisHost) window.sNordisHost = '[[=hData.sNordisHost||""]]';
-if (!window.aAngularMods) window.aAngularMods = [[? hData.aAngularMods ]][[=JSON.stringify(hData.aAngularMods)]][[??]][][[?]];
-angular.module('nordis', window.aAngularMods)
-    .directive('onKeyup', function($parse) {
+window.sNordisHost = window.sNordisHost||'[[=hData.sNordisHost||""]]';
+window.aAngularMods = window.aAngularMods||[[? hData.aAngularMods ]][[=JSON.stringify(hData.aAngularMods)]][[??]][][[?]];
+if (!window.app) window.app = angular.module('nordis', window.aAngularMods);
+
+window.app.directive('onKeyup', function($parse) {
         return function(scope, elm, attrs) {
             var keyupFn = $parse(attrs.onKeyup);
             elm.bind('keyup', function(evt) {
@@ -22,8 +23,8 @@ angular.module('nordis', window.aAngularMods)
                 }
             });
         };
-    })
-    .directive('modalDialog', function() {
+    });
+window.app.directive('modalDialog', function() {
         return {
             restrict: 'E',
             scope: {
@@ -52,8 +53,8 @@ angular.module('nordis', window.aAngularMods)
             },
             template: '<div class="ng-modal" ng-show="show"><div class="ng-modal-overlay" ng-click="hideModal()"></div><div class="ng-modal-dialog" ng-style="dialogStyle"><div class="ng-modal-dialog-content" ng-transclude></div></div></div>'
         };
-    })
-    .directive('nordisOnload',function(){
+    });
+window.app.directive('nordisOnload',function(){
             // This allows the display of an element with the nordis.angular.js file emits an onLoad event. for use with spinners, loaders, progress-bars, etc.
             return {
                 restrict: 'A'
@@ -84,8 +85,8 @@ angular.module('nordis', window.aAngularMods)
                 },
                 template:'<span><span ng-transclude></span></span>'
             }
-        })
-    .factory('helpers',function($rootScope,$http,$location){
+        });
+window.app.factory('helpers',function($rootScope,$http,$location){
         var self = this;
 
         $rootScope.$watch(function() {
@@ -294,7 +295,7 @@ angular.module('nordis', window.aAngularMods)
             }
         }
     })
-    .filter('startFrom', function() {
+window.app.filter('startFrom', function() {
         return function(input, start) {
             if (input) {
                 start = +start; //parse to int
@@ -302,8 +303,8 @@ angular.module('nordis', window.aAngularMods)
             } else
                 return 0;
         }
-    })
-    .factory('AppConfig',function(helpers){
+    });
+window.app.factory('AppConfig',function(helpers){
         return {hClasses:{
                 [[for (var sClass in hData.hClasses) {]][[? hData.sComma ]][[=hData.sComma]][[?]][[=sClass]]:{
                     hProperties:[[=JSON.stringify(hData.hClasses[sClass])]]
@@ -318,11 +319,12 @@ angular.module('nordis', window.aAngularMods)
                 }[[hData.sComma=',';]][[}]]
             }
         };
-    })
-    [[for (var sClass in hData.hApiCalls) {]].factory('[[=sClass]]',function(AppConfig){
-        var [[=sClass]] = {};
-        for (var sEndpoint in AppConfig.hClasses.[[=sClass]].hApi) {
-            [[=sClass]][sEndpoint] = AppConfig.hClasses.[[=sClass]].hApi[sEndpoint];
-        }
-        return [[=sClass]];
-    })[[}]]
+    });
+[[for (var sClass in hData.hApiCalls) {]]
+window.app.factory('[[=sClass]]',function(AppConfig){
+    var [[=sClass]] = {};
+    for (var sEndpoint in AppConfig.hClasses.[[=sClass]].hApi) {
+        [[=sClass]][sEndpoint] = AppConfig.hClasses.[[=sClass]].hApi[sEndpoint];
+    }
+    return [[=sClass]];
+});[[}]]

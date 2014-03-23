@@ -8,7 +8,7 @@ var Collection; // And Collection.
 module.exports.hSettings = {
     global: {
         sConfVersion:'1.0.0'
-        ,sLogLevel:'debug'
+        ,sLogLevel:'silly'
         ,bTraceMode:false
         ,hConstants:{
             aAngularMods:['ngCookies']

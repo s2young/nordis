@@ -311,6 +311,8 @@ window.app.factory('AppConfig',function(helpers){
                     ,sKeyProperty:"[[=hData.hKeys[sClass] ]]"
                     ,hApi:{[[? hData.hApiCalls[sClass] ]][[~hData.hApiCalls[sClass] :hCall:nIndex]]
                         [[? nIndex ]],[[?]][[=hCall.sAlias]]:function(hQuery,hData,hExtras,callback){
+                            if (hExtras instanceof Function) callback = hExtras;
+                            else if (hData instanceof Function) callback = hData;
                              helpers.[[=hCall.sMethod]]({sPath:'/[[=sClass.toLowerCase()]]/'+hQuery.[[=hData.hKeys[sClass] ]],hData:hData,hExtras:hExtras},function(res){
                                  delete res.txid;
                                  callback(null,res);

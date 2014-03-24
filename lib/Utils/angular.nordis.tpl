@@ -116,7 +116,7 @@ window.app.factory('helpers',function($rootScope,$http,$location){
                 if (hItem && hItem[sKey] && cColl && cColl.aObjects) {
                     var hLookup = {};hLookup[sKey] = hItem[sKey];
                     var i = this.findIndex(hLookup,cColl.aObjects);
-                    if (i) cColl.aObjects.splice(i,1);
+                    if (i===0 || i>0) cColl.aObjects.splice(i,1);
                 }
             }
             // Update a collection with an item, if the item already exists it is replaced.
@@ -126,7 +126,7 @@ window.app.factory('helpers',function($rootScope,$http,$location){
                     if (!cColl.aObjects) cColl.aObjects = [];
                     var hLookup = {};hLookup[sKey] = hItem[sKey];
                     var i = this.findIndex(hLookup,cColl.aObjects);
-                    if (i >= 0)
+                    if (i===0 || i>0)
                         cColl.aObjects.splice(i,1,hItem);
                     else
                         cColl.aObjects.push(hItem);
@@ -172,7 +172,7 @@ window.app.factory('helpers',function($rootScope,$http,$location){
                 if (cColl.sFirstID) hData.hExtras.sFirstID = cColl.sFirstID;
                 if (cColl.nMin) hData.hExtras.nMin = cColl.nMin;
                 if (cColl.nMax) hData.hExtras.nMax = cColl.nMax;
-
+                if (cColl.sTerm) hData.sTerm = cColl.sTerm;
 
                 self.get({sPath:cColl.sPath,hData:hData,bShowLoader:cColl.bShowLoader,oObj:cColl},function(hResult){
                     cColl.nTotal = hResult.nTotal;
@@ -308,11 +308,15 @@ window.app.factory('AppConfig',function(helpers){
         return {hClasses:{
                 [[for (var sClass in hData.hClasses) {]][[? hData.sComma ]][[=hData.sComma]][[?]][[=sClass]]:{
                     hProperties:[[=JSON.stringify(hData.hClasses[sClass])]]
+                    ,sKeyProperty:"[[=hData.hKeys[sClass] ]]"
                     ,hApi:{[[? hData.hApiCalls[sClass] ]][[~hData.hApiCalls[sClass] :hCall:nIndex]]
                         [[? nIndex ]],[[?]][[=hCall.sAlias]]:function(hQuery,hData,hExtras,callback){
-                             helpers.[[=hCall.sMethod]]({sPath:'/[[=sClass.toLowerCase()]]/'+hQuery.sid,hData:hData,hExtras:hExtras},function(err,res){
+                             helpers.[[=hCall.sMethod]]({sPath:'/[[=sClass.toLowerCase()]]/'+hQuery.[[=hData.hKeys[sClass] ]],hData:hData,hExtras:hExtras},function(res){
                                  delete res.txid;
-                                 callback(err,res);
+                                 callback(null,res);
+                             },function(err){
+                                delete res.txid;
+                                callback(err);
                              });
                          }[[~]]
                     [[?]]}

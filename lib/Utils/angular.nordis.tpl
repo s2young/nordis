@@ -116,7 +116,7 @@ window.app.factory('helpers',function($rootScope,$http,$location){
                 if (hItem && hItem[sKey] && cColl && cColl.aObjects) {
                     var hLookup = {};hLookup[sKey] = hItem[sKey];
                     var i = this.findIndex(hLookup,cColl.aObjects);
-                    if (i===0 || i>0) cColl.aObjects.splice(i,1);
+                    if (i>=0) cColl.aObjects.splice(i,1);
                 }
             }
             // Update a collection with an item, if the item already exists it is replaced.
@@ -126,7 +126,7 @@ window.app.factory('helpers',function($rootScope,$http,$location){
                     if (!cColl.aObjects) cColl.aObjects = [];
                     var hLookup = {};hLookup[sKey] = hItem[sKey];
                     var i = this.findIndex(hLookup,cColl.aObjects);
-                    if (i===0 || i>0)
+                    if (i>=0)
                         cColl.aObjects.splice(i,1,hItem);
                     else
                         cColl.aObjects.push(hItem);
@@ -255,6 +255,20 @@ window.app.factory('helpers',function($rootScope,$http,$location){
             }
             // Handles DELETE requests to the API.
             ,delete:function(hOpts,fnCallback,fnErrorHandler){
+                if (hOpts.hData) {
+                    hOpts.sPath += '?'
+                    for (var sItem in hOpts.hData) {
+                        switch (sItem) {
+                            case 'hExtras':
+                                hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
+                                break;
+                            default:
+                                hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
+                                break;
+
+                        }
+                    }
+                }
                 hOpts.sMethod = 'DELETE';
                 this.callAPI(hOpts,fnCallback,fnErrorHandler);
             }
@@ -308,7 +322,7 @@ window.app.factory('AppConfig',function(helpers){
         return {hClasses:{
                 [[for (var sClass in hData.hClasses) {]][[? hData.sComma ]][[=hData.sComma]][[?]][[=sClass]]:{
                     hProperties:[[=JSON.stringify(hData.hClasses[sClass])]]
-                    ,sKeyProperty:"[[=hData.hKeys[sClass] ]]"
+                    ,sKey:"[[=hData.hKeys[sClass] ]]"
                     ,hApi:{[[? hData.hApiCalls[sClass] ]][[~hData.hApiCalls[sClass] :hCall:nIndex]]
                         [[? nIndex ]],[[?]][[=hCall.sAlias]]:function(hQuery,hData,hExtras,callback){
                             if (hExtras instanceof Function) callback = hExtras;
@@ -316,10 +330,7 @@ window.app.factory('AppConfig',function(helpers){
                              helpers.[[=hCall.sMethod]]({sPath:'/[[=sClass.toLowerCase()]]/'+hQuery.[[=hData.hKeys[sClass] ]],hData:hData,hExtras:hExtras},function(res){
                                  delete res.txid;
                                  callback(null,res);
-                             },function(err){
-                                delete res.txid;
-                                callback(err);
-                             });
+                             },callback);
                          }[[~]]
                     [[?]]}
                 }[[hData.sComma=',';]][[}]]
@@ -328,7 +339,7 @@ window.app.factory('AppConfig',function(helpers){
     });
 [[for (var sClass in hData.hApiCalls) {]]
 window.app.factory('[[=sClass]]',function(AppConfig){
-    var [[=sClass]] = {};
+    var [[=sClass]] = {sKey:AppConfig.hClasses.[[=sClass]].sKey,hProperties:AppConfig.hClasses.[[=sClass]].hProperties};
     for (var sEndpoint in AppConfig.hClasses.[[=sClass]].hApi) {
         [[=sClass]][sEndpoint] = AppConfig.hClasses.[[=sClass]].hApi[sEndpoint];
     }

@@ -35,7 +35,8 @@
             // nordis client js file. Then we 'hack' requirejs with the version-specific url and wire up.
             require(['nordis_conf','angular','jquery'], function(nordis_conf) {
                 requirejs.s.contexts._.config.paths.nordis = '/_nordis_client_'+nordis_conf.version;
-                require(['bootstrap','nordis'], function() {
+                require(['nordis','bootstrap'], function(nordis) {
+                    console.log(nordis);
                     angular.bootstrap(document.getElementsByTagName('body')[0], ['nordis']);
                 });
             });

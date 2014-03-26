@@ -52,7 +52,9 @@ This api call is an example of how to define a custom function (fnApiCallProcess
 
 
 # Group Stat
-Analytics endpoints available for retrieval via api. (To disable, add bApi:false to stat config; to protect, add fnApiCallProcessor function to config to validate the request).
+Analytics endpoints available for retrieval via api. All stats are returned as a collection with the most recent items listed first. Use paging to go backwards in time, or use nMax/nMin to pass a date range using timestamps.
+
+(To disable, add bApi:false to stat config; to protect, add fnApiCallProcessor function to config to validate the request).
 
 ## Stat [/stat/users/{grain}]
 

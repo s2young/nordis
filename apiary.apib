@@ -61,7 +61,8 @@ Analytics endpoints available for retrieval via api. All stats are returned as a
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
-    + nMin (optional,undefined,`undefined`) ... undefined
+    + nMin (optional,Timestamp (millisecond),`1395872444000`) ... Timestamp indicating the desired starting point for the result set.
+    + nMax (optional,Timestamp (millisecond),`1395872444000`) ... Timestamp indicating the desired ending point for the result set.
 
 ### users [GET]
 Total number of new user accounts created during the period.
@@ -76,7 +77,8 @@ Total number of new user accounts created during the period.
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
-    + nMin (optional,undefined,`undefined`) ... undefined
+    + nMin (optional,Timestamp (millisecond),`1395872444000`) ... Timestamp indicating the desired starting point for the result set.
+    + nMax (optional,Timestamp (millisecond),`1395872444000`) ... Timestamp indicating the desired ending point for the result set.
 
 ### uniques [GET]
 Total number of unique users active during the period. Multiple hits by one user count as one unique.
@@ -91,7 +93,8 @@ Total number of unique users active during the period. Multiple hits by one user
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
-    + nMin (optional,undefined,`undefined`) ... undefined
+    + nMin (optional,Timestamp (millisecond),`1395872444000`) ... Timestamp indicating the desired starting point for the result set.
+    + nMax (optional,Timestamp (millisecond),`1395872444000`) ... Timestamp indicating the desired ending point for the result set.
 
 ### hits [GET]
 Total number of hits to the web, including page-level filters.
@@ -106,7 +109,8 @@ Total number of hits to the web, including page-level filters.
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
-    + nMin (optional,undefined,`undefined`) ... undefined
+    + nMin (optional,Timestamp (millisecond),`1395872444000`) ... Timestamp indicating the desired starting point for the result set.
+    + nMax (optional,Timestamp (millisecond),`1395872444000`) ... Timestamp indicating the desired ending point for the result set.
 
 ### api_requests [GET]
 Total number of hits to the api, regardless of user.

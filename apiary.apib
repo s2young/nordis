@@ -55,12 +55,12 @@ This api call is an example of how to define a custom function (fnApiCallProcess
 Analytics endpoints available for retrieval via api. (To disable, add bApi:false to stat config; to protect, add fnApiCallProcessor function to config to validate the request).
 
 ## Stat [/stat/users/{grain}]
-Total number of new user accounts created during the period.
+undefined
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
 
-### undefined [GET]
+### Total number of new user accounts created during the period. [GET]
 + Response 200 (application/json)
     + Body
 
@@ -68,12 +68,12 @@ Total number of new user accounts created during the period.
 
 
 ## Stat [/stat/uniques/{grain}]
-Total number of unique users active during the period. Multiple hits by one user count as one unique.
+undefined
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
 
-### undefined [GET]
+### Total number of unique users active during the period. Multiple hits by one user count as one unique. [GET]
 + Response 200 (application/json)
     + Body
 
@@ -81,12 +81,12 @@ Total number of unique users active during the period. Multiple hits by one user
 
 
 ## Stat [/stat/hits/{grain}]
-Total number of hits to the web, including page-level filters.
+undefined
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
 
-### undefined [GET]
+### Total number of hits to the web, including page-level filters. [GET]
 + Response 200 (application/json)
     + Body
 
@@ -94,12 +94,12 @@ Total number of hits to the web, including page-level filters.
 
 
 ## Stat [/stat/api_requests/{grain}]
-Total number of hits to the api, regardless of user.
+undefined
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
 
-### undefined [GET]
+### Total number of hits to the api, regardless of user. [GET]
 + Response 200 (application/json)
     + Body
 

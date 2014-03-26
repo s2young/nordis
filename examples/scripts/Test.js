@@ -5,8 +5,11 @@ var async       = require('async'),
     Base        = require('./../../lib/Base');
 
 AppConfig.init(function(){
-    var user = Base.lookup({sClass:'User'});
-    user.set('balance',4.5);
+    AppConfig.processStats(function(err){
+        if (err)
+            AppConfig.error(err);
 
-    console.log(user.get('balance'));
+        console.log('done');
+        AppConfig.exit();
+    });
 });

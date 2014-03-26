@@ -314,15 +314,15 @@ module.exports.hSettings = {
             ,users:{
                 sDescription:'Total number of new user accounts created during the period.'
                 ,sAlias:'count'
-                ,fnQuery:function(oSelf,dStart,dEnd,AppConfig,callback){
+                ,sSource:'MySql'
+                ,sDbAlias:'default'
+                ,sClass:'User'
+                ,fnQuery:function(hOpts,AppConfig){
                     // This is a mysql query that will return the count for the passed-in period, allowing recreation
                     // of data from mysql in case of redis data problem or building retro-active stats.
-                    var sRange = (dStart && dEnd) ? ' AND created >='+dStart.getTime()+' AND created<'+dEnd.getTime() : '';
-                    var sSql = 'SELECT COUNT(*) AS nCount FROM UserTbl WHERE '+sRange;
-                    AppConfig.MySql.execute(null,sSql,null,function(err,res){
-                        var nCount =  (res && res.length && res[0].nCount) ? res[0].nCount : 0;
-                        callback(err,nCount);
-                    });
+                    var sRange = (hOpts && hOpts.dStart && hOpts.dEnd) ? ' AND created >='+hOpts.dStart.getTime()+' AND created<'+hOpts.dEnd.getTime() : '';
+                    console.log(sRange);
+                    return {sWhere:sRange};
                 }
             }
             ,uniques:{

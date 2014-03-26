@@ -139,7 +139,6 @@ module.exports = {
                 var user = Base.lookup({sClass:'User',hData:hResult});
                 test.equal(user.getKey(),self.user.getKey());
                 test.equal(hResult.follows.nTotal,nTestSize);
-
                 callback();
             }
         ],function(err){ AppConfig.wrapTest(err,test); });

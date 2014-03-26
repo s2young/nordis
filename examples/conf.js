@@ -8,7 +8,7 @@ var Collection; // And Collection.
 module.exports.hSettings = {
     global: {
         sConfVersion:'1.0.0'
-        ,sLogLevel:'silly'
+        ,sLogLevel:'error'
         ,bTraceMode:false
         ,hConstants:{
             aAngularMods:['ngCookies']
@@ -205,6 +205,7 @@ module.exports.hSettings = {
                                     ,sAlias:'lookup'
                                     ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'follows\' collection up to a total of ONE record (nSize:1). On that follower, we want the related follower_user property (which is a User object).\n\n            {"hExtras":{follows:{nSize:1,hExtras:{follower_user:true}}}}'
                                     ,fnApiCallOutput:function(req,AppConfig,callback){
+
                                         if (callback) {
                                             // Nordis has a toHash method as the default serialization for each class, but you can override it here. In this case, we're just going ahead with the default serialization.
                                             callback(null,req.hNordis.oResult.toHash(req.hNordis.hExtras));
@@ -310,19 +311,20 @@ module.exports.hSettings = {
         }
         ,hStats:{
             sDbAlias:'statsdb'
-//            ,users:{
-//                sDescription:'Total number of new user accounts created during the period.'
-//                ,fnQuery:function(oSelf,dStart,dEnd,AppConfig,callback){
-//                    // This is a mysql query that will return the count for the passed-in period, allowing recreation
-//                    // of data from mysql in case of redis data problem or building retro-active stats.
-//                    var sRange = (dStart && dEnd) ? ' AND created >='+dStart.getTime()+' AND created<'+dEnd.getTime() : '';
-//                    var sSql = 'SELECT COUNT(*) AS nCount FROM UserTbl WHERE '+sRange;
-//                    AppConfig.MySql.execute(null,sSql,null,function(err,res){
-//                        var nCount =  (res && res.length && res[0].nCount) ? res[0].nCount : 0;
-//                        callback(err,nCount);
-//                    });
-//                }
-//            }
+            ,users:{
+                sDescription:'Total number of new user accounts created during the period.'
+                ,sAlias:'count'
+                ,fnQuery:function(oSelf,dStart,dEnd,AppConfig,callback){
+                    // This is a mysql query that will return the count for the passed-in period, allowing recreation
+                    // of data from mysql in case of redis data problem or building retro-active stats.
+                    var sRange = (dStart && dEnd) ? ' AND created >='+dStart.getTime()+' AND created<'+dEnd.getTime() : '';
+                    var sSql = 'SELECT COUNT(*) AS nCount FROM UserTbl WHERE '+sRange;
+                    AppConfig.MySql.execute(null,sSql,null,function(err,res){
+                        var nCount =  (res && res.length && res[0].nCount) ? res[0].nCount : 0;
+                        callback(err,nCount);
+                    });
+                }
+            }
             ,uniques:{
                 sDescription:'Total number of unique users active during the period. Multiple hits by one user count as one unique.'
                 ,fnValidate:function(params,callback){

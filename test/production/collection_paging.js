@@ -21,7 +21,27 @@ module.exports = {
             AppConfig.error('nTestSize must be at least 5 and be divisble by 2 and 5.');
         else
             async.series([
-                function(cb) {
+                function(cb){
+                    var hQuery = {};
+                    hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                    new Collection({sClass:'Follow',hQuery:hQuery},function(err,cColl){
+                        if (err)
+                            cb(err);
+                        else
+                            cColl.delete(cb);
+                    });
+                }
+                ,function(cb){
+                    var hQuery = {};
+                    hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                    new Collection({sClass:'User',hQuery:hQuery},function(err,cColl){
+                        if (err)
+                            cb(err);
+                        else
+                            cColl.delete(cb);
+                    });
+                }
+                ,function(cb) {
                     self.user = Base.lookup({sClass:'User'});
                     self.user.set('name','TestUser');
                     self.user.set('email','test@test.com');
@@ -219,7 +239,8 @@ module.exports = {
                     sSource:'MySql',
                     follows:{
                         nSize:(nTestSize/2),
-                        nFirstID:self.user.follows.nNextID}
+                        nFirstID:self.user.follows.nNextID
+                    }
                 },cb);
             }
             ,function(o,cb){
@@ -229,7 +250,6 @@ module.exports = {
                 test.equal(self.user.follows.first().get('rank'),((nTestSize/2)-1));
                 // And the last should have (nTestSize/2)
                 test.equal(self.user.follows.last().get('rank'),0);
-
                 // We should now have the second half of our list.
                 test.equal(self.user.follows.nCount,(nTestSize/2));
                 cb();

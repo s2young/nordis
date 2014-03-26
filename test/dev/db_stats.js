@@ -23,23 +23,47 @@ var async       = require('async'),
 var nTestSize = 10;
 var dNow = new Date();
 var nPort = 2002; // Port on which to run api instance during test.
-var server;
+var current_count = 0;
 
 module.exports = {
     setUp:function(callback) {
         var self = this;
         async.series([
-            //Create users to make sure there are users to count.
-            function(callback){
-                AppConfig.flushStats(callback);
+            // Get the current, total count of users.
+            function(cb){
+                AppConfig.processStats(function(err){
+                    if (err)
+                        callback(err);
+                    else
+                        AppConfig.oApp.loadExtras({
+                            users:{hExtras:{all:true}}
+                        },cb);
+                });
+            }
+            ,function(cb) {
+                if (AppConfig.oApp.users && AppConfig.oApp.users.all) {
+                    current_count = AppConfig.oApp.users.all.first().get('count');
+                }
+                console.log('current_count: '+current_count);
+                cb();
             }
         ],callback);
-        callback();
+    }
+    ,tearDown:function(callback) {
+        async.parallel([
+            // Delete just the users created for this test, named via timestamp.
+            function(cb) {
+                new Collection({sClass:'User',hQuery:{name:dNow.getTime()}},function(err,cColl){
+                    if (err)
+                        cb(err);
+                    else
+                        cColl.delete(cb);
+                });
+            }
+        ],callback);
     }
     ,userCount:function(test){
         test.expect(1);
-        var current_count = 0;
-
         async.series([
             // Create the user accounts with which we'll make hits.
             function(callback) {
@@ -66,35 +90,19 @@ module.exports = {
                         callback(err);
                     else
                         AppConfig.oApp.loadExtras({
-                            users:{hExtras:{hour:true}}
+                            users:{hExtras:{all:true}}
                         },callback);
                 });
             }
             // Next, trackStats for each user - randomly setting the nFakeCount to make sure that each user is only counted once.
             ,function(callback) {
-                current_count = (AppConfig.oApp.active_users && AppConfig.oApp.active_users.hour && AppConfig.oApp.active_users.hour.first()) ? AppConfig.oApp.active_users.hour.first().get('count') : 0;
-
-            }
-            // Next, process the stats
-            ,function(callback) {
-                AppConfig.processStats(callback);
-            }
-            // Reload the stats.
-            ,function(callback){
-                AppConfig.oApp.loadExtras({
-                    active_users:{hExtras:{hour:true}}
-                },callback);
-            }
-            // Validate our counts - which should be ONE because no matter the test size there's just one user being tracked here.
-            ,function(callback) {
-                var nApiRequests = (AppConfig.oApp.active_users && AppConfig.oApp.active_users.hour && AppConfig.oApp.active_users.hour.first()) ? AppConfig.oApp.active_users.hour.first().get('count') : 0;
-//                console.log('nApiRequests:'+nApiRequests);
-                test.equal(nApiRequests,current_count+nTestSize);
+                var new_count;
+                if (AppConfig.oApp.users && AppConfig.oApp.users.all) {
+                    new_count = AppConfig.oApp.users.all.first().get('count');
+                    console.log('new_count: '+new_count);
+                }
+                test.equal((current_count+nTestSize),(current_count+new_count));
                 callback();
-            }
-            // Now remove the users.
-            ,function(callback) {
-                cUsers.delete(callback);
             }
         ],function(err){AppConfig.wrapTest(err,test)});
     }

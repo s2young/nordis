@@ -61,6 +61,7 @@ Analytics endpoints available for retrieval via api. All stats are returned as a
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
+    + nMin (optional,undefined,`undefined`) ... undefined
 
 ### users [GET]
 Total number of new user accounts created during the period.
@@ -75,6 +76,7 @@ Total number of new user accounts created during the period.
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
+    + nMin (optional,undefined,`undefined`) ... undefined
 
 ### uniques [GET]
 Total number of unique users active during the period. Multiple hits by one user count as one unique.
@@ -89,6 +91,7 @@ Total number of unique users active during the period. Multiple hits by one user
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
+    + nMin (optional,undefined,`undefined`) ... undefined
 
 ### hits [GET]
 Total number of hits to the web, including page-level filters.
@@ -103,6 +106,7 @@ Total number of hits to the web, including page-level filters.
 
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
+    + nMin (optional,undefined,`undefined`) ... undefined
 
 ### api_requests [GET]
 Total number of hits to the api, regardless of user.

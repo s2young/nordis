@@ -17,6 +17,7 @@ process.argv.forEach(function (val, index, array) {
     }
 });
 
+
 AppConfig.writeApiaryDocs(sPath,function(err){
     if (err)
         AppConfig.error(err);

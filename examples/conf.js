@@ -7,8 +7,8 @@ var Collection; // And Collection.
 
 module.exports.hSettings = {
     global: {
-        sConfVersion:'1.0.0'
-        ,sLogLevel:'error'
+        sConfVersion:'1.0.1'
+        ,sLogLevel:'debug'
         ,bTraceMode:false
         ,hConstants:{
             aAngularMods:['ngCookies']
@@ -167,17 +167,9 @@ module.exports.hSettings = {
                     ,hEndpoints:{
                         '/user/{id}':{
                             sDescription:'Retrieve, update and delete user.'
-                            ,hParameters:{
-                                id:{
-                                    bRequired:true
-                                    ,sType:'String'
-                                    ,sExample:'Yf8uIoP'
-                                    ,sDescription:'String id of the user record. Numeric ids are also supported.'
-                                }
-                            }
                             ,hVerbs:{
                                 POST:{
-                                    sTitle:'Update (or Create) User'
+                                    sTitle:'Update, or Create, User'
                                     ,sAlias:'save'
                                     ,sDescription:'You can also create a NEW user by leaving the sid out.'
                                     ,fnApiCallProcessor:function(req,AppConfig,callback){
@@ -272,14 +264,6 @@ module.exports.hSettings = {
                     ,hEndpoints:{
                         '/user/{id}/follows':{
                             sDescription:'Retrieves collection of follows for the passed-in user.'
-                            ,hParameters:{
-                                id:{
-                                    bRequired:true
-                                    ,sType:'String'
-                                    ,sExample:'Yf8uIoP'
-                                    ,sDescription:'String id of the user record. Numeric ids are also supported.'
-                                }
-                            }
                             ,hVerbs:{
                                 GET:{
                                     sTitle:'Retrieve Follow Collection'
@@ -312,8 +296,8 @@ module.exports.hSettings = {
         ,hStats:{
             sDbAlias:'statsdb'
             ,users:{
-                sDescription:'Total number of new user accounts created during the period.'
-                ,sAlias:'count'
+                sTitle:'Stat: User count'
+                ,sDescription:'Total number of new user accounts created during the period.'
                 ,sSource:'MySql'
                 ,sDbAlias:'default'
                 ,sClass:'User'
@@ -321,7 +305,6 @@ module.exports.hSettings = {
                     // This is a mysql query that will return the count for the passed-in period, allowing recreation
                     // of data from mysql in case of redis data problem or building retro-active stats.
                     var sRange = (hOpts && hOpts.dStart && hOpts.dEnd) ? ' AND created >='+hOpts.dStart.getTime()+' AND created<'+hOpts.dEnd.getTime() : '';
-                    console.log(sRange);
                     return {sWhere:sRange};
                 }
             }

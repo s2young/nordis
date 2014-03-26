@@ -60,7 +60,8 @@ undefined
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
 
-### Total number of new user accounts created during the period. [GET]
+### users [GET]
+Total number of new user accounts created during the period.
 + Response 200 (application/json)
     + Body
 
@@ -73,7 +74,8 @@ undefined
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
 
-### Total number of unique users active during the period. Multiple hits by one user count as one unique. [GET]
+### uniques [GET]
+Total number of unique users active during the period. Multiple hits by one user count as one unique.
 + Response 200 (application/json)
     + Body
 
@@ -86,7 +88,8 @@ undefined
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
 
-### Total number of hits to the web, including page-level filters. [GET]
+### hits [GET]
+Total number of hits to the web, including page-level filters.
 + Response 200 (application/json)
     + Body
 
@@ -99,7 +102,8 @@ undefined
 + Parameters
     + grain (required,String,`hour`) ... String name of desired granularity. Acceptable values include hour, day, month, year or all.
 
-### Total number of hits to the api, regardless of user. [GET]
+### api_requests [GET]
+Total number of hits to the api, regardless of user.
 + Response 200 (application/json)
     + Body
 

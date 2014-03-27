@@ -327,7 +327,8 @@ angular.module('nordis', window.aAngularMods)
                         [[? nIndex ]],[[?]][[=hCall.sAlias]]:function(hQuery,hData,hExtras,callback){
                             if (hExtras instanceof Function) callback = hExtras;
                             else if (hData instanceof Function) callback = hData;
-                             helpers.[[=hCall.sMethod]]({sPath:'/[[=sClass.toLowerCase()]]/'+hQuery.[[=hData.hKeys[sClass] ]],hData:hData,hExtras:hExtras},function(res){
+                            [[? hCall.sKey ]][[ hData.sPath = '"/'+sClass.toLowerCase()+'/'+hCall.sAlias+'/"+hQuery.'+hCall.sKey; ]][[??]][[ hData.sPath = '"/'+sClass.toLowerCase()+'/"+hQuery.'+hData.hKeys[sClass]; ]][[?]]
+                             helpers.[[=hCall.sMethod]]({sPath:[[=hData.sPath]],hData:hData,hExtras:hExtras},function(res){
                                  delete res.txid;
                                  callback(null,res);
                              },callback);

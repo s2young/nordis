@@ -41,10 +41,8 @@ module.exports = {
                 });
             }
             ,function(cb) {
-                if (AppConfig.oApp.users && AppConfig.oApp.users.all) {
+                if (AppConfig.oApp.users && AppConfig.oApp.users.all)
                     current_count = AppConfig.oApp.users.all.first().get('count');
-                }
-                console.log('current_count: '+current_count);
                 cb();
             }
         ],callback);

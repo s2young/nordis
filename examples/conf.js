@@ -8,7 +8,7 @@ var Collection; // And Collection.
 module.exports.hSettings = {
     global: {
         sConfVersion:'1.0.1'
-        ,sLogLevel:'debug'
+        ,sLogLevel:'warn'
         ,bTraceMode:false
         ,hConstants:{
             aAngularMods:['ngCookies']
@@ -301,6 +301,7 @@ module.exports.hSettings = {
                 ,sSource:'MySql'
                 ,sDbAlias:'default'
                 ,sClass:'User'
+                ,sAlias:'users'
                 ,fnQuery:function(hOpts,AppConfig){
                     // This is a mysql query that will return the count for the passed-in period, allowing recreation
                     // of data from mysql in case of redis data problem or building retro-active stats.
@@ -324,6 +325,7 @@ module.exports.hSettings = {
             ,hits:{
                 sDescription:'Total number of hits to the web, including page-level filters.'
                 ,bFilters:true
+                ,sAlias:'hits'
                 ,fnValidate:function(path,callback){
                     // This stat is just a flat, total count. No filter required.
                     if (!path)
@@ -334,6 +336,7 @@ module.exports.hSettings = {
             }
             ,api_requests:{
                 sDescription:'Total number of hits to the api, regardless of user.'
+                ,sAlias:'api_requests'
                 ,fnValidate:function(endpoint,callback){
                     // The first param should be the api endpoint path.
                     if (!endpoint)

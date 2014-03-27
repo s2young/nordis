@@ -3,7 +3,7 @@
 [[ hData.sInclude = '<link href="/assets/detail-theme/css/lib/bootstrap.datepicker.css" type="text/css" rel="stylesheet" /><link href="/assets/js/nvd3/nv.d3.min.css" type="text/css" rel="stylesheet" /><script src="/assets/js/nvd3/d3.v3.js"></script><script src="/assets/js/nvd3/nv.d3.min.js"></script><link href="/assets/js/nvd3/select2.css" type="text/css" rel="stylesheet" />'; ]]
 [[#def.loadfile('/partials/header.dot')]]
 <script type="text/javascript">
-    function StatsCtrl($scope,helpers,$element) {
+    function StatsCtrl($scope,helpers,$element,Stat) {
         $scope.stat = 'hits';
         $scope.grain = 'day';
         $scope.title = 'Hits';
@@ -36,9 +36,12 @@
         $scope.loadStats = function(){
 
             // You could wrap all this into a server-side page if you like.
-            helpers.get({sPath:'/'+$scope.stat+'/'+$scope.grain,hData:{nMin:$scope.start.valueOf(),nMax:$scope.end.valueOf()}},function(result){
+            Stat[$scope.stat]({grain:$scope.grain},{nMin:$scope.start.valueOf(),nMax:$scope.end.valueOf()},function(err,result){
+                if (err)
+                    helpers.emit('onAlert',err);
+                else if (result && result.aObjects) {
 
-                nv.addGraph(function() {
+                    nv.addGraph(function() {
                     $scope.chart = nv.models.lineChart()
                             .margin({left: 40,right:0})  //Adjust chart margins to give the x-axis some breathing room.
                             .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
@@ -140,6 +143,7 @@
                     return $scope.chart;
                 });
 
+                }
             });
         };
         $scope.setDatePicker = function(){

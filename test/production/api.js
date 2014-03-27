@@ -94,7 +94,7 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()},function(error, response, body){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getKey()},function(error, response, body){
                     if (error)
                         callback(error);
                     else {
@@ -131,7 +131,7 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),qs:hData},function(error, response, body){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getKey(),qs:hData},function(error, response, body){
                     callback(error,JSON.parse(body));
                 });
             }
@@ -151,7 +151,7 @@ module.exports = {
         var sNewName = 'Dummy';
         async.waterfall([
             function(callback){
-                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey(),form:{name:sNewName,email:'test@test.com'}},function(error, response, body){
+                request.post({uri:'http://localhost:'+nPort+'/user/'+self.user.getKey(),form:{name:sNewName,email:'test@test.com'}},function(error, response, body){
                     callback(error,body);
                 });
             }
@@ -197,7 +197,7 @@ module.exports = {
 
         async.waterfall([
             function(callback){
-                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getStrKey()+'/follows'},function(error, response, body){
+                request.get({uri:'http://localhost:'+nPort+'/user/'+self.user.getKey()+'/follows'},function(error, response, body){
                     callback(error,body);
                 });
             }

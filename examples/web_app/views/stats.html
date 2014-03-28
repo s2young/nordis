@@ -46,9 +46,9 @@
 
         $scope.loadStats = function(){
 
-            // Load total user count. This is done by calling Stat.users with grain of 'all'
+            // Load total user count. This is done by calling Stat.users with grain of 'alltime'
             // We get back a collection, where the first item contains the 'count' of all users.
-            Stat.users({grain:'all'},function(err,coll){
+            Stat.users({grain:'alltime'},function(err,coll){
                 $scope.setStat(err,'users',coll);
             });
 

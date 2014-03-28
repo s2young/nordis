@@ -63,7 +63,9 @@ module.exports.hSettings = {
                         POST:{
                             sAlias:'proces_stats'
                             ,fnApiCallProcessor:function(req,AppConfig,callback){
-                                AppConfig.processStats(callback);
+                                var hOpts = (req.body.nMax && req.body.nMin) ? req.body : null;
+
+                                AppConfig.processStats(hOpts,callback);
                             }
                         }
                     }

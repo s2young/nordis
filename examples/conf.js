@@ -61,7 +61,8 @@ module.exports.hSettings = {
                     ,sClass:'Stat'
                     ,hVerbs:{
                         POST:{
-                            fnApiCallProcessor:function(req,AppConfig,callback){
+                            sAlias:'proces_stats'
+                            ,fnApiCallProcessor:function(req,AppConfig,callback){
                                 AppConfig.processStats(callback);
                             }
                         }
@@ -73,16 +74,20 @@ module.exports.hSettings = {
                     ,hVerbs:{
                         GET:{
                             sTitle:'Retrieve All Users'
+                            ,sAlias:'userlist'
                             ,fnApiCallProcessor:function(req,AppConfig,callback) {
                                 if (!callback)
                                     return {aObjects:[],sClass:'User'};
                                 else {
+                                    if (!req.query.hExtras)
+                                        req.query.hExtras = {};
+                                    if (!req.query.hExtras.nSize) req.query.hExtras.nSize = 20;
+
                                     if (!Collection) Collection = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Collection'); // You would use require('nordis').Collection;
                                     new Collection({
                                         sClass:'User'
                                         ,hQuery:{sid:'IS NOT NULL'}
-                                        ,nSize:req.query.nSize||20
-                                        ,nFirstID:req.query.nFirstID||null
+                                        ,hExtras:req.query.hExtras
                                     },callback);
                                 }
                             }
@@ -197,7 +202,6 @@ module.exports.hSettings = {
                                     ,sAlias:'lookup'
                                     ,sDescription:'You can retrieve any of the \'hExtras\' configured for the class using the hExtras parameter in the GET call. In the following example, we want to retrieve the user\'s \'follows\' collection up to a total of ONE record (nSize:1). On that follower, we want the related follower_user property (which is a User object).\n\n            {"hExtras":{follows:{nSize:1,hExtras:{follower_user:true}}}}'
                                     ,fnApiCallOutput:function(req,AppConfig,callback){
-
                                         if (callback) {
                                             // Nordis has a toHash method as the default serialization for each class, but you can override it here. In this case, we're just going ahead with the default serialization.
                                             callback(null,req.hNordis.oResult.toHash(req.hNordis.hExtras));
@@ -211,8 +215,9 @@ module.exports.hSettings = {
                                     ,fnApiCallOutput:function(req,AppConfig,callback) {
                                         if (!req.hNordis.oResult.getKey())
                                             callback('User not found.');
-                                        else
+                                        else {
                                             req.hNordis.oResult.delete(callback);
+                                        }
                                     }
                                 }
                             }

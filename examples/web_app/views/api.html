@@ -2,7 +2,7 @@
 [[#def.loadfile('/partials/header.dot')]]+
     <div id="pad-wrapper">
         <script type="text/javascript">
-            function NewUserCtrl($scope,helpers,$element) {
+            function NewUserCtrl($scope,helpers,$element,User) {
                 // helpers is my custom directive with helper functions. Used here for AJAX interactions.
                 $scope.helpers = helpers;
 
@@ -12,9 +12,13 @@
 
                 $scope.save = function(){
                     if ($scope.newuser.name && $scope.newuser.email && $scope.newuser.password)
-                        helpers.post({sPath:'/user/new',hData:$scope.newuser},function(result){
-                            helpers.update(result,$scope.users);
-                            $scope.newuser = {};
+                        User.save({id:'new'},$scope.newuser,null,function(err,result){
+                            if (err)
+                                helpers.alert(err);
+                            else {
+                                helpers.update(result,$scope.users,User.sKeyProperty);
+                                $scope.newuser = {};
+                            }
                         });
                     else
                         helpers.alert({head:'Name, email and password are all required.'});
@@ -38,38 +42,35 @@
                 </p>
             </div>
 
+            <h4>Users</h4>
+            <p>This is a demo for creating objects and displaying them in collections - retrieving, binding, and paging.</p>
             <table class="table">
                 <tr>
-                    <td>
-                        <h4>Create User</h4>
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" class="form-control" id="name" ng-model="newuser.name" placeholder="Full Name">
+                    <th>Create User</th>
+                </tr>
+                <tr>
+                    <td style="vertical-align: top;">
+                        <div class="col-md-7" style="margin-bottom:4px;">
+                            <input type="text" class="form-control input-sm" id="name" ng-model="newuser.name" placeholder="Full Name">
                         </div>
-                        <div class="form-group">
-                            <label>Email address</label>
-                            <input type="email" class="form-control" id="email2" ng-model="newuser.email" placeholder="Email Address">
+                        <div class="col-md-7" style="margin-bottom:4px;">
+                            <input type="email" class="form-control input-sm" id="email2" ng-model="newuser.email" placeholder="Email Address">
                         </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" class="form-control" ng-model="newuser.password" on-keyup="save()" keys="[13]" placeholder="Password">
+                        <div class="col-md-7" style="margin-bottom:4px;">
+                            <input type="password" class="form-control input-sm" ng-model="newuser.password" on-keyup="save()" keys="[13]" placeholder="Password">
                         </div>
-                        <button type="submit" class="btn btn-default" ng-click="save()">Sign Up</button>
+                        <div class="col-md-7" style="margin-bottom:4px;">
+                            <button type="submit" class="btn btn-default" ng-click="save()">Add</button>
+                        </div>
                     </td>
+                </tr>
+                <tr ng-repeat="user in users.aObjects | orderBy:'created'">
+                    <td><a href="/user/{{user.sid}}" ng-bind="user.name"></a></td>
+                </tr>
+                <tr>
                     <td>
-                        <h4>Existing Users</h4>
-                        <p>This is a demo for collections - retrieving, binding, and paging.</p>
-                        <table class="table">
-                            <tr ng-repeat="user in users.aObjects | orderBy:'created'">
-                                <td><a href="/user/{{user.sid}}" ng-bind="user.name"></a></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <button ng-show="users.nNextID" ng-click="helpers.next(users)" class="btn btn-sm">Next Page</button>
-                                    <span class="pull-right">{{users.aObjects.length}} Of {{users.nTotal}} Loaded</span>
-                                </td>
-                            </tr>
-                        </table>
+                        <button ng-show="users.nNextID" ng-click="helpers.next(users)" class="btn btn-sm">Load More</button>
+                        <span class="pull-right">{{users.aObjects.length}} Of {{users.nTotal}} Loaded</span>
                     </td>
                 </tr>
             </table>

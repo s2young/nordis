@@ -138,10 +138,8 @@ var configureExpress = function(){
         })
         .use(NordisMiddleware.apiPreparser)
         .use(function(req,res,next){
-            // And we're also going to track page stats, but not API calls.  So if the hEndpoint was found in the middleware, skip it.
-            // Also, in our example we hacked in our stats endpoints directly as express-handled paths, so we're gonna skip those too.
-            if (!req.hNordis.hEndpoint && !req.hNordis.sPath.match(/hits/)) {
-               console.log('Tracking: '+req.hNordis.sPath);
+            // Track page hits and api requests.
+            if (!req.hNordis.hEndpoint) {
                 AppConfig.trackStat('hits',req.hNordis.sPath,next);
             } else if (req.hNordis.hEndpoint)
                 AppConfig.trackStat('api_requests',req.hNordis.sPath,next);
@@ -179,20 +177,6 @@ var configureRoutes = function(){
         render(req,res,null,'configurator');
     });
     /**
-     * This endpoint allows an api-style request for stats on the /stats page.
-     */
-    exp_app.get('/hits/:grain',function(req,res){
-        var hExtras = {};
-        hExtras[req.params.grain] = {nMin:req.query.nMin,nMax:req.query.nMax};
-        var oApp = Base.lookup({sClass:'App'});
-        oApp.loadExtras({hits:{hExtras:hExtras}},function(err){
-            if (err)
-                res.end(err.toString());
-            else
-                res.end(JSON.stringify(oApp.hits[req.params.grain].toHash()));
-        });
-    });
-    /**
      * And a user's detail page.
      */
     exp_app.get('/user/:user_sid', function (req, res) {
@@ -214,6 +198,8 @@ var configureRoutes = function(){
                 res.end(req.hNordis.sException);
         } else
             res.end(JSON.stringify(req.hNordis.hResult));
+
+
     });
 };
 /**

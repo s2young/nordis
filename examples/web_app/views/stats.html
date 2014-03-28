@@ -10,8 +10,11 @@
         $scope.filters;
         $scope.filter_count = 0;
         $scope.chart;
+        $scope.users = '...';
+        $scope.api_requests  = '...';
 
         $scope.start;$scope.end;nv;d3;$scope.moment;
+
 
         $scope.getDate = function(date) {
             if (date)
@@ -33,10 +36,31 @@
             }
         };
 
+        $scope.setStat = function(err,name,coll) {
+            if (err)
+                helpers.emit('onAlert',err);
+            else if (coll && coll.aObjects && coll.aObjects[0]) {
+                $scope[name] = coll.aObjects[0].count;
+            }
+        };
+
         $scope.loadStats = function(){
 
+            // Load total user count. This is done by calling Stat.users with grain of 'all'
+            // We get back a collection, where the first item contains the 'count' of all users.
+            Stat.users({grain:'all'},function(err,coll){
+                $scope.setStat(err,'users',coll);
+            });
+
+            // We're just getting the current month's api_request count.
+            $scope.month_start = moment().startOf('month');
+            $scope.month_end = moment().endOf('month')
+            Stat.api_requests({grain:'month'},{nMin:$scope.month_start.utc().valueOf(),nMax:$scope.month_end.utc().valueOf()},function(err,coll){
+                $scope.setStat(err,'api_requests',coll);
+            });
+
             // You could wrap all this into a server-side page if you like.
-            Stat[$scope.stat]({grain:$scope.grain},{nMin:$scope.start.valueOf(),nMax:$scope.end.valueOf()},function(err,result){
+            Stat[$scope.stat]({grain:$scope.grain},{nMin:$scope.start.utc().valueOf(),nMax:$scope.end.utc().valueOf()},function(err,result){
                 if (err)
                     helpers.emit('onAlert',err);
                 else if (result && result.aObjects) {
@@ -178,26 +202,26 @@
 <div class="hide" ng-controller="StatsCtrl">
     <div id="main-stats">
         <div class="row stats-row">
-            <div class="col-md-3 col-sm-3 stat">
+            <!--div class="col-md-3 col-sm-3 stat">
                 <div class="data">
                     <span class="number">2457</span>
                     visits
                 </div>
                 <span class="date">Today</span>
-            </div>
+            </div-->
             <div class="col-md-3 col-sm-3 stat">
                 <div class="data">
-                    <span class="number">3240</span>
+                    <span class="number" ng-bind="users"></span>
                     users
                 </div>
-                <span class="date">February 2013</span>
+                <span class="date">All Time</span>
             </div>
             <div class="col-md-3 col-sm-3 stat">
                 <div class="data">
-                    <span class="number">322</span>
-                    orders
+                    <span class="number" ng-bind="api_requests"></span>
+                    API CALLS
                 </div>
-                <span class="date">This week</span>
+                <span class="date">This month</span>
             </div>
             <div class="col-md-3 col-sm-3 stat last">
                 <div class="data">

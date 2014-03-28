@@ -330,7 +330,7 @@ angular.module('nordis', window.aAngularMods)
                             [[? hCall.sKey ]][[ hData.sPath = '"/'+sClass.toLowerCase()+'/'+hCall.sAlias+'/"+hQuery.'+hCall.sKey; ]][[??]][[ hData.sPath = '"/'+sClass.toLowerCase()+'/"+hQuery.'+hData.hKeys[sClass]; ]][[?]]
                              helpers.[[=hCall.sMethod]]({sPath:[[=hData.sPath]],hData:hData,hExtras:hExtras},function(res){
                                  delete res.txid;
-                                 callback(null,res);
+                                 if (callback) callback(null,res);
                              },callback);
                          }[[~]]
                     [[?]]}

@@ -140,9 +140,9 @@ var configureExpress = function(){
         .use(function(req,res,next){
             // Track page hits and api requests.
             if (!req.hNordis.hEndpoint) {
-                AppConfig.trackStat('hits',req.hNordis.sPath,next);
+                AppConfig.trackStat({sStat:'hits',Params:req.hNordis.sPath},next);
             } else if (req.hNordis.hEndpoint)
-                AppConfig.trackStat('api_requests',req.hNordis.sPath,next);
+                AppConfig.trackStat({sStat:'api_requests',Params:req.hNordis.sPath},next);
             else
                 next();
         })

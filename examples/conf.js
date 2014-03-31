@@ -7,7 +7,7 @@ var Collection; // And Collection.
 
 module.exports.hSettings = {
     global: {
-        sConfVersion:'1.0.1'
+        sConfVersion:'1.0.2'
         ,sLogLevel:'warn'
         ,bTraceMode:false
         ,hConstants:{
@@ -164,8 +164,8 @@ module.exports.hSettings = {
                         sType:'Object'
                         ,sClass:'User'
                         ,aKey:['referrer_id','id']
-                        ,fnQuery:function(oObj){
-                            return {id:oObj.get('referrer_id')}
+                        ,fnQuery:function(oSelf){
+                            return {id:oSelf.get('referrer_id')}
                         }
                     }
                 }
@@ -281,7 +281,7 @@ module.exports.hSettings = {
                                         // Setting default extras for this endpoint.  This is where you could completely ignore and/or override what the api user is asking for.
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follows:{hExtras:{follower_user:true}}};
                                         // Track the api request. This is for the redis_stats.js unit test.
-                                        AppConfig.trackStat('api_requests',req.hNordis.sPath,callback);
+                                        AppConfig.trackStat({sStat:'api_requests',Params:req.hNordis.sPath},callback);
                                     }
                                 }
                             }
@@ -310,10 +310,12 @@ module.exports.hSettings = {
                 ,sClass:'User'
                 ,sAlias:'users'
                 ,fnQuery:function(hOpts,AppConfig){
+                    // oApp is the parent app, since stats are really 'extras' on the app singleton.
                     // This is a mysql query that will return the count for the passed-in period, allowing recreation
                     // of data from mysql in case of redis data problem or building retro-active stats.
-                    var sRange = (hOpts && hOpts.dStart && hOpts.dEnd) ? ' AND created >='+hOpts.dStart.getTime()+' AND created<'+hOpts.dEnd.getTime() : '';
-                    return {sWhere:sRange};
+                    var sWhere = (hOpts && hOpts.dStart && hOpts.dEnd) ? ' AND created >='+hOpts.dStart.getTime()+' AND created<'+hOpts.dEnd.getTime() : '';
+                    console.log(sWhere);
+                    return {sWhere:sWhere};
                 }
             }
             ,uniques:{

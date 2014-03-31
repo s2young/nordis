@@ -24,6 +24,7 @@ var nTestSize = 10;
 var dNow = new Date();
 var nPort = 2002; // Port on which to run api instance during test.
 var current_count = 0;
+var oApp;
 
 module.exports = {
     setUp:function(callback) {
@@ -31,23 +32,29 @@ module.exports = {
         async.series([
             // Get the current, total count of users.
             function(cb){
-                AppConfig.processStats(function(err){
+                oApp = Base.lookup({sClass:'App'});
+                AppConfig.processStats({oApp:oApp},function(err){
                     if (err)
                         callback(err);
-                    else
-                        AppConfig.oApp.loadExtras({
-                            users:{hExtras:{all:true}}
+                    else {
+                        oApp.loadExtras({
+                            users:{hExtras:{alltime:true}}
                         },cb);
+                    }
                 });
             }
             ,function(cb) {
-                if (AppConfig.oApp.users && AppConfig.oApp.users.all) {
-                    current_count = AppConfig.oApp.users.all.first().get('count');
-                }
-                console.log('current_count: '+current_count);
+                if (oApp.users && oApp.users.alltime)
+                    current_count = oApp.users.alltime.first().get('count');
+
                 cb();
             }
-        ],callback);
+        ],function(err){
+            if (err)
+                AppConfig.error(err);
+            else
+                callback();
+        });
     }
     ,tearDown:function(callback) {
         async.parallel([
@@ -89,19 +96,17 @@ module.exports = {
                     if (err)
                         callback(err);
                     else
-                        AppConfig.oApp.loadExtras({
-                            users:{hExtras:{all:true}}
+                        oApp.loadExtras({
+                            users:{hExtras:{alltime:true}}
                         },callback);
                 });
             }
             // Next, trackStats for each user - randomly setting the nFakeCount to make sure that each user is only counted once.
             ,function(callback) {
                 var new_count;
-                if (AppConfig.oApp.users && AppConfig.oApp.users.all) {
-                    new_count = AppConfig.oApp.users.all.first().get('count');
-                    console.log('new_count: '+new_count);
-                }
-                test.equal((current_count+nTestSize),(current_count+new_count));
+                if (oApp.users && oApp.users.alltime)
+                    new_count = oApp.users.alltime.first().get('count');
+                test.equal((current_count+nTestSize),new_count);
                 callback();
             }
         ],function(err){AppConfig.wrapTest(err,test)});

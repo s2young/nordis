@@ -8,12 +8,8 @@ var Collection; // And Collection.
 module.exports.hSettings = {
     global: {
         sConfVersion:'1.0.2'
-        ,sLogLevel:'warn'
+        ,sLogLevel:'error'
         ,bTraceMode:false
-        ,hConstants:{
-            aAngularMods:['ngCookies']
-            ,sNordisHost:'http://localhost:2003'
-        }
         ,hOptions:{
             MySql:{
                 default:{
@@ -309,12 +305,8 @@ module.exports.hSettings = {
                 ,sDbAlias:'default'
                 ,sClass:'User'
                 ,sAlias:'users'
-                ,fnQuery:function(hOpts,AppConfig){
-                    // oApp is the parent app, since stats are really 'extras' on the app singleton.
-                    // This is a mysql query that will return the count for the passed-in period, allowing recreation
-                    // of data from mysql in case of redis data problem or building retro-active stats.
-                    var sWhere = (hOpts && hOpts.dStart && hOpts.dEnd) ? ' AND created >='+hOpts.dStart.getTime()+' AND created<'+hOpts.dEnd.getTime() : '';
-                    console.log(sWhere);
+                ,fnProcessQuery:function(hOpts,AppConfig){
+                    var sWhere = (hOpts && hOpts.dStart && hOpts.dEnd) ? ' created >='+hOpts.dStart.getTime()+' AND created<'+hOpts.dEnd.getTime() : '';
                     return {sWhere:sWhere};
                 }
             }
@@ -328,7 +320,7 @@ module.exports.hSettings = {
                     else if (!params || !params[1])
                         callback('This stat requires a url path string as the second param.');
                     else
-                        callback(null,user.getKey());
+                        callback(null,params[0].getKey());
                 }
             }
             ,hits:{

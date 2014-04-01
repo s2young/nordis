@@ -44,7 +44,8 @@ module.exports = {
                 });
             }
             ,function(cb) {
-                if (oApp.users && oApp.users.alltime)
+                console.log(oApp);
+                if (oApp.users && oApp.users.alltime && oApp.users.alltime.nTotal)
                     current_count = oApp.users.alltime.first().get('count');
 
                 cb();

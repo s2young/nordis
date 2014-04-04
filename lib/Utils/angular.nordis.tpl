@@ -116,7 +116,11 @@ angular.module('nordis', window.aAngularMods)
                 if (hItem && hItem[sKey] && cColl && cColl.aObjects) {
                     var hLookup = {};hLookup[sKey] = hItem[sKey];
                     var i = this.findIndex(hLookup,cColl.aObjects);
-                    if (i>=0) cColl.aObjects.splice(i,1);
+                    if (i>=0) {
+                        cColl.aObjects.splice(i,1);
+                        cColl.nTotal--;
+                        cColl.nCount--;
+                    }
                 }
             }
             // Update a collection with an item, if the item already exists it is replaced.

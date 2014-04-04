@@ -122,10 +122,11 @@ angular.module('nordis', window.aAngularMods)
             // Update a collection with an item, if the item already exists it is replaced.
             ,update:function(hItem,cColl,sKey) {
                 sKey = (sKey) ? sKey : 'id';
+                var i;
                 if (cColl) {
                     if (!cColl.aObjects) cColl.aObjects = [];
                     var hLookup = {};hLookup[sKey] = hItem[sKey];
-                    var i = this.findIndex(hLookup,cColl.aObjects);
+                    i = this.findIndex(hLookup,cColl.aObjects);
                     if (i>=0)
                         cColl.aObjects.splice(i,1,hItem);
                     else
@@ -133,7 +134,7 @@ angular.module('nordis', window.aAngularMods)
                     if (cColl.aObjects.length > cColl.nCount) cColl.nCount = cColl.aObjects.length;
                     if (cColl.aObjects.length > cColl.nTotal) cColl.nTotal = cColl.aObjects.length;
                 }
-                return;
+                return i;
             },
             // Emit an event from any controller to the root scope.
             emit:function(sEvent,Value,Value2,Value3) {

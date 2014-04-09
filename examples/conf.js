@@ -9,7 +9,7 @@ var Stats; // Used to track stats.
 module.exports.hSettings = {
     global: {
         sConfVersion:'1.0.2'
-        ,sLogLevel:'error'
+        ,sLogLevel:'debug'
         ,bTraceMode:false
         ,hOptions:{
             MySql:{
@@ -278,6 +278,7 @@ module.exports.hSettings = {
                                     ,fnApiCallProcessor:function(req,AppConfig,callback){
                                         // Setting default extras for this endpoint.  This is where you could completely ignore and/or override what the api user is asking for.
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follows:{hExtras:{follower_user:true}}};
+                                        req.hNordis.sExtra = 'follows'; // This means the response should start with the follows collection, not the user.
                                         // Track the api request. This is for the redis_stats.js unit test.
                                         if (!Stats) var Stats = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Utils/Stats'); // You would use require('nordis').Stats;
                                         Stats.track({sStat:'api_requests',Params:req.hNordis.sPath},callback);

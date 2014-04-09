@@ -27,25 +27,22 @@ var oApp;
 module.exports = {
     setUp:function(callback) {
         var self = this;
-        async.series([
+        async.waterfall([
             // Get the current, total count of users.
             function(cb){
-                oApp = Base.lookup({sClass:'App'});
-                Stats.process({oApp:oApp},function(err){
-                    if (err)
-                        callback(err);
-                    else {
-                        oApp.loadExtras({
-                            users:{hExtras:{alltime:true}}
-                        },cb);
-                    }
-                });
+                Base.loadAppSingleton('app',cb);
             }
-            ,function(cb) {
-                console.log(oApp);
-                if (oApp.users && oApp.users.alltime && oApp.users.alltime.nTotal)
+            ,function(oResult,cb) {
+                oApp = oResult;
+                Stats.process({oApp:oApp},cb);
+            }
+            ,function(n,cb) {
+                oApp.loadExtras({users:{hExtras:{alltime:true}}},cb);
+            }
+            ,function(n,cb) {
+                if (oApp.users && oApp.users.alltime && oApp.users.alltime.nTotal) {
                     current_count = oApp.users.alltime.first().get('count');
-
+                }
                 cb();
             }
         ],function(err){

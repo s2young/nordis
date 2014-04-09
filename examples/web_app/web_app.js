@@ -3,6 +3,7 @@ var express     = require('express'),
     async       = require('async'),
     AppConfig   = require('./../../lib/AppConfig'),// In your app, this needs to be require('nordis').AppConfig
     Base        = require('./../../lib/Base'),// In your app, this needs to be require('nordis').Base
+    Stats       = require('./../../lib/Utils/Stats'),// In your app, this needs to be require('nordis').Stats
     Collection  = require('./../../lib/Collection'),// In your app, this needs to be require('nordis').Collection
     NordisMiddleware  = require('./../../lib/Utils/Middleware');// In your app, this needs to be require('nordis').Middleware
 
@@ -140,9 +141,9 @@ var configureExpress = function(){
         .use(function(req,res,next){
             // Track page hits and api requests.
             if (!req.hNordis.hEndpoint) {
-                AppConfig.trackStat({sStat:'hits',Params:req.hNordis.sPath},next);
+                Stats.track({sStat:'hits',Params:req.hNordis.sPath},next);
             } else if (req.hNordis.hEndpoint)
-                AppConfig.trackStat({sStat:'api_requests',Params:req.hNordis.sPath},next);
+                Stats.track({sStat:'api_requests',Params:req.hNordis.sPath},next);
             else
                 next();
         })

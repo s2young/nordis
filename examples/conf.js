@@ -4,6 +4,7 @@
  */
 var Base; // We're going to need the Base class is api override functions below.
 var Collection; // And Collection.
+var Stats; // Used to track stats.
 
 module.exports.hSettings = {
     global: {
@@ -61,7 +62,8 @@ module.exports.hSettings = {
                             ,fnApiCallProcessor:function(req,AppConfig,callback){
                                 var hOpts = (req.body.nMax && req.body.nMin) ? req.body : null;
 
-                                AppConfig.processStats(hOpts,callback);
+                                if (!Stats) var Stats = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Utils/Stats'); // You would use require('nordis').Stats;
+                                Stats.process(hOpts,callback);
                             }
                         }
                     }
@@ -277,7 +279,8 @@ module.exports.hSettings = {
                                         // Setting default extras for this endpoint.  This is where you could completely ignore and/or override what the api user is asking for.
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follows:{hExtras:{follower_user:true}}};
                                         // Track the api request. This is for the redis_stats.js unit test.
-                                        AppConfig.trackStat({sStat:'api_requests',Params:req.hNordis.sPath},callback);
+                                        if (!Stats) var Stats = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Utils/Stats'); // You would use require('nordis').Stats;
+                                        Stats.track({sStat:'api_requests',Params:req.hNordis.sPath},callback);
                                     }
                                 }
                             }

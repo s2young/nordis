@@ -1,6 +1,7 @@
 var async       = require('async'),
     request     = require('request'),
     moment      = require('moment'),
+    Stats       = require('./../../lib/Utils/Stats'),
     AppConfig   = require('./../../lib/AppConfig'),
     Base        = require('./../../lib/Base');
 
@@ -22,7 +23,7 @@ async.series([
         }
         async.forEach(aDates,function(date,cb){
             //Simulate homepage hit.
-            AppConfig.trackStat({
+            Stats.track({
                 sStat:'hits',
                 Params:'/',
                 dDate:date.toDate(),
@@ -32,7 +33,7 @@ async.series([
     }
     //Process stats .
     ,function(callback){
-        AppConfig.processStats(callback);
+        Stats.process(callback);
     }
 ],function(err){
     if (err)

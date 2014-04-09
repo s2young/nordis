@@ -1,11 +1,9 @@
 var async       = require('async'),
     request     = require('request'),
-    express     = require('express'),
-    Middleware  = require('./../../lib/Utils/Middleware'),
-    Str         = require('./../../lib/Utils/String'),
     Base        = require('./../../lib/Base'),
+    Stats       = require('./../../lib/Utils/Stats'),
     Collection  = require('./../../lib/Collection'),
-    AppConfig         = require('./../../lib/AppConfig');
+    AppConfig   = require('./../../lib/AppConfig');
 
 /**
  * This test is all about confirming the accuracy of the stats-tracking capabilities of Nordis. There are a couple
@@ -33,7 +31,7 @@ module.exports = {
             // Get the current, total count of users.
             function(cb){
                 oApp = Base.lookup({sClass:'App'});
-                AppConfig.processStats({oApp:oApp},function(err){
+                Stats.process({oApp:oApp},function(err){
                     if (err)
                         callback(err);
                     else {
@@ -92,7 +90,7 @@ module.exports = {
             }
             // Next, lookup the user stat.
             ,function(callback) {
-                AppConfig.processStats(function(err){
+                Stats.process(function(err){
                     if (err)
                         callback(err);
                     else

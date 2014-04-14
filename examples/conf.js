@@ -9,7 +9,7 @@ var Stats; // Used to track stats.
 module.exports.hSettings = {
     global: {
         sConfVersion:'1.0.2'
-        ,sLogLevel:'debug'
+        ,sLogLevel:'info'
         ,bTraceMode:false
         ,hOptions:{
             MySql:{

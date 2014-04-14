@@ -97,7 +97,7 @@ module.exports = {
                 var nEndingMemory = res.match(/used_memory\:([^\r]*)/)[1];
                 AppConfig.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
 
-                new Collection({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
+                Collection.lookup({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);
@@ -105,7 +105,7 @@ module.exports = {
             ,function(ignore,cb){
                 var hQuery = {};
                 hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
-                new Collection({sClass:'Follow',hQuery:hQuery},cb);
+                Collection.lookup({sClass:'Follow',hQuery:hQuery},cb);
             }
             ,function(cColl,cb) {
                 cColl.delete(cb);

@@ -68,7 +68,7 @@ module.exports = {
         var self = this;
         async.waterfall([
             function(cb) {
-                new Collection({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
+                Collection.lookup({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
             }
             ,function(users,cb) {
                 users.delete(cb);
@@ -76,7 +76,7 @@ module.exports = {
             ,function(ignore,cb){
                 var hQuery = {};
                 hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
-                new Collection({sClass:'Follow',hQuery:hQuery},cb);
+                Collection.lookup({sClass:'Follow',hQuery:hQuery},cb);
             }
             ,function(follows,cb) {
                 follows.delete(cb);

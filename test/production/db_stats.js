@@ -56,7 +56,7 @@ module.exports = {
         async.parallel([
             // Delete just the users created for this test, named via timestamp.
             function(cb) {
-                new Collection({sClass:'User',hQuery:{name:dNow.getTime()}},function(err,cColl){
+                Collection.lookup({sClass:'User',hQuery:{name:dNow.getTime()}},function(err,cColl){
                     if (err)
                         cb(err);
                     else

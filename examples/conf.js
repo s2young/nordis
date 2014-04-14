@@ -84,7 +84,7 @@ module.exports.hSettings = {
                                     if (!req.query.hExtras.nSize) req.query.hExtras.nSize = 20;
 
                                     if (!Collection) Collection = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Collection'); // You would use require('nordis').Collection;
-                                    new Collection({
+                                    Collection.lookup({
                                         sClass:'User'
                                         ,hQuery:{sid:'IS NOT NULL'}
                                         ,hExtras:req.query.hExtras

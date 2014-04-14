@@ -22,7 +22,7 @@ module.exports = {
     ,tearDown:function(callback) {
         async.parallel([
             function(cb) {
-                new Collection({sClass:'User',hQuery:{sWhere:'email LIKE \'%@test.com\''}},function(err,cColl){
+                Collection.lookup({sClass:'User',hQuery:{sWhere:'email LIKE \'%@test.com\''}},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -30,7 +30,7 @@ module.exports = {
                 });
             }
             ,function(cb) {
-                new Collection({sClass:'Sale',hQuery:{id:'NOT NULL'}},function(err,cColl){
+                Collection.lookupAll({sClass:'Sale'},function(err,cColl){
                     if (err)
                         cb(err);
                     else

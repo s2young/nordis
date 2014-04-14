@@ -24,7 +24,7 @@ module.exports = {
                 function(cb){
                     var hQuery = {};
                     hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
-                    new Collection({sClass:'Follow',hQuery:hQuery},function(err,cColl){
+                    Collection.lookup({sClass:'Follow',hQuery:hQuery},function(err,cColl){
                         if (err)
                             cb(err);
                         else
@@ -34,7 +34,7 @@ module.exports = {
                 ,function(cb){
                     var hQuery = {};
                     hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
-                    new Collection({sClass:'User',hQuery:hQuery},function(err,cColl){
+                    Collection.lookup({sClass:'User',hQuery:hQuery},function(err,cColl){
                         if (err)
                             cb(err);
                         else
@@ -87,7 +87,7 @@ module.exports = {
             function(cb){
                 var hQuery = {};
                 hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
-                new Collection({sClass:'Follow',hQuery:hQuery},function(err,cColl){
+                Collection.lookup({sClass:'Follow',hQuery:hQuery},function(err,cColl){
                     if (err)
                         cb(err);
                     else
@@ -97,7 +97,7 @@ module.exports = {
             ,function(cb){
                 var hQuery = {};
                 hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
-                new Collection({sClass:'User',hQuery:hQuery},function(err,cColl){
+                Collection.lookup({sClass:'User',hQuery:hQuery},function(err,cColl){
                     if (err)
                         cb(err);
                     else

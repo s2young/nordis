@@ -97,9 +97,20 @@ angular.module('nordis', window.aAngularMods)
             $rootScope.$broadcast('onForceNav',newValue);
         }, true);
 
+        self.hSecurity = {};
         return {
+            setSecurity:function(hSecurity){
+                if (hSecurity)
+                    self.hSecurity = hSecurity;
+            }
+            ,getSecurity:function(hData) {
+                if (self.hSecurity)
+                    for (var sProp in self.hSecurity) {
+                        hData[sProp] = self.hSecurity[sProp];
+                    }
+            }
             // This function finds the index of an item in a collection.
-            findIndex:function(hOpts,aItems) {
+            ,findIndex:function(hOpts,aItems) {
                 if (aItems)
                     for (var i = 0; i < aItems.length; i++) {
                         var bPass = true;
@@ -218,10 +229,11 @@ angular.module('nordis', window.aAngularMods)
             // Handles GET requests to the API.
             ,get:function(hOpts,fnCallback,fnErrorHandler){
                 hOpts.sMethod = 'GET';
-                if (hOpts.hExtras) {
-                    if (!hOpts.hData) hOpts.hData = {};
+                if (!hOpts.hData) hOpts.hData = {};
+                if (hOpts.hExtras)
                     hOpts.hData.hExtras = hOpts.hExtras;
-                }
+
+                self.getSecurity(hOpts.hData);
                 if (hOpts.hData) {
                     // Convert hData into serialized query string.
                     var serialize = function(obj, prefix) {
@@ -252,14 +264,18 @@ angular.module('nordis', window.aAngularMods)
             // Handles POST requests to the API.
             ,post:function(hOpts,fnCallback,fnErrorHandler){
                 hOpts.sMethod = 'POST';
-                if (hOpts.hExtras) {
-                    if (!hOpts.hData) hOpts.hData = {};
+                if (!hOpts.hData) hOpts.hData = {};
+                self.getSecurity(hOpts.hData);
+                if (hOpts.hExtras)
                     hOpts.hData.hExtras = hOpts.hExtras;
-                }
+
                 this.callAPI(hOpts,fnCallback,fnErrorHandler);
             }
             // Handles DELETE requests to the API.
             ,delete:function(hOpts,fnCallback,fnErrorHandler){
+                if (!hOpts.hData) hOpts.hData = {};
+                self.getSecurity(hOpts.hData);
+
                 if (hOpts.hData) {
                     hOpts.sPath += '?'
                     for (var sItem in hOpts.hData) {

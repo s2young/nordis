@@ -1,7 +1,6 @@
 window.sNordisHost = window.sNordisHost||'[[=hData.sNordisHost||""]]';
-window.aAngularMods = window.aAngularMods||[[? hData.aAngularMods ]][[=JSON.stringify(hData.aAngularMods)]][[??]][][[?]];
 
-angular.module('nordis', window.aAngularMods)
+angular.module('nordis', [])
     .directive('onKeyup', function($parse) {
         return function(scope, elm, attrs) {
             var keyupFn = $parse(attrs.onKeyup);
@@ -98,19 +97,19 @@ angular.module('nordis', window.aAngularMods)
         }, true);
 
         self.hSecurity = {};
-        return {
-            setSecurity:function(hSecurity){
-                if (hSecurity)
-                    self.hSecurity = hSecurity;
-            }
-            ,getSecurity:function(hData) {
-                if (self.hSecurity)
-                    for (var sProp in self.hSecurity) {
-                        hData[sProp] = self.hSecurity[sProp];
-                    }
-            }
-            // This function finds the index of an item in a collection.
-            ,findIndex:function(hOpts,aItems) {
+        self.setSecurity = function(hSecurity){
+            if (hSecurity)
+                self.hSecurity = hSecurity;
+        };
+        self.getSecurity = function(hData) {
+            if (self.hSecurity)
+                for (var sProp in self.hSecurity) {
+                    hData[sProp] = self.hSecurity[sProp];
+                }
+        };
+
+        // This function finds the index of an item in a collection.
+        self.findIndex = function(hOpts,aItems) {
                 if (aItems)
                     for (var i = 0; i < aItems.length; i++) {
                         var bPass = true;
@@ -120,9 +119,9 @@ angular.module('nordis', window.aAngularMods)
                         }
                         if (bPass) return i;
                     }
-            },
-            // Remove an item from a collection. Just pass in the object and the collection.
-            remove:function(hItem,cColl,sKey) {
+            };
+        // Remove an item from a collection. Just pass in the object and the collection.
+        self.remove = function(hItem,cColl,sKey) {
                 sKey = (sKey) ? sKey : 'id';
                 if (hItem && hItem[sKey] && cColl && cColl.aObjects) {
                     var hLookup = {};hLookup[sKey] = hItem[sKey];
@@ -133,9 +132,9 @@ angular.module('nordis', window.aAngularMods)
                         cColl.nCount--;
                     }
                 }
-            }
-            // Update a collection with an item, if the item already exists it is replaced.
-            ,update:function(hItem,cColl,sKey) {
+            };
+        // Update a collection with an item, if the item already exists it is replaced.
+        self.update = function(hItem,cColl,sKey) {
                 sKey = (sKey) ? sKey : 'id';
                 var i;
                 if (cColl) {
@@ -150,21 +149,21 @@ angular.module('nordis', window.aAngularMods)
                     if (cColl.aObjects.length > cColl.nTotal) cColl.nTotal = cColl.aObjects.length;
                 }
                 return i;
-            },
-            // Emit an event from any controller to the root scope.
-            emit:function(sEvent,Value,Value2,Value3) {
+            };
+        // Emit an event from any controller to the root scope.
+        self.emit = function(sEvent,Value,Value2,Value3) {
                 $rootScope.$broadcast(sEvent,Value,Value2,Value3);
-            },
-            // I use this to display an alert modal with option buttons.
-            confirmCommand: function(hOpts,fnCallback,fnNoCallback) {
+            };
+        // I use this to display an alert modal with option buttons.
+        self.confirmCommand = function(hOpts,fnCallback,fnNoCallback) {
                 this.emit('onConfirm',hOpts,fnCallback,fnNoCallback);
-            },
-            // Used to handle error messages and such. The event handler is in the header.dot partial.
-            alert:function(hMsg) {
+            };
+        // Used to handle error messages and such. The event handler is in the header.dot partial.
+        self.alert = function(hMsg) {
                 this.emit('onAlert',hMsg);
-            },
-            // Grab items from the query string.
-            query:function(name) {
+            };
+        // Grab items from the query string.
+        self.query = function(name) {
                 name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
                 var regexS = "[\\?&]" + name + "=([^&#]*)";
                 var regex = new RegExp(regexS);
@@ -173,9 +172,9 @@ angular.module('nordis', window.aAngularMods)
                     return "";
                 } else
                     return decodeURIComponent(results[1].replace(/\+/g, " "));
-            },
-            // Load a collection via api call.
-            loadPage:function(cColl,fnResultHandler,fnErrorHandler,sKey){
+            };
+        // Load a collection via api call.
+        self.loadPage = function(cColl,fnResultHandler,fnErrorHandler,sKey){
                 var self = this;
                 var hData = (cColl.hData) ? cColl.hData : {};
                 if (cColl.hExtras)
@@ -216,8 +215,9 @@ angular.module('nordis', window.aAngularMods)
                     else
                         console.log(hResult);
                 });
-            },
-            next:function(cColl,fnResultHandler,fnErrorHandler,sKey) {
+            };
+
+        self.next = function(cColl,fnResultHandler,fnErrorHandler,sKey) {
                 var self = this;
                 if ((cColl.nNextID || cColl.sNextID || cColl.nMin) && !cColl.bLoading) {
                     if (cColl.nNextID || cColl.sNextID) cColl.sFirstID = cColl.nNextID || cColl.sNextID;
@@ -226,8 +226,8 @@ angular.module('nordis', window.aAngularMods)
                     self.loadPage(cColl,fnResultHandler,fnErrorHandler,sKey);
                 }
             }
-            // Handles GET requests to the API.
-            ,get:function(hOpts,fnCallback,fnErrorHandler){
+        // Handles GET requests to the API.
+        self.get = function(hOpts,fnCallback,fnErrorHandler){
                 hOpts.sMethod = 'GET';
                 if (!hOpts.hData) hOpts.hData = {};
                 if (hOpts.hExtras)
@@ -247,22 +247,22 @@ angular.module('nordis', window.aAngularMods)
                         return str.join("&");
                     };
 
-                    hOpts.sPath += '?'
+                    hOpts.sPath += '?';
                     for (var sItem in hOpts.hData) {
                         switch (sItem) {
-                            case 'nSize':case 'nFirstID':case 'sFirstID':case 'nMin':case 'sTerm':case 'nMax':
-                            hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
-                            break;
                             case 'hExtras':
                                 hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
+                                break;
+                            default:
+                                hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
                                 break;
                         }
                     }
                 }
                 this.callAPI(hOpts,fnCallback,fnErrorHandler);
-            }
-            // Handles POST requests to the API.
-            ,post:function(hOpts,fnCallback,fnErrorHandler){
+            };
+        // Handles POST requests to the API.
+        self.post = function(hOpts,fnCallback,fnErrorHandler){
                 hOpts.sMethod = 'POST';
                 if (!hOpts.hData) hOpts.hData = {};
                 self.getSecurity(hOpts.hData);
@@ -270,9 +270,9 @@ angular.module('nordis', window.aAngularMods)
                     hOpts.hData.hExtras = hOpts.hExtras;
 
                 this.callAPI(hOpts,fnCallback,fnErrorHandler);
-            }
-            // Handles DELETE requests to the API.
-            ,delete:function(hOpts,fnCallback,fnErrorHandler){
+            };
+        // Handles DELETE requests to the API.
+        self.delete = function(hOpts,fnCallback,fnErrorHandler){
                 if (!hOpts.hData) hOpts.hData = {};
                 self.getSecurity(hOpts.hData);
 
@@ -292,9 +292,9 @@ angular.module('nordis', window.aAngularMods)
                 }
                 hOpts.sMethod = 'DELETE';
                 this.callAPI(hOpts,fnCallback,fnErrorHandler);
-            }
-            // This method is shared by POST, GET, and DELETE methods.
-            ,callAPI:function(hOpts,fnCallback,fnErrorHandler){
+            };
+        // This method is shared by POST, GET, and DELETE methods.
+        self.callAPI = function(hOpts,fnCallback,fnErrorHandler){
                 var self = this;
                 var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod : 'GET';
                 if (hOpts.sPath) {
@@ -317,18 +317,18 @@ angular.module('nordis', window.aAngularMods)
                             } else if (fnCallback)
                                 fnCallback(hResult,nStatus);
                         })
-                        .error(function(hResult,nStatus){
+                        .error(function(data, status, headers, config){
                             if (hOpts.oObj) hOpts.oObj.bLoading = false;
                             self.emit('onUnload');
 
                             if (fnErrorHandler)
-                                fnErrorHandler(hResult,nStatus);
+                                fnErrorHandler(data,status);
                             else
-                                self.alert(hResult);
+                                self.alert(data);
                         });
                 }
-            }
-        }
+            };
+        return self;
     })
     .filter('startFrom', function() {
         return function(input, start) {

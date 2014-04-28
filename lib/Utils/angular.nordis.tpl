@@ -110,58 +110,58 @@ angular.module('nordis', [])
 
         // This function finds the index of an item in a collection.
         self.findIndex = function(hOpts,aItems) {
-                if (aItems)
-                    for (var i = 0; i < aItems.length; i++) {
-                        var bPass = true;
-                        for (var sKey in hOpts) {
-                            if (hOpts[sKey] != aItems[i][sKey])
-                                bPass = false;
-                        }
-                        if (bPass) return i;
+            if (aItems)
+                for (var i = 0; i < aItems.length; i++) {
+                    var bPass = true;
+                    for (var sKey in hOpts) {
+                        if (hOpts[sKey] != aItems[i][sKey])
+                            bPass = false;
                     }
-            };
+                    if (bPass) return i;
+                }
+        };
         // Remove an item from a collection. Just pass in the object and the collection.
         self.remove = function(hItem,cColl,sKey) {
-                sKey = (sKey) ? sKey : 'id';
-                if (hItem && hItem[sKey] && cColl && cColl.aObjects) {
-                    var hLookup = {};hLookup[sKey] = hItem[sKey];
-                    var i = this.findIndex(hLookup,cColl.aObjects);
-                    if (i>=0) {
-                        cColl.aObjects.splice(i,1);
-                        cColl.nTotal--;
-                        cColl.nCount--;
-                    }
+            sKey = (sKey) ? sKey : '[[=hData.sMostCommonPrimaryKey||'id']]';
+            if (hItem && hItem[sKey] && cColl && cColl.aObjects) {
+                var hLookup = {};hLookup[sKey] = hItem[sKey];
+                var i = this.findIndex(hLookup,cColl.aObjects);
+                if (i>=0) {
+                    cColl.aObjects.splice(i,1);
+                    cColl.nTotal--;
+                    cColl.nCount--;
                 }
-            };
+            }
+        };
         // Update a collection with an item, if the item already exists it is replaced.
         self.update = function(hItem,cColl,sKey) {
-                sKey = (sKey) ? sKey : 'id';
-                var i;
-                if (cColl) {
-                    if (!cColl.aObjects) cColl.aObjects = [];
-                    var hLookup = {};hLookup[sKey] = hItem[sKey];
-                    i = this.findIndex(hLookup,cColl.aObjects);
-                    if (i>=0)
-                        cColl.aObjects.splice(i,1,hItem);
-                    else
-                        cColl.aObjects.push(hItem);
-                    if (cColl.aObjects.length > cColl.nCount) cColl.nCount = cColl.aObjects.length;
-                    if (cColl.aObjects.length > cColl.nTotal) cColl.nTotal = cColl.aObjects.length;
-                }
-                return i;
-            };
+            sKey = (sKey) ? sKey : '[[=hData.sMostCommonPrimaryKey||'id']]';
+            var i;
+            if (cColl) {
+                if (!cColl.aObjects) cColl.aObjects = [];
+                var hLookup = {};hLookup[sKey] = hItem[sKey];
+                i = this.findIndex(hLookup,cColl.aObjects);
+                if (i>=0)
+                    cColl.aObjects.splice(i,1,hItem);
+                else
+                    cColl.aObjects.push(hItem);
+                if (cColl.aObjects.length > cColl.nCount) cColl.nCount = cColl.aObjects.length;
+                if (cColl.aObjects.length > cColl.nTotal) cColl.nTotal = cColl.aObjects.length;
+            }
+            return i;
+        };
         // Emit an event from any controller to the root scope.
         self.emit = function(sEvent,Value,Value2,Value3) {
-                $rootScope.$broadcast(sEvent,Value,Value2,Value3);
-            };
+            $rootScope.$broadcast(sEvent,Value,Value2,Value3);
+        };
         // I use this to display an alert modal with option buttons.
         self.confirmCommand = function(hOpts,fnCallback,fnNoCallback) {
-                this.emit('onConfirm',hOpts,fnCallback,fnNoCallback);
-            };
+            this.emit('onConfirm',hOpts,fnCallback,fnNoCallback);
+        };
         // Used to handle error messages and such. The event handler is in the header.dot partial.
         self.alert = function(hMsg) {
-                this.emit('onAlert',hMsg);
-            };
+            this.emit('onAlert',hMsg);
+        };
         // Grab items from the query string.
         self.query = function(name) {
                 name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -175,159 +175,163 @@ angular.module('nordis', [])
             };
         // Load a collection via api call.
         self.loadPage = function(cColl,fnResultHandler,fnErrorHandler,sKey){
-                var self = this;
-                var hData = (cColl.hData) ? cColl.hData : {};
-                if (cColl.hExtras)
-                    hData.hExtras = cColl.hExtras;
-                else if (cColl.nSize || cColl.nFirstID || cColl.sFirstID || cColl.nMin || cColl.nMax)
-                    hData.hExtras = {};
+            var self = this;
+            var hData = (cColl.hData) ? cColl.hData : {};
+            if (cColl.hExtras)
+                hData.hExtras = cColl.hExtras;
+            else if (cColl.nSize || cColl.nFirstID || cColl.sFirstID || cColl.nMin || cColl.nMax)
+                hData.hExtras = {};
 
-                if (cColl.nSize) hData.hExtras.nSize = cColl.nSize;
-                if (cColl.nFirstID) hData.hExtras.sFirstID = cColl.sFirstID;
-                if (cColl.sFirstID) hData.hExtras.sFirstID = cColl.sFirstID;
-                if (cColl.nMin) hData.hExtras.nMin = cColl.nMin;
-                if (cColl.nMax) hData.hExtras.nMax = cColl.nMax;
-                if (cColl.sTerm) hData.sTerm = cColl.sTerm;
+            if (cColl.nSize) hData.hExtras.nSize = cColl.nSize;
+            if (cColl.nFirstID) hData.hExtras.sFirstID = cColl.sFirstID;
+            if (cColl.sFirstID) hData.hExtras.sFirstID = cColl.sFirstID;
+            if (cColl.nMin) hData.hExtras.nMin = cColl.nMin;
+            if (cColl.nMax) hData.hExtras.nMax = cColl.nMax;
+            if (cColl.sTerm) hData.sTerm = cColl.sTerm;
 
-                self.get({sPath:cColl.sPath,hData:hData,bShowLoader:cColl.bShowLoader,oObj:cColl},function(hResult){
-                    cColl.nTotal = hResult.nTotal;
-                    cColl.nSize = hResult.nSize;
-                    cColl.nCount = hResult.nCount;
-                    cColl.nNextID = hResult.sNextID||hResult.nNextID;
-                    cColl.sNextID = hResult.sNextID;
+            self.get({sPath:cColl.sPath,hData:hData,bShowLoader:cColl.bShowLoader,oObj:cColl},function(hResult){
+                cColl.nTotal = hResult.nTotal;
+                cColl.nSize = hResult.nSize;
+                cColl.nCount = hResult.nCount;
+                cColl.nNextID = hResult.sNextID||hResult.nNextID;
+                cColl.sNextID = hResult.sNextID;
 
-                    if (!cColl.aObjects) cColl.aObjects = [];
-                    delete hResult.nFirstID;
-                    delete hResult.sFirstID;
-                    delete hResult.nMin;
-                    delete hResult.nMax;
+                if (!cColl.aObjects) cColl.aObjects = [];
+                delete hResult.nFirstID;
+                delete hResult.sFirstID;
+                delete hResult.nMin;
+                delete hResult.nMax;
 
-                    if (hResult.aObjects) {
-                        for (var i = 0; i < hResult.aObjects.length; i++) {
-                            self.update(hResult.aObjects[i],cColl,sKey);
-                        }
+                if (hResult.aObjects) {
+                    for (var i = 0; i < hResult.aObjects.length; i++) {
+                        self.update(hResult.aObjects[i],cColl,sKey);
                     }
-                    if (fnResultHandler)
-                        fnResultHandler(hResult);
-                },function(hResult,nStatus){
-                    if (fnErrorHandler)
-                        fnErrorHandler(hResult,nStatus);
-                    else
-                        console.log(hResult);
-                });
-            };
+                }
+                if (fnResultHandler)
+                    fnResultHandler(hResult);
+            },function(hResult,nStatus){
+                if (fnErrorHandler)
+                    fnErrorHandler(hResult,nStatus);
+                else
+                    console.log(hResult);
+            });
+        };
 
         self.next = function(cColl,fnResultHandler,fnErrorHandler,sKey) {
-                var self = this;
-                if ((cColl.nNextID || cColl.sNextID || cColl.nMin) && !cColl.bLoading) {
-                    if (cColl.nNextID || cColl.sNextID) cColl.sFirstID = cColl.nNextID || cColl.sNextID;
-                    delete (cColl.nNextID);
-                    delete (cColl.sNextID);
-                    self.loadPage(cColl,fnResultHandler,fnErrorHandler,sKey);
-                }
+            var self = this;
+            if ((cColl.nNextID || cColl.sNextID || cColl.nMin) && !cColl.bLoading) {
+                if (cColl.nNextID || cColl.sNextID) cColl.sFirstID = cColl.nNextID || cColl.sNextID;
+                delete (cColl.nNextID);
+                delete (cColl.sNextID);
+                self.loadPage(cColl,fnResultHandler,fnErrorHandler,sKey);
             }
+        };
         // Handles GET requests to the API.
         self.get = function(hOpts,fnCallback,fnErrorHandler){
-                hOpts.sMethod = 'GET';
-                if (!hOpts.hData) hOpts.hData = {};
-                if (hOpts.hExtras)
-                    hOpts.hData.hExtras = hOpts.hExtras;
+            hOpts.sMethod = 'GET';
+            if (!hOpts.hData) hOpts.hData = {};
+            if (hOpts.hExtras)
+                hOpts.hData.hExtras = hOpts.hExtras;
 
-                self.getSecurity(hOpts.hData);
-                if (hOpts.hData) {
-                    // Convert hData into serialized query string.
-                    var serialize = function(obj, prefix) {
-                        var str = [];
-                        for (var p in obj) {
-                            var k = prefix ? prefix + "[" + p + "]" : p, v = obj[p];
-                            str.push(typeof v == "object" ?
-                                serialize(v, k) :
-                                encodeURIComponent(k) + "=" + encodeURIComponent(v));
-                        }
-                        return str.join("&");
-                    };
+            self.getSecurity(hOpts.hData);
+            if (hOpts.hData) {
+                // Convert hData into serialized query string.
+                var serialize = function(obj, prefix) {
+                    var str = [];
+                    for (var p in obj) {
+                        var k = prefix ? prefix + "[" + p + "]" : p, v = obj[p];
+                        str.push(typeof v == "object" ?
+                            serialize(v, k) :
+                            encodeURIComponent(k) + "=" + encodeURIComponent(v));
+                    }
+                    return str.join("&");
+                };
 
-                    hOpts.sPath += '?';
-                    for (var sItem in hOpts.hData) {
-                        switch (sItem) {
-                            case 'hExtras':
-                                hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
-                                break;
-                            default:
-                                hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
-                                break;
-                        }
+                hOpts.sPath += '?';
+                for (var sItem in hOpts.hData) {
+                    switch (sItem) {
+                        case 'hExtras':
+                            hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
+                            break;
+                        default:
+                            hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
+                            break;
                     }
                 }
-                this.callAPI(hOpts,fnCallback,fnErrorHandler);
-            };
+            }
+            this.callAPI(hOpts,fnCallback,fnErrorHandler);
+        };
         // Handles POST requests to the API.
         self.post = function(hOpts,fnCallback,fnErrorHandler){
-                hOpts.sMethod = 'POST';
-                if (!hOpts.hData) hOpts.hData = {};
-                self.getSecurity(hOpts.hData);
-                if (hOpts.hExtras)
-                    hOpts.hData.hExtras = hOpts.hExtras;
+            hOpts.sMethod = 'POST';
+            if (!hOpts.hData) hOpts.hData = {};
+            self.getSecurity(hOpts.hData);
+            if (hOpts.hExtras)
+                hOpts.hData.hExtras = hOpts.hExtras;
 
-                this.callAPI(hOpts,fnCallback,fnErrorHandler);
-            };
+            this.callAPI(hOpts,fnCallback,fnErrorHandler);
+        };
         // Handles DELETE requests to the API.
         self.delete = function(hOpts,fnCallback,fnErrorHandler){
-                if (!hOpts.hData) hOpts.hData = {};
-                self.getSecurity(hOpts.hData);
+            if (!hOpts.hData) hOpts.hData = {};
+            self.getSecurity(hOpts.hData);
 
-                if (hOpts.hData) {
-                    hOpts.sPath += '?'
-                    for (var sItem in hOpts.hData) {
-                        switch (sItem) {
-                            case 'hExtras':
-                                hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
-                                break;
-                            default:
-                                hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
-                                break;
+            if (hOpts.hData) {
+                hOpts.sPath += '?'
+                for (var sItem in hOpts.hData) {
+                    switch (sItem) {
+                        case 'hExtras':
+                            hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
+                            break;
+                        default:
+                            hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
+                            break;
 
-                        }
                     }
                 }
-                hOpts.sMethod = 'DELETE';
-                this.callAPI(hOpts,fnCallback,fnErrorHandler);
-            };
+            }
+            hOpts.sMethod = 'DELETE';
+            this.callAPI(hOpts,fnCallback,fnErrorHandler);
+        };
         // This method is shared by POST, GET, and DELETE methods.
         self.callAPI = function(hOpts,fnCallback,fnErrorHandler){
-                var self = this;
-                var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod : 'GET';
-                if (hOpts.sPath) {
-                    if (!hOpts.hData) hOpts.hData = {};
+            var self = this;
+            var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod : 'GET';
+            if (hOpts.sPath) {
+                if (!hOpts.hData) hOpts.hData = {};
 
-                    self.emit('onLoad');
-                    if (hOpts.oObj) hOpts.oObj.bLoading = true;
+                self.emit('onLoad');
+                if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
-                    $http[sMethod.toLowerCase()](window.sNordisHost+hOpts.sPath,hOpts.hData)
-                        .success(function(hResult,nStatus){
-                            if (hOpts.oObj)
-                                hOpts.oObj.bLoading = false;
+                $http[sMethod.toLowerCase()](window.sNordisHost+hOpts.sPath,hOpts.hData)
+                    .success(function(hResult,nStatus){
+                        if (hOpts.oObj)
+                            hOpts.oObj.bLoading = false;
 
-                            self.emit('onUnload');
-                            if (hResult && hResult.sException) {
-                                if (fnErrorHandler)
-                                    fnErrorHandler(hResult);
-                                else
-                                    self.alert(hResult);
-                            } else if (fnCallback)
-                                fnCallback(hResult,nStatus);
-                        })
-                        .error(function(data, status, headers, config){
-                            if (hOpts.oObj) hOpts.oObj.bLoading = false;
-                            self.emit('onUnload');
-
+                        self.emit('onUnload');
+                        if (hResult && hResult.sException) {
                             if (fnErrorHandler)
-                                fnErrorHandler(data,status);
+                                fnErrorHandler(hResult);
                             else
-                                self.alert(data);
-                        });
-                }
-            };
+                                self.alert(hResult);
+                        } else if (fnCallback)
+                            fnCallback(hResult,nStatus);
+                    })
+                    .error(function(data, status, headers, config){
+                        if (hOpts.oObj) hOpts.oObj.bLoading = false;
+                        self.emit('onUnload');
+
+                        if (fnErrorHandler)
+                            fnErrorHandler(data,status);
+                        else
+                            self.alert(data);
+                    });
+            }
+        };
+        self.isValidEmail = function(sEmail) {
+            var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[ [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(sEmail);
+        };
         return self;
     })
     .filter('startFrom', function() {

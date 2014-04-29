@@ -346,8 +346,7 @@ angular.module('nordis', [])
     .factory('AppConfig',function(helpers){
         return {hClasses:{
                 [[for (var sClass in hData.hClasses) {]][[? hData.sComma ]][[=hData.sComma]][[?]][[=sClass]]:{
-                    hProperties:[[=JSON.stringify(hData.hClasses[sClass])]]
-                    ,sKey:"[[=hData.hKeys[sClass] ]]"
+                    sKey:"[[=hData.hKeys[sClass] ]]"
                     ,hApi:{[[? hData.hApiCalls[sClass] ]][[~hData.hApiCalls[sClass] :hCall:nIndex]]
                         [[? nIndex ]],[[?]][[=hCall.sAlias]]:function(hQuery,hData,hExtras,callback){
                             if (hExtras instanceof Function) callback = hExtras;

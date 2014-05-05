@@ -1,6 +1,7 @@
 var express     = require('express'),
     doT         = require('dot'),
     async       = require('async'),
+    Template    = require('./../../lib/Utils/Template'),// In your app, this needs to be require('nordis').Template - or use your own templating engine of course.
     AppConfig   = require('./../../lib/AppConfig'),// In your app, this needs to be require('nordis').AppConfig
     Base        = require('./../../lib/Base'),// In your app, this needs to be require('nordis').Base
     Stats       = require('./../../lib/Utils/Stats'),// In your app, this needs to be require('nordis').Stats
@@ -45,75 +46,7 @@ function render(req,res,err,sPath) {
         }
     });
 };
-/**
- * The Template variable will house our Express-compatible 'compile' function for rendering template contents.
- * Use whatever template engine. I use 'doT' because it's fast and I don't need it to do much.
- */
-var Template;
-/**
- * This function prepares doT (template engine).
- */
-var configureDOT = function(){
-    var fs = require('fs');
 
-    Template = {hTemplates:{}};
-    // If you are a doT user, you may notice that this example uses double-braces instead of doT's
-    // default double-curly-braces for data-binding. This is because many client-side templating engines,
-    // including Angular.js (my personal preference) use double-curly-braces. Changing the default prevents confusion & error.
-    doT.templateSettings = {
-        evaluate:    /\[\[([\s\S]+?)\]\]/g,
-        interpolate: /\[\[=([\s\S]+?)\]\]/g,
-        encode:      /\[\[!([\s\S]+?)\]\]/g,
-        use:         /\[\[#([\s\S]+?)\]\]/g,
-        define:      /\[\[##\s*([\w\.$]+)\s*(\:|=)([\s\S]+?)#\]\]/g,
-        conditional: /\[\[\?(\?)?\s*([\s\S]*?)\s*\]\]/g,
-        iterate:     /\[\[~\s*(?:\]\]|([\s\S]+?)\s*\:\s*([\w$]+)\s*(?:\:\s*([\w$]+))?\s*\]\])/g,
-        varname: 'hData',
-        strip: false,
-        append: true,
-        selfcontained: false
-    };
-
-    doT.defs = {
-        loadfile:function(sPath) {
-            return fs.readFileSync(process.env.sViewPath+sPath);
-        }
-        ,hClasses:AppConfig.hClasses
-    };
-
-    // This is the function that expressjs uses to render data-bound templates.
-    // This function also caches the templates when the environment variable (NORDIS_ENV)
-    // isn't set 'local.' That means that template changes will be reflected immediately on a
-    // localhost environment but require a restart in a staging or production environment.
-    Template.compile = function(sPath,hData,fnCallback){
-        async.series([
-            function(cb){
-                // This code caches templates if not in a local environment.
-                // This means the app must be restarted if views change.
-                if (Template.hTemplates[sPath] && Template.hTemplates[sPath] instanceof Function && process.env.NORDIS_ENV != 'local')
-                    cb();
-                else if (!fs.existsSync(sPath))
-                    cb('Not found: '+sPath);
-                else
-                    fs.readFile(sPath,'utf8',function(err,sTemplate){
-                        if (!err)
-                            Template.hTemplates[sPath] = doT.template(sTemplate,undefined,doT.defs);
-                        cb(err);
-                    });
-            }
-        ],function(err){
-            if (err)
-                fnCallback(err);
-            else
-                try {
-                    hData.hClasses = AppConfig.hClasses;
-                    fnCallback(null,Template.hTemplates[sPath](hData));
-                } catch (err) {
-                    fnCallback('Template error on '+sPath+'; '+err.toString());
-                }
-        });
-    };
-};
 /**
  * ExpressJS is the actual web server software that powers the site.
  * This example is seriously bare-bones, lacking session management, body parsing, and other
@@ -213,7 +146,7 @@ AppConfig.init({
     if (err)
         AppConfig.fatal(err);
     else {
-        configureDOT();
+        Template.defs.hClasses = AppConfig.hClasses;
         configureExpress();
         configureRoutes();
     }

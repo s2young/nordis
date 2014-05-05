@@ -130,6 +130,7 @@ angular.module('nordis', [])
                     cColl.aObjects.splice(i,1);
                     cColl.nTotal--;
                     cColl.nCount--;
+                    return i;
                 }
             }
         };
@@ -300,7 +301,7 @@ angular.module('nordis', [])
             if (hOpts.sPath) {
                 if (!hOpts.hData) hOpts.hData = {};
 
-                self.emit('onLoad');
+                if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
                 $http[sMethod.toLowerCase()](window.sNordisHost+hOpts.sPath,hOpts.hData)

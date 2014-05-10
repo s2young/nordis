@@ -87,6 +87,7 @@ angular.module('nordis', [])
     })
     .factory('helpers',function($rootScope,$http,$location){
         var self = this;
+        self.sHost = window.sNordisHost;
 
         $rootScope.$watch(function() {
             return $location.path();
@@ -97,9 +98,11 @@ angular.module('nordis', [])
         }, true);
 
         self.hSecurity = {};
-        self.setSecurity = function(hSecurity){
+        self.setSecurity = function(hSecurity,sHost){
             if (hSecurity)
                 self.hSecurity = hSecurity;
+            if (sHost)
+                self.sHost = sHost;
         };
         self.getSecurity = function(hData) {
             if (self.hSecurity)
@@ -304,7 +307,7 @@ angular.module('nordis', [])
                 if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
-                $http[sMethod.toLowerCase()](window.sNordisHost+hOpts.sPath,hOpts.hData)
+                $http[sMethod.toLowerCase()](self.sHost+hOpts.sPath,hOpts.hData)
                     .success(function(hResult,nStatus){
                         if (hOpts.oObj)
                             hOpts.oObj.bLoading = false;

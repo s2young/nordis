@@ -1,6 +1,5 @@
-window.sNordisHost = window.sNordisHost||'[[=hData.sNordisHost||""]]';
 
-angular.module('nordis', [])
+angular.module('nordis', ['ngStorage'])
     .directive('onKeyup', function($parse) {
         return function(scope, elm, attrs) {
             var keyupFn = $parse(attrs.onKeyup);
@@ -23,80 +22,10 @@ angular.module('nordis', [])
             });
         };
     })
-    .directive('modalDialog', function() {
-        return {
-            restrict: 'E',
-            scope: {
-                show: '='
-            },
-            replace: true, // Replace with the template below
-            transclude: true, // we want to insert custom content inside the directive
-            link: function(scope, element, attrs) {
-                scope.dialogStyle = {};
-
-                if (attrs.width)
-                    scope.dialogStyle.width = attrs.width;
-                if (attrs.height)
-                    scope.dialogStyle.height = attrs.height;
-                if (attrs.zindex)
-                    scope.dialogStyle['z-index'] = attrs.zindex;
-                if (attrs.bgcolor)
-                    scope.dialogStyle['background-color'] = attrs.bgcolor;
-
-                scope.hideModal = function() {
-                    scope.show = false;
-                };
-                scope.$on('onClose',function(e){
-                    scope.show = false;
-                })
-            },
-            template: '<div class="ng-modal" ng-show="show"><div class="ng-modal-overlay" ng-click="hideModal()"></div><div class="ng-modal-dialog" ng-style="dialogStyle"><div class="ng-modal-dialog-content" ng-transclude></div></div></div>'
-        };
-    })
-    .directive('nordisOnload',function(){
-        // This allows the display of an element with the .angular.js file emits an onLoad event. for use with spinners, loaders, progress-bars, etc.
-        return {
-            restrict: 'A'
-            ,replace: false
-            ,transclude: true
-            ,link: function(scope, element, attrs) {
-
-                switch (attrs.nordisOnload) {
-                    case 'show':
-                        angular.element(element).attr('style', 'visibility:hidden;');
-                        scope.$on('onLoad',function(e){
-                            angular.element(element).attr('style', 'visibility:visible;');
-                        });
-                        scope.$on('onUnload',function(e){
-                            angular.element(element).attr('style', 'visibility:hidden;');
-                        });
-                        break;
-                    case 'hide':
-                        angular.element(element).attr('style', 'visibility:visible;');
-                        scope.$on('onLoad',function(e){
-                            angular.element(element).attr('style', 'visibility:hidden;');
-                        });
-                        scope.$on('onUnload',function(e){
-                            angular.element(element).attr('style', 'visibility:visible;');
-                        });
-                        break;
-                }
-            },
-            template:'<span><span ng-transclude></span></span>'
-        }
-    })
-    .factory('helpers',function($rootScope,$http,$location){
+    .factory('helpers',function($rootScope,$http,$q,$localStorage){
         var self = this;
+        var $db = $localStorage;
         self.sHost = window.sNordisHost;
-
-        $rootScope.$watch(function() {
-            return $location.path();
-        }, function(newValue, oldValue) {
-            if (newValue.match(/^\//))
-                newValue = newValue.replace('/','');
-            $rootScope.$broadcast('onForceNav',newValue);
-        }, true);
-
         self.hSecurity = {};
         self.setSecurity = function(hSecurity,sHost){
             if (hSecurity)
@@ -110,7 +39,6 @@ angular.module('nordis', [])
                     hData[sProp] = self.hSecurity[sProp];
                 }
         };
-
         // This function finds the index of an item in a collection.
         self.findIndex = function(hOpts,aItems) {
             if (aItems)
@@ -205,7 +133,7 @@ angular.module('nordis', [])
                 delete hResult.sFirstID;
                 delete hResult.nMin;
                 delete hResult.nMax;
-
+                delete hResult.hExtras;
                 if (hResult.aObjects) {
                     for (var i = 0; i < hResult.aObjects.length; i++) {
                         self.update(hResult.aObjects[i],cColl,sKey);
@@ -220,13 +148,12 @@ angular.module('nordis', [])
                     console.log(hResult);
             });
         };
-
         self.next = function(cColl,fnResultHandler,fnErrorHandler,sKey) {
             var self = this;
             if ((cColl.nNextID || cColl.sNextID || cColl.nMin) && !cColl.bLoading) {
                 if (cColl.nNextID || cColl.sNextID) cColl.sFirstID = cColl.nNextID || cColl.sNextID;
-                delete (cColl.nNextID);
-                delete (cColl.sNextID);
+                delete cColl.nNextID;
+                delete cColl.sNextID;
                 self.loadPage(cColl,fnResultHandler,fnErrorHandler,sKey);
             }
         };
@@ -250,7 +177,6 @@ angular.module('nordis', [])
                     }
                     return str.join("&");
                 };
-
                 hOpts.sPath += '?';
                 for (var sItem in hOpts.hData) {
                     switch (sItem) {
@@ -336,6 +262,18 @@ angular.module('nordis', [])
             var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[ [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             return re.test(sEmail);
         };
+        self.promise = function(sKey,sPath,sMethod,hData,hExtras,bForce){
+            var deferred = $q.defer();
+            if (sKey && $db[sKey] && !bForce)
+                deferred.resolve($db[sKey]);
+            else
+                self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
+                    delete res.txid;
+                    $db[sKey] = res;
+                    deferred.resolve(res);
+                },deferred.reject);
+            return deferred.promise;
+        };
         return self;
     })
     .filter('startFrom', function() {
@@ -349,15 +287,11 @@ angular.module('nordis', [])
     })
 [[for (var sClass in hData.hApiCalls) {]]
     .factory('[[=sClass]]',function(helpers){
-        var [[=sClass]] = {sKey:'[[=hData.hKeys[sClass] ]]'};
-        [[~hData.hApiCalls[sClass] :hCall:nIndex]]
-        [[=sClass]].[[=hCall.sAlias]] = function(hQuery,hData,hExtras,callback){
-            if (hExtras instanceof Function) callback = hExtras;
-            else if (hData instanceof Function) callback = hData;[[ hData.sPath = "'"+hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')+"'"; ]]
-            helpers.[[=hCall.sMethod]]({sPath:[[=hData.sPath]],hData:hData,hExtras:hExtras},function(res){
-                delete res.txid;
-                if (callback) callback(null,res);
-            },callback);
-        };[[~]]
-        return [[=sClass]];
+        return {
+            sKey:'[[=hData.hKeys[sClass] ]]'
+            [[~hData.hApiCalls[sClass] :hCall:nIndex]],[[=hCall.sAlias]]:function(hQuery,hData,hExtras,bForce){
+            [[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? hCall.sEndpoint.match(/\{(.*)\}/)[1] : ''; ]]
+                return helpers.promise('[[=hData.sKey]]','[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,bForce);
+            }[[~]]
+        };
     })[[}]]

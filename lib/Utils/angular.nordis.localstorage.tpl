@@ -22,6 +22,46 @@ angular.module('nordis', ['ngStorage'])
             });
         };
     })
+    .directive('modalDialog', function() {
+        return {
+            restrict: 'E',
+            scope: {
+                show: '='
+            },
+            replace: true, // Replace with the template below
+            transclude: true, // we want to insert custom content inside the directive
+            link: function(scope, element, attrs) {
+                scope.ngModalDialogStyle = {};
+                scope.ngModalOverlayStyle = {};
+                scope.ngModalDialogContentStyle = {}
+
+                function parseStyle(style) {
+                    var result = {};
+                    var styles = style.split(';');
+                    for (var i = 0; i < styles.length; i++) {
+                        var pair = styles[i].split(':');
+                        if (pair[0].replace(' ','') && pair[1])
+                            result[pair[0].replace(' ','')] = pair[1];
+                    }
+                    return result;
+                }
+                if (attrs.ngModalDialog)
+                    scope.ngModalDialogStyle = parseStyle(attrs.ngModalDialog);
+                if (attrs.ngModalOverlay)
+                    scope.ngModalOverlayStyle = parseStyle(attrs.ngModalOverlay);
+                if (attrs.ngModalDialogContent)
+                    scope.ngModalDialogContentStyle = parseStyle(attrs.ngModalDialogContent);
+
+                scope.hideModal = function() {
+                    scope.show = false;
+                };
+                scope.$on('onClose',function(e){
+                    scope.show = false;
+                })
+            },
+            template: '<div class="ng-modal" ng-show="show"><div class="ng-modal-overlay" ng-style="ngModalOverlayStyle" ng-click="hideModal()"></div><div class="ng-modal-dialog" ng-style="ngModalDialogStyle"><div class="ng-modal-dialog-content" ng-style="ngModalDialogContentStyle" ng-transclude></div></div></div>'
+        };
+    })
     .factory('helpers',function($rootScope,$http,$q,$localStorage){
         var self = this;
         var $db = $localStorage;
@@ -88,11 +128,11 @@ angular.module('nordis', ['ngStorage'])
         };
         // I use this to display an alert modal with option buttons.
         self.confirmCommand = function(hOpts,fnCallback,fnNoCallback) {
-            this.emit('onConfirm',hOpts,fnCallback,fnNoCallback);
+            $rootScope.$broadcast('onConfirm',hOpts,fnCallback,fnNoCallback);
         };
         // Used to handle error messages and such. The event handler is in the header.dot partial.
-        self.alert = function(hMsg) {
-            this.emit('onAlert',hMsg);
+        self.alert = function(hMsg,status) {
+            $rootScope.$broadcast('onAlert',hMsg,status);
         };
         // Grab items from the query string.
         self.query = function(name) {
@@ -251,9 +291,11 @@ angular.module('nordis', ['ngStorage'])
                         if (hOpts.oObj) hOpts.oObj.bLoading = false;
                         self.emit('onUnload');
 
-                        if (fnErrorHandler)
+                        if (!data && status == 404)
+                            self.alert('Request failed. Check your connection or try again later.');
+                        else if (fnErrorHandler)
                             fnErrorHandler(data,status);
-                        else
+                        else if (data)
                             self.alert(data);
                     });
             }
@@ -264,7 +306,7 @@ angular.module('nordis', ['ngStorage'])
         };
         self.promise = function(sKey,sPath,sMethod,hData,hExtras,bForce){
             var deferred = $q.defer();
-            if (sKey && $db[sKey] && !bForce)
+            if (sKey && $db[sKey] && sMethod.toLowerCase()=='get' && !bForce)
                 deferred.resolve($db[sKey]);
             else
                 self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){

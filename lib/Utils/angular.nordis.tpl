@@ -32,16 +32,26 @@ angular.module('nordis', [])
             replace: true, // Replace with the template below
             transclude: true, // we want to insert custom content inside the directive
             link: function(scope, element, attrs) {
-                scope.dialogStyle = {};
+                scope.ngModalDialogStyle = {};
+                scope.ngModalOverlayStyle = {};
+                scope.ngModalDialogContentStyle = {}
 
-                if (attrs.width)
-                    scope.dialogStyle.width = attrs.width;
-                if (attrs.height)
-                    scope.dialogStyle.height = attrs.height;
-                if (attrs.zindex)
-                    scope.dialogStyle['z-index'] = attrs.zindex;
-                if (attrs.bgcolor)
-                    scope.dialogStyle['background-color'] = attrs.bgcolor;
+                function parseStyle(style) {
+                    var result = {};
+                    var styles = style.split(';');
+                    for (var i = 0; i < styles.length; i++) {
+                        var pair = styles[i].split(':');
+                        if (pair[0].replace(' ','') && pair[1])
+                            result[pair[0].replace(' ','')] = pair[1];
+                    }
+                    return result;
+                }
+                if (attrs.ngModalDialog)
+                    scope.ngModalDialogStyle = parseStyle(attrs.ngModalDialog);
+                if (attrs.ngModalOverlay)
+                    scope.ngModalOverlayStyle = parseStyle(attrs.ngModalOverlay);
+                if (attrs.ngModalDialogContent)
+                    scope.ngModalDialogContentStyle = parseStyle(attrs.ngModalDialogContent);
 
                 scope.hideModal = function() {
                     scope.show = false;
@@ -50,7 +60,7 @@ angular.module('nordis', [])
                     scope.show = false;
                 })
             },
-            template: '<div class="ng-modal" ng-show="show"><div class="ng-modal-overlay" ng-click="hideModal()"></div><div class="ng-modal-dialog" ng-style="dialogStyle"><div class="ng-modal-dialog-content" ng-transclude></div></div></div>'
+            template: '<div class="ng-modal" ng-show="show"><div class="ng-modal-overlay" ng-style="ngModalOverlayStyle" ng-click="hideModal()"></div><div class="ng-modal-dialog" ng-style="ngModalDialogStyle"><div class="ng-modal-dialog-content" ng-style="ngModalDialogContentStyle" ng-transclude></div></div></div>'
         };
     })
     .directive('nordisOnload',function(){
@@ -110,7 +120,6 @@ angular.module('nordis', [])
                     hData[sProp] = self.hSecurity[sProp];
                 }
         };
-
         // This function finds the index of an item in a collection.
         self.findIndex = function(hOpts,aItems) {
             if (aItems)
@@ -160,11 +169,11 @@ angular.module('nordis', [])
         };
         // I use this to display an alert modal with option buttons.
         self.confirmCommand = function(hOpts,fnCallback,fnNoCallback) {
-            this.emit('onConfirm',hOpts,fnCallback,fnNoCallback);
+            $rootScope.$broadcast('onConfirm',hOpts,fnCallback,fnNoCallback);
         };
         // Used to handle error messages and such. The event handler is in the header.dot partial.
-        self.alert = function(hMsg) {
-            this.emit('onAlert',hMsg);
+        self.alert = function(hMsg,status) {
+            $rootScope.$broadcast('onAlert',hMsg,status);
         };
         // Grab items from the query string.
         self.query = function(name) {
@@ -205,7 +214,7 @@ angular.module('nordis', [])
                 delete hResult.sFirstID;
                 delete hResult.nMin;
                 delete hResult.nMax;
-
+                delete hResult.hExtras;
                 if (hResult.aObjects) {
                     for (var i = 0; i < hResult.aObjects.length; i++) {
                         self.update(hResult.aObjects[i],cColl,sKey);
@@ -220,13 +229,12 @@ angular.module('nordis', [])
                     console.log(hResult);
             });
         };
-
         self.next = function(cColl,fnResultHandler,fnErrorHandler,sKey) {
             var self = this;
             if ((cColl.nNextID || cColl.sNextID || cColl.nMin) && !cColl.bLoading) {
                 if (cColl.nNextID || cColl.sNextID) cColl.sFirstID = cColl.nNextID || cColl.sNextID;
-                delete (cColl.nNextID);
-                delete (cColl.sNextID);
+                delete cColl.nNextID;
+                delete cColl.sNextID;
                 self.loadPage(cColl,fnResultHandler,fnErrorHandler,sKey);
             }
         };
@@ -250,7 +258,6 @@ angular.module('nordis', [])
                     }
                     return str.join("&");
                 };
-
                 hOpts.sPath += '?';
                 for (var sItem in hOpts.hData) {
                     switch (sItem) {
@@ -325,9 +332,11 @@ angular.module('nordis', [])
                         if (hOpts.oObj) hOpts.oObj.bLoading = false;
                         self.emit('onUnload');
 
-                        if (fnErrorHandler)
+                        if (!data && status == 404)
+                            self.alert('Request failed. Check your connection or try again later.');
+                        else if (fnErrorHandler)
                             fnErrorHandler(data,status);
-                        else
+                        else if (data)
                             self.alert(data);
                     });
             }

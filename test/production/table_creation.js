@@ -32,7 +32,7 @@ module.exports = {
         callback();
     }
     ,tearDown:function(callback) {
-        AppConfig.MySql.execute(null,'DROP TABLE IF EXISTS `'+AppConfig.MySql.hOpts.sSchema+'`.`TempClassTbl`;',null,callback);
+        AppConfig.MySql.execute('DROP TABLE IF EXISTS `'+AppConfig.MySql.hOpts.sSchema+'`.`TempClassTbl`;',null,callback);
     }
     ,createTable:function(test){
         test.expect(1);

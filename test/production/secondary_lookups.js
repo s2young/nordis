@@ -45,7 +45,7 @@ module.exports = {
             }
             ,function(res,cb) {
                 // Next, in MySql.
-                AppConfig.MySql.execute(null,'DELETE FROM _CrossReferenceTbl WHERE sID=?',[self.user.getClass()+':'+self.user.get('email')],cb);
+                AppConfig.MySql.execute('DELETE FROM _CrossReferenceTbl WHERE sID=?',[self.user.getClass()+':'+self.user.get('email')],cb);
             }
             ,function(res,cb) {
                 Base.lookup({sClass:'User',hQuery:{email:'test@test.com'}},cb);

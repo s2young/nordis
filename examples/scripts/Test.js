@@ -8,12 +8,11 @@ var async       = require('async'),
 var nTestSize = 100;
 
 AppConfig.init(function(){
-    Base.lookupP({sClass:'User',hQuery:{id:140591}})
-        .then(function(hResult){
-            console.log(hResult);
-        },function(err){
+    Stats.process(function(err){
+        if (err)
             AppConfig.error(err);
-        })
-        .done(AppConfig.exit);
+        else
+            AppConfig.exit();
+    });
 });
 

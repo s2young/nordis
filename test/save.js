@@ -1,78 +1,81 @@
 var async       = require('async'),
-    Base        = require('./../../lib/Base'),
-    Collection  = require('./../../lib/Collection'),
-    AppConfig         = require('./../../lib/AppConfig');
+    should      = require('should'),
+    Base        = require('./../lib/Base'),
+    Collection  = require('./../lib/Collection'),
+    AppConfig         = require('./../lib/AppConfig');
 
 var nTestSize = 10;
 
 module.exports = {
-    setUp:function(callback) {
-        var createUser = function(n,cback) {
-            var user = Base.lookup({sClass:'User'});
-            user.set('name','TestUser');
-            user.set('email','test'+n+'@test.com');
-            user.save(cback);
-        };
-        var q = async.queue(createUser,10);
-        q.drain = callback;
-        for (var n = 0; n < nTestSize; n++) {
-            q.push(n);
+    save:{
+        before:function(done) {
+            var createUser = function(n,cback) {
+                var user = Base.lookup({sClass:'User'});
+                user.set('name','TestUser');
+                user.set('email','test'+n+'@test.com');
+                user.save(cback);
+            };
+            var q = async.queue(createUser,10);
+            q.drain = done;
+            for (var n = 0; n < nTestSize; n++) {
+                q.push(n);
+            }
+        }
+        ,after:function(done) {
+            async.parallel([
+                function(cb) {
+                    Collection.lookup({sClass:'User',hQuery:{sWhere:'email LIKE \'%@test.com\''}},function(err,cColl){
+                        if (err)
+                            cb(err);
+                        else
+                            cColl.delete(cb);
+                    });
+                }
+                ,function(cb) {
+                    Collection.lookupAll({sClass:'Sale'},function(err,cColl){
+                        if (err)
+                            cb(err);
+                        else
+                            cColl.delete(cb);
+                    });
+                }
+            ],done);
+        }
+        ,lookupViaRedis:function(done){
+
+            var nTotalTime = 0;
+            var nTotalTime2 = 0;
+            var lookupUser = function(n,cb) {
+                var nStart = new Date().getTime();
+                Base.lookup({sClass:'User',hQuery:{email:'test'+n+'@test.com'}},function(err,user){
+                    nTotalTime += (new Date().getTime()-nStart);
+                    user.get('email').should.equal('test'+n+'@test.com');
+
+                    // Look up via primary key.
+                    var nStart2 = new Date().getTime();
+                    var hQuery = {};
+                    hQuery[AppConfig.hClasses.User.sKeyProperty] = user.getKey();
+
+                    Base.lookup({sClass:'User',hQuery:hQuery},function(err,user2){
+                        nTotalTime2 += (new Date().getTime()-nStart2);
+                        user2.get('email').should.equal('test'+n+'@test.com');
+                        cb();
+                    });
+                });
+            };
+            var q = async.queue(lookupUser,10);
+            q.drain = function(err){
+                AppConfig.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup via email;');
+                AppConfig.log('Total time (Redis): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
+                done();
+            };
+
+            for (var n = 0; n < nTestSize; n++) {
+                q.push(n);
+            }
         }
     }
-    ,tearDown:function(callback) {
-        async.parallel([
-            function(cb) {
-                Collection.lookup({sClass:'User',hQuery:{sWhere:'email LIKE \'%@test.com\''}},function(err,cColl){
-                    if (err)
-                        cb(err);
-                    else
-                        cColl.delete(cb);
-                });
-            }
-            ,function(cb) {
-                Collection.lookupAll({sClass:'Sale'},function(err,cColl){
-                    if (err)
-                        cb(err);
-                    else
-                        cColl.delete(cb);
-                });
-            }
-        ],callback);
-    }
-    ,lookupViaRedis:function(test){
-        test.expect(nTestSize*2);
 
-        var nTotalTime = 0;
-        var nTotalTime2 = 0;
-        var lookupUser = function(n,cb) {
-            var nStart = new Date().getTime();
-            Base.lookup({sClass:'User',hQuery:{email:'test'+n+'@test.com'}},function(err,user){
-                nTotalTime += (new Date().getTime()-nStart);
-                test.equal(user.get('email'),'test'+n+'@test.com');
-
-                // Look up via primary key.
-                var nStart2 = new Date().getTime();
-                var hQuery = {};
-                hQuery[AppConfig.hClasses.User.sKeyProperty] = user.getKey();
-
-                Base.lookup({sClass:'User',hQuery:hQuery},function(err,user2){
-                    nTotalTime2 += (new Date().getTime()-nStart2);
-                    test.equal(user2.get('email'),'test'+n+'@test.com');
-                    cb();
-                });
-            });
-        };
-        var q = async.queue(lookupUser,10);
-        q.drain = function(err){
-            AppConfig.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup via email;');
-            AppConfig.log('Total time (Redis): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
-            AppConfig.wrapTest(err,test);
-        };
-
-        for (var n = 0; n < nTestSize; n++) {
-            q.push(n);
-        }
-    }
 //    ,lookupViaMySql:function(test){
 //        test.expect((nTestSize*2));
 //

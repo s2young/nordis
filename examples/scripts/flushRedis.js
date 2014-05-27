@@ -1,53 +1,46 @@
-var async   = require('async'),
-    AppConfig     =   require('./../../lib/AppConfig');
+var AppConfig   = require('./../../lib/AppConfig'),
+    async       = require('async');
 
-process.env.sApp = 'flushRedis.js';
-
-var nDb = 0
-process.argv.forEach(function (val, index, array) {
-    switch (index) {
-        case 2:
-            nDb = val;
-            break;
-    }
-});
 /**
- * This deletes everything in redis, except the nSeedID which Nordis uses to hand out primary key ids. Don't remove that key! If you do you'll need to find the highest primary key id in your data
- * set and reset the nSeedID key.
+ * This deletes everything in redis!! Don't screw with it.
  */
-AppConfig.Redis.acquire(function(err,oClient){
-    if (nDb)
-        oClient.select(nDb);
+var aFound = [];
+
+var deleteKeys = function(oClient,fnCallback) {
     oClient.keys('*',function(err,aKeys){
-        if (aKeys && aKeys.length) {
-            var flushKey = function(sKey,callback) {
-                if (sKey)
+        console.log('FOUND '+aKeys.length+' IN REDIS ON '+oClient.sDbAlias+'.');
+        if (!aKeys.length) {
+            fnCallback();
+        } else
+            async.forEachLimit(aKeys,20,function(sKey,callback){
+                console.log(sKey);
+                console.log(sKey.match(/nSeedID/));
+                if (!sKey.match(/nSeedID/)) {
+                    AppConfig.info('Del: '+sKey);
+                    aFound.push(1);
                     oClient.del(sKey,callback);
-                else
-                    callback();
-            };
-
-            var q = async.queue(flushKey,100000);
-            for (var i=0; i < aKeys.length; i++) {
-                // We need to preserve the nSeedID key so we don't overwrite anything in mysql.
-                var aMatches = aKeys[i].match(new RegExp(/(nSeedID|sess\:)/i));
-                if (!aMatches) {
-                    console.log(aKeys[i]);
-                    q.push(aKeys[i]);
                 } else
-                    q.push('');
-            }
+                    callback();
+            },fnCallback);
+    });
+}
 
-            q.drain = function(){
-                console.log('All done.');
-                AppConfig.exit();
-            }
-        } else {
-            console.log('nothing to do.');
-            AppConfig.exit();
+AppConfig.init(null,function(){
+    async.series([
+        function(callback) {
+            AppConfig.Redis.acquire(function(err,oClient){
+                deleteKeys(oClient,callback);
+            },'default');
         }
+        ,function(callback) {
+            AppConfig.Redis.acquire(function(err,oClient){
+                deleteKeys(oClient,callback);
+            },'statsdb');
+        }
+    ],function(err){
+        if (err) AppConfig.error(err);
 
-
-
+        AppConfig.info('REMOVED '+aFound.length+' KEYS');
+        AppConfig.exit();
     });
 });

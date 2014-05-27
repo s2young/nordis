@@ -26,7 +26,8 @@
   }
   ,"devDependencies":{
     "express":"*"
-    ,"nodeunit":"*"
+    ,"should":"*"
+    ,"mocha":"*"
   }
 }
 

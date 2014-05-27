@@ -310,7 +310,8 @@ module.exports.hSettings = {
                 ,sClass:'User'
                 ,sAlias:'users'
                 ,fnProcessQuery:function(hOpts,AppConfig){
-                    var sWhere = (hOpts && hOpts.dStart && hOpts.dEnd) ? ' created >='+hOpts.dStart.getTime()+' AND created<'+hOpts.dEnd.getTime() : '';
+                    var sWhere = (hOpts && hOpts.nMin && hOpts.nMax) ? ' created >='+hOpts.nMin+' AND created<'+hOpts.nMax : 'id IS NOT NULL';
+                    console.log(sWhere);
                     return {sWhere:sWhere};
                 }
             }

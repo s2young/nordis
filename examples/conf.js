@@ -18,7 +18,7 @@ module.exports.hSettings = {
                     sHost:'localhost',
                     sUser:'root',
                     sPassword:'',
-                    nMaxConnections:20,
+                    nMaxConnections:2,
                     nTimeoutMilliseconds:10000,
                     bDebugMode:false,
                     bSkip:false

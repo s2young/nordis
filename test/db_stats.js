@@ -39,9 +39,8 @@ module.exports = {
                     oApp.loadExtras({users:{hExtras:{alltime:true}}},cb);
                 }
                 ,function(n,cb) {
-                    if (oApp.users && oApp.users.alltime && oApp.users.alltime.nTotal) {
+                    if (oApp.users && oApp.users.alltime && oApp.users.alltime.nTotal)
                         current_count = oApp.users.alltime.first().get('count');
-                    }
                     cb();
                 }
             ],done);
@@ -69,7 +68,7 @@ module.exports = {
                         for (var n = 0; n < nTestSize; n++) {
                             q.push(n);
                         }
-                        async.forEach(q,function(n,cb) {
+                        async.forEachLimit(q,10,function(n,cb) {
                             var user = Base.lookup({sClass:'User'});
                             user.set('name',dNow.getTime());
                             user.set('email','testfollower'+n+'@test.com');

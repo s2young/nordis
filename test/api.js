@@ -1,6 +1,7 @@
 var express     = require('express'),
     request     = require('request'),
     async       = require('async'),
+    should      = require('should'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
     Middleware  = require('./../lib/Utils/Middleware'),
@@ -58,7 +59,7 @@ module.exports = {
                         else {
                             var exp_app = express();
                             server = exp_app.listen(nPort);
-                            exp_app.use(express.bodyParser());
+                            exp_app.use(require('body-parser')());
                             exp_app.use(Middleware.apiParser);
                             cb();
                         }
@@ -86,7 +87,10 @@ module.exports = {
                 ,function(ignore,cb){
                     if (server)
                         server.close();
-                    cb();
+
+                    console.log(AppConfig.MySql.hTrace);
+
+                    cb(null,null);
                 }
             ],done);
         }
@@ -94,6 +98,7 @@ module.exports = {
 
             Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey())
                 .then(function(hResult){
+                    console.log('WHA? '+hResult.id+','+user.getKey());
                     hResult.id.should.equal(user.getKey());
                 })
                 .then(null,function(err){throw err})

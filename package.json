@@ -13,9 +13,10 @@
   }
   ,"dependencies": {
       "async":"*"
+      ,"body-parser":"*"
       ,"moment":"*"
       ,"request":"*"
-      ,"mysql":"*"
+      ,"mysql":"2.0.*"
       ,"dot":"*"
       ,"promise":"*"
       ,"redis":"*"

@@ -9,7 +9,7 @@ var async       = require('async'),
  * @type {number}
  */
 
-var nTestSize = 2;
+var nTestSize = 20;
 var user;
 
 module.exports = {

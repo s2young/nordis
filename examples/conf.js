@@ -311,7 +311,6 @@ module.exports.hSettings = {
                 ,sAlias:'users'
                 ,fnProcessQuery:function(hOpts,AppConfig){
                     var sWhere = (hOpts && hOpts.nMin && hOpts.nMax) ? ' created >='+hOpts.nMin+' AND created<'+hOpts.nMax : 'id IS NOT NULL';
-                    console.log(sWhere);
                     return {sWhere:sWhere};
                 }
             }

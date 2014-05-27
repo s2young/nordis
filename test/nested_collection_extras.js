@@ -108,10 +108,6 @@ module.exports = {
                                 cColl.delete(cb);
                         });
                     }
-                    ,function(cb){
-                        AppConfig.printTrace();
-                        cb();
-                    }
                 ],done);
             }
             ,loadFollowersOfFollowers:function(done){

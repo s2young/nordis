@@ -8,11 +8,6 @@ var async       = require('async'),
 var nTestSize = 100;
 
 AppConfig.init(function(){
-    Stats.process(function(err){
-        if (err)
-            AppConfig.error(err);
-        else
-            AppConfig.exit();
-    });
+
 });
 

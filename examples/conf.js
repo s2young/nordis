@@ -19,8 +19,6 @@ module.exports.hSettings = {
                     sUser:'root',
                     sPassword:'',
                     nMaxConnections:2,
-                    nTimeoutMilliseconds:10000,
-                    bDebugMode:false,
                     bSkip:false
                 }
                 ,secondary:{
@@ -29,8 +27,6 @@ module.exports.hSettings = {
                     sUser:'root',
                     sPassword:'',
                     nMaxConnections:10,
-                    nTimeoutMilliseconds:0,
-                    bDebugMode:false,
                     bSkip:false
                 }
             },

@@ -10,9 +10,7 @@ module.exports.hSettings = {
                     sHost:'255.255.255.0',
                     sUser:'root',
                     sPass:',',
-                    nMaxConnections:150,
-                    nTimeoutMilliseconds:30000,
-                    bDebugMode:false
+                    nMaxConnections:150
                 }
             },
             Redis:{

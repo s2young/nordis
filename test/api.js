@@ -74,6 +74,7 @@ module.exports = {
                     Collection.lookup({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
                 }
                 ,function(users,cb) {
+                    console.log(users.toHash());
                     users.delete(cb);
                 }
                 ,function(ignore,cb){
@@ -87,9 +88,6 @@ module.exports = {
                 ,function(ignore,cb){
                     if (server)
                         server.close();
-
-                    console.log(AppConfig.MySql.hTrace);
-
                     cb(null,null);
                 }
             ],done);
@@ -98,7 +96,7 @@ module.exports = {
 
             Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey())
                 .then(function(hResult){
-                    console.log('WHA? '+hResult.id+','+user.getKey());
+                    console.log(hResult);
                     hResult.id.should.equal(user.getKey());
                 })
                 .then(null,function(err){throw err})

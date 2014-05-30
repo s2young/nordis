@@ -2,11 +2,11 @@ var async       = require('async'),
     request     = require('request'),
     should      = require('should'),
     express     = require('express'),
-    Base        = require('./../../lib/Base'),
-    Stats       = require('./../../lib/Utils/Stats'),
-    Collection  = require('./../../lib/Collection'),
-    Middleware  = require('./../../lib/Utils/Middleware'),
-    AppConfig   = require('./../../lib/AppConfig');
+    Base        = require('./../lib/Base'),
+    Stats       = require('./../lib/Utils/Stats'),
+    Collection  = require('./../lib/Collection'),
+    Middleware  = require('./../lib/Utils/Middleware'),
+    AppConfig   = require('./../lib/AppConfig');
 
 /**
  * This test is all about confirming the accuracy of the stats-tracking capabilities of Nordis. There are a couple

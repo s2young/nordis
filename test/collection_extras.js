@@ -2,7 +2,7 @@ var async       = require('async'),
     should      = require('should'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    Config      = Base.prototype.Config;
+    Config      = require('./../lib/AppConfig');
 
 /**
  * This test shows the creation of a user and a number of follows. Once the follows are created, we can look up the user and his follows in a single transaction.

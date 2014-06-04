@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    Config      = Base.prototype.Config;
+    Config      = require('./../lib/AppConfig');
 
 /**
  * This test creates follows on a user and shows how to look up a user, his followers and his followers followers.

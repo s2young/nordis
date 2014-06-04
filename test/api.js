@@ -5,7 +5,7 @@ var express     = require('express'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
     Middleware  = require('./../lib/Utils/Middleware'),
-    Config      = Base.prototype.Config;
+    Config      = require('./../lib/AppConfig');
 
 var nTestSize = 10;
 var nPort = 2002; // Port on which to run api instance during test.

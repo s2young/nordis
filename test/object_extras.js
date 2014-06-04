@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    Config      = Base.prototype.Config;
+    Config      = require('./../lib/AppConfig');
 
 var user; var follower;
 module.exports = {

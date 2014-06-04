@@ -34,7 +34,7 @@ module.exports = {
                 async.series([
                     function(cb){
                         // Take note of amount of memory in Redis before test begins.
-                        Config.get('Redis').acquire(function(err,oClient){
+                        Config.Redis.acquire(function(err,oClient){
                             if (err)
                                 cb(err);
                             else {

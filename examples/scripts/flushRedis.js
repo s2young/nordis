@@ -28,12 +28,12 @@ var deleteKeys = function(oClient,fnCallback) {
 AppConfig.init(null,function(){
     async.series([
         function(callback) {
-            AppConfig.get('Redis').acquire(function(err,oClient){
+            AppConfig.Redis.acquire(function(err,oClient){
                 deleteKeys(oClient,callback);
             },'default');
         }
         ,function(callback) {
-            AppConfig.get('Redis').acquire(function(err,oClient){
+            AppConfig.Redis.acquire(function(err,oClient){
                 deleteKeys(oClient,callback);
             },'statsdb');
         }

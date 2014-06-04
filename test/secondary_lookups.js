@@ -32,7 +32,7 @@ module.exports = {
                 async.waterfall([
                     function(cb) {
                         // First, let's remove the _CrossReferenceTbl record for this lookup in redis.
-                        Config.get('Redis').acquire(function(err,oClient){
+                        Config.Redis.acquire(function(err,oClient){
                             if (err)
                                 cb(err);
                             else
@@ -41,7 +41,7 @@ module.exports = {
                     }
                     ,function(res,cb) {
                         // Next, in MySql.
-                        Config.get('MySql').execute('DELETE FROM _CrossReferenceTbl WHERE sID=?',[user.getClass()+':'+user.get('email')],cb);
+                        Config.MySql.execute('DELETE FROM _CrossReferenceTbl WHERE sID=?',[user.getClass()+':'+user.get('email')],cb);
                     }
                     ,function(res,cb) {
                         Base.lookup({sClass:'User',hQuery:{email:'test@test.com'}},cb);

@@ -11,7 +11,7 @@ AppConfig.init(function(){
         else
             console.log(user);
 
-        console.log(AppConfig.get('MySql').hTrace);
+        console.log(AppConfig.MySql.hTrace);
     })
 });
 

@@ -34,7 +34,7 @@ module.exports = {
                 done();
             }
             ,afterEach:function(done) {
-                Config.get('MySql').execute('DROP TABLE IF EXISTS `'+Config.get('MySql').hOpts.sSchema+'`.`TempClassTbl`;',null,done);
+                Config.MySql.execute('DROP TABLE IF EXISTS `'+Config.MySql.hOpts.sSchema+'`.`TempClassTbl`;',null,done);
             }
             ,createTable:function(done){
 

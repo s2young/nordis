@@ -311,7 +311,7 @@ angular.module('nordis', ['ngStorage'])
             else
                 self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                     delete res.txid;
-                    $db[sKey] = res;
+                    if (sKey) $db[sKey] = res;
                     deferred.resolve(res);
                 },deferred.reject);
             return deferred.promise;

@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    AppConfig         = require('./../lib/AppConfig');
+    Config      = Base.prototype.Config;
 
 var user; var follower;
 module.exports = {
@@ -56,14 +56,14 @@ module.exports = {
                         nStart = new Date().getTime();
                         // Lookup user by primary, numeric key and request some extras.
                         var hQuery = {};
-                        hQuery[AppConfig.hClasses.User.sKeyProperty] = user.getKey();
+                        hQuery[Config.getClasses('User').sKeyProperty] = user.getKey();
                         Base.lookup({
                             sClass:'User'
                             ,hQuery:hQuery
                         },callback);
                     }
                     ,function(result,callback){
-                        AppConfig.log(result.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
+                        Config.log(result.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
                         result.getKey().should.equal(user.getKey());
                         callback();
                     }
@@ -91,7 +91,7 @@ module.exports = {
                         },callback);
                     }
                     ,function(result,callback){
-                        AppConfig.log(result.sSource+' lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms');
+                        Config.log(result.sSource+' lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms');
                         result.getKey().should.equal(user.getKey());
                         result.referring_user.getKey().should.equal(user.get('referrer_id')); // Unless you also change the aKey settings for this relationship, changing the primary key for giggles could break this one.
                         result.sSource.should.equal('Redis');
@@ -134,10 +134,10 @@ module.exports = {
                 
                 var nStart= new Date().getTime();
                 var hQuery = {};
-                hQuery[AppConfig.hClasses.User.sKeyProperty] = user.getKey();
+                hQuery[Config.getClasses('User').sKeyProperty] = user.getKey();
 
                 Base.lookup({sClass:'User',hQuery:hQuery,sSource:'MySql'},function(err,result){
-                    AppConfig.log(result.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
+                    Config.log(result.sSource+' lookup time for primary key lookup of user only: '+(new Date().getTime()-nStart)+' ms');
                     result.sSource.should.equal('MySql');
                     result.getKey().should.equal(user.getKey());
                     done();

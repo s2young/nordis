@@ -5,8 +5,7 @@ var async       = require('async'),
     Base        = require('./../lib/Base'),
     Stats       = require('./../lib/Utils/Stats'),
     Collection  = require('./../lib/Collection'),
-    Middleware  = require('./../lib/Utils/Middleware'),
-    AppConfig   = require('./../lib/AppConfig');
+    Middleware  = require('./../lib/Utils/Middleware');
 
 /**
  * This test is all about confirming the accuracy of the stats-tracking capabilities of Nordis. There are a couple

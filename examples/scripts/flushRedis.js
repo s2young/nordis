@@ -23,17 +23,17 @@ var deleteKeys = function(oClient,fnCallback) {
                     callback();
             },fnCallback);
     });
-}
+};
 
 AppConfig.init(null,function(){
     async.series([
         function(callback) {
-            AppConfig.Redis.acquire(function(err,oClient){
+            AppConfig.get('Redis').acquire(function(err,oClient){
                 deleteKeys(oClient,callback);
             },'default');
         }
         ,function(callback) {
-            AppConfig.Redis.acquire(function(err,oClient){
+            AppConfig.get('Redis').acquire(function(err,oClient){
                 deleteKeys(oClient,callback);
             },'statsdb');
         }

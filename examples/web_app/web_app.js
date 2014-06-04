@@ -1,5 +1,4 @@
 var express     = require('express'),
-    doT         = require('dot'),
     async       = require('async'),
     Template    = require('./../../lib/Utils/Template'),// In your app, this needs to be require('nordis').Template - or use your own templating engine of course.
     AppConfig   = require('./../../lib/AppConfig'),// In your app, this needs to be require('nordis').AppConfig
@@ -45,7 +44,7 @@ function render(req,res,err,sPath) {
             res.end(html);
         }
     });
-};
+}
 
 /**
  * ExpressJS is the actual web server software that powers the site.
@@ -146,7 +145,7 @@ AppConfig.init({
     if (err)
         AppConfig.fatal(err);
     else {
-        Template.defs.hClasses = AppConfig.hClasses;
+        Template.defs.hClasses = AppConfig.getClasses();
         configureExpress();
         configureRoutes();
     }

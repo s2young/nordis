@@ -2,7 +2,7 @@ var async       = require('async'),
     should      = require('should'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    AppConfig         = require('./../lib/AppConfig');
+    Config      = Base.prototype.Config;
 
 /**
  * This test creates a user and n follows (defined by nTestSize). Then, each test shows how to get a subset of those
@@ -21,12 +21,12 @@ module.exports = {
             beforeEach:function(done) {
 
                 if (nTestSize < 5 || nTestSize%2 || nTestSize%2)
-                    AppConfig.error('nTestSize must be at least 5 and be divisble by 2 and 5.');
+                    Config.error('nTestSize must be at least 5 and be divisble by 2 and 5.');
                 else
                     async.series([
                         function(cb){
                             var hQuery = {};
-                            hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                            hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
                             Collection.lookup({sClass:'Follow',hQuery:hQuery},function(err,cColl){
                                 if (err)
                                     cb(err);
@@ -36,7 +36,7 @@ module.exports = {
                         }
                         ,function(cb){
                             var hQuery = {};
-                            hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                            hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
                             Collection.lookup({sClass:'User',hQuery:hQuery},function(err,cColl){
                                 if (err)
                                     cb(err);
@@ -89,7 +89,7 @@ module.exports = {
                 async.series([
                     function(cb){
                         var hQuery = {};
-                        hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                        hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
                         Collection.lookup({sClass:'Follow',hQuery:hQuery},function(err,cColl){
                             if (err)
                                 cb(err);
@@ -99,7 +99,7 @@ module.exports = {
                     }
                     ,function(cb){
                         var hQuery = {};
-                        hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                        hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
                         Collection.lookup({sClass:'User',hQuery:hQuery},function(err,cColl){
                             if (err)
                                 cb(err);
@@ -155,7 +155,7 @@ module.exports = {
                         user.loadExtras({follows:{nSize:(nTestSize/5)}},cb);
                     }
                     ,function(o,cb){
-                        //AppConfig.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
+                        //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
                         // Confirm paging is correct by testing the rank of the first and last items.
                         user.follows.first().get('rank').should.equal((nTestSize-1));
                         user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
@@ -163,7 +163,7 @@ module.exports = {
                         user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
                     }
                     ,function(o,cb){
-                        //AppConfig.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
+                        //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
                         // Confirm paging is correct by testing the rank of the first and last items.
                         user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
                         user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
@@ -171,7 +171,7 @@ module.exports = {
                         user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
                     }
                     ,function(o,cb){
-                        //AppConfig.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
+                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
                         // Confirm paging is correct by testing the rank of the first and last items.
                         user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
                         user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
@@ -179,7 +179,7 @@ module.exports = {
                         user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
                     }
                     ,function(o,cb){
-                        //AppConfig.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
+                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
                         // Confirm paging is correct by testing the rank of the first and last items.
                         user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
                         user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));
@@ -260,7 +260,7 @@ module.exports = {
                         user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5)}},cb);
                     }
                     ,function(o,cb){
-                        //AppConfig.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
+                        //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
                         // Confirm paging is correct by testing the rank of the first and last items.
                         user.follows.first().get('rank').should.equal((nTestSize-1));
                         user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
@@ -268,7 +268,7 @@ module.exports = {
                         user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
                     }
                     ,function(o,cb){
-                        //AppConfig.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
+                        //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
                         // Confirm paging is correct by testing the rank of the first and last items.
                         user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
                         user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
@@ -276,7 +276,7 @@ module.exports = {
                         user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
                     }
                     ,function(o,cb){
-                        //AppConfig.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
+                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
                         // Confirm paging is correct by testing the rank of the first and last items.
                         user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
                         user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
@@ -284,7 +284,7 @@ module.exports = {
                         user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
                     }
                     ,function(o,cb){
-                        //AppConfig.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
+                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
                         // Confirm paging is correct by testing the rank of the first and last items.
                         user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
                         user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));

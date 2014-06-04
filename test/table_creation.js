@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    AppConfig         = require('./../lib/AppConfig');
+    Config      = Base.prototype.Config;
 
 /**
  * This test validates that Nordis will properly create tables if missing from the MySql schema.
@@ -15,7 +15,7 @@ module.exports = {
                 // This will allow us to both create and drop the table during the test.
                 // The assigned nClass will be a timestamp, to guarantee uniqueness.
                 var nClass = new Date().getTime();
-                AppConfig.hClasses.TempClass = {
+                Config.hClasses.TempClass = {
                     hProperties:{
                         id:{
                             sType:'Number'
@@ -29,12 +29,12 @@ module.exports = {
                     }
                     ,nClass:nClass
                 };
-                AppConfig.processClass('TempClass');
+                Config.processClass('TempClass');
 
                 done();
             }
             ,afterEach:function(done) {
-                AppConfig.MySql.execute('DROP TABLE IF EXISTS `'+AppConfig.MySql.hOpts.sSchema+'`.`TempClassTbl`;',null,done);
+                Config.get('MySql').execute('DROP TABLE IF EXISTS `'+Config.get('MySql').hOpts.sSchema+'`.`TempClassTbl`;',null,done);
             }
             ,createTable:function(done){
 
@@ -61,11 +61,11 @@ module.exports = {
                     ,function(oResult,cb){
                         (oResult.getKey()===null).should.be.ok;
                         // Let's add a property to the TempClass.aProperties and then query against it.
-                        AppConfig.hClasses.TempClass.hProperties.email = {
+                        Config.hClasses.TempClass.hProperties.email = {
                             sType:'String'
                             ,bUnique:true
                         };
-                        AppConfig.processClass('TempClass');
+                        Config.processClass('TempClass');
                         Base.lookup({sClass:'TempClass',hQuery:{email:'demo@test.com'}},cb);
                     }
                     ,function(oObj,cb){

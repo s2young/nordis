@@ -5,7 +5,7 @@ var express     = require('express'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
     Middleware  = require('./../lib/Utils/Middleware'),
-    AppConfig   = require('./../lib/AppConfig');
+    Config      = Base.prototype.Config;
 
 var nTestSize = 10;
 var nPort = 2002; // Port on which to run api instance during test.
@@ -53,7 +53,7 @@ module.exports = {
                 }
                 // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
                 ,function(cb) {
-                    AppConfig.init(null,function(err){
+                    Config.init(null,function(err){
                         if (err)
                             cb(err);
                         else {
@@ -79,7 +79,7 @@ module.exports = {
                 }
                 ,function(ignore,cb){
                     var hQuery = {};
-                    hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                    hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
                     Collection.lookup({sClass:'Follow',hQuery:hQuery},cb);
                 }
                 ,function(follows,cb) {

@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    AppConfig         = require('./../lib/AppConfig');
+    Config      = Base.prototype.Config;
 
 var user;
 
@@ -32,7 +32,7 @@ module.exports = {
                 async.waterfall([
                     function(cb) {
                         // First, let's remove the _CrossReferenceTbl record for this lookup in redis.
-                        AppConfig.Redis.acquire(function(err,oClient){
+                        Config.get('Redis').acquire(function(err,oClient){
                             if (err)
                                 cb(err);
                             else
@@ -41,7 +41,7 @@ module.exports = {
                     }
                     ,function(res,cb) {
                         // Next, in MySql.
-                        AppConfig.MySql.execute('DELETE FROM _CrossReferenceTbl WHERE sID=?',[user.getClass()+':'+user.get('email')],cb);
+                        Config.get('MySql').execute('DELETE FROM _CrossReferenceTbl WHERE sID=?',[user.getClass()+':'+user.get('email')],cb);
                     }
                     ,function(res,cb) {
                         Base.lookup({sClass:'User',hQuery:{email:'test@test.com'}},cb);

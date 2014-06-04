@@ -1,7 +1,7 @@
 var async       = require('async'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    AppConfig         = require('./../lib/AppConfig');
+    Config      = Base.prototype.Config;
 
 /**
  * This test creates follows on a user and shows how to look up a user, his followers and his followers followers.
@@ -18,7 +18,7 @@ module.exports = {
             beforeEach:function(done) {
 
                 if (nTestSize < 2) {
-                    AppConfig.error('nTestSize must be at least 2.');
+                    Config.error('nTestSize must be at least 2.');
                 } else
                     async.series([
                         function(cb) {
@@ -90,7 +90,7 @@ module.exports = {
                 async.series([
                     function(cb){
                         var hQuery = {};
-                        hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                        hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
                         Collection.lookup({sClass:'Follow',hQuery:hQuery},function(err,cColl){
                             if (err)
                                 cb(err);
@@ -100,7 +100,7 @@ module.exports = {
                     }
                     ,function(cb){
                         var hQuery = {};
-                        hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                        hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
                         Collection.lookup({sClass:'User',hQuery:hQuery},function(err,cColl){
                             if (err)
                                 cb(err);

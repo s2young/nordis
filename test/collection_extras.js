@@ -2,7 +2,7 @@ var async       = require('async'),
     should      = require('should'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
-    AppConfig   = require('./../lib/AppConfig');
+    Config      = Base.prototype.Config;
 
 /**
  * This test shows the creation of a user and a number of follows. Once the follows are created, we can look up the user and his follows in a single transaction.
@@ -34,7 +34,7 @@ module.exports = {
                 async.series([
                     function(cb){
                         // Take note of amount of memory in Redis before test begins.
-                        AppConfig.Redis.acquire(function(err,oClient){
+                        Config.get('Redis').acquire(function(err,oClient){
                             if (err)
                                 cb(err);
                             else {
@@ -86,7 +86,7 @@ module.exports = {
                         }
                     }
                     ,function(cb) {
-                        AppConfig.log('User per record writes (Redis + MySql): '+Math.round(nUserWriteTotal/(nTestSize+1))+'ms');
+                        Config.log('User per record writes (Redis + MySql): '+Math.round(nUserWriteTotal/(nTestSize+1))+'ms');
                         cb();
                     }
                 ],done);
@@ -98,7 +98,7 @@ module.exports = {
                     }
                     ,function(res,cb) {
                         var nEndingMemory = res.match(/used_memory\:([^\r]*)/)[1];
-                        AppConfig.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
+                        Config.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
 
                         Collection.lookup({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
                     }
@@ -107,7 +107,7 @@ module.exports = {
                     }
                     ,function(ignore,cb){
                         var hQuery = {};
-                        hQuery[AppConfig.hClasses.Follow.sKeyProperty] = 'NOT NULL';
+                        hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
                         Collection.lookup({sClass:'Follow',hQuery:hQuery},cb);
                     }
                     ,function(cColl,cb) {
@@ -134,7 +134,7 @@ module.exports = {
                     }
                     ,function(user,cb){
                         nTotal = new Date().getTime()-nStart;
-                        AppConfig.log('Extras lookup: '+nTotal+' ms');
+                        Config.log('Extras lookup: '+nTotal+' ms');
                         user.follows.nTotal.should.equal(nTestSize);
                         cb(null,null);
                     }
@@ -143,12 +143,12 @@ module.exports = {
                         // Serialize just the user.
                         user.toHash();
                         nTotal = new Date().getTime() - nStart;
-                        AppConfig.log('Serialize just user: '+nTotal+' ms');
+                        Config.log('Serialize just user: '+nTotal+' ms');
                         // Now benchmark serializing the user and his follows.
                         nStart = new Date().getTime();
                         user.toHash({follows:true});
                         nTotal = new Date().getTime() - nStart;
-                        AppConfig.log('Serialize user & '+nTestSize+' follows: '+nTotal+' ms');
+                        Config.log('Serialize user & '+nTestSize+' follows: '+nTotal+' ms');
 
                         cb();
                     }

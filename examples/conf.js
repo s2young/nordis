@@ -160,9 +160,11 @@ module.exports.hSettings = {
                     ,referring_user:{
                         sType:'Object'
                         ,sClass:'User'
-                        ,aKey:['referrer_id','id']
                         ,fnQuery:function(oSelf){
                             return {id:oSelf.get('referrer_id')}
+                        }
+                        ,fnCreate:function(oUser){
+                            return {id:oUser.getKey()};
                         }
                     }
                 }
@@ -236,17 +238,21 @@ module.exports.hSettings = {
                     followed_user:{
                         sType:'Object'
                         ,sClass:'User'
-                        ,aKey:['followed_id','id']
                         ,fnQuery:function(oSelf){
                             return {id:oSelf.get('followed_id')}
+                        }
+                        ,fnCreate:function(oUser){
+                            return {id:oUser.getKey()};
                         }
                     }
                     ,follower_user:{
                         sType:'Object'
                         ,sClass:'User'
-                        ,aKey:['follower_id','id']
                         ,fnQuery:function(oSelf){
                             return {id:oSelf.get('follower_id')}
+                        }
+                        ,fnCreate:function(oUser){
+                            return {id:oUser.getKey()};
                         }
                     }
                 }

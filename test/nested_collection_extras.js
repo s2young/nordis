@@ -89,9 +89,7 @@ module.exports = {
             ,afterEach:function(done) {
                 async.series([
                     function(cb){
-                        var hQuery = {};
-                        hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
-                        Collection.lookup({sClass:'Follow',hQuery:hQuery},function(err,cColl){
+                        Collection.lookupAll({sClass:'Follow'},function(err,cColl){
                             if (err)
                                 cb(err);
                             else
@@ -99,9 +97,7 @@ module.exports = {
                         });
                     }
                     ,function(cb){
-                        var hQuery = {};
-                        hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
-                        Collection.lookup({sClass:'User',hQuery:hQuery},function(err,cColl){
+                        Collection.lookupAll({sClass:'User'},function(err,cColl){
                             if (err)
                                 cb(err);
                             else

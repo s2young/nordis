@@ -71,16 +71,13 @@ module.exports = {
 
             async.waterfall([
                 function(cb) {
-                    Collection.lookup({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
+                    Collection.lookupAll({sClass:'User'},cb);
                 }
                 ,function(users,cb) {
-                    console.log(users.toHash());
                     users.delete(cb);
                 }
                 ,function(ignore,cb){
-                    var hQuery = {};
-                    hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
-                    Collection.lookup({sClass:'Follow',hQuery:hQuery},cb);
+                    Collection.lookupAll({sClass:'Follow'},cb);
                 }
                 ,function(follows,cb) {
                     follows.delete(cb);
@@ -96,7 +93,6 @@ module.exports = {
 
             Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey())
                 .then(function(hResult){
-                    console.log(hResult);
                     hResult.id.should.equal(user.getKey());
                 })
                 .then(null,function(err){throw err})
@@ -159,6 +155,17 @@ module.exports = {
             Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey()+'/follows')
                 .then(function(hResult){
                     hResult.nTotal.should.equal(nTestSize);
+                })
+                .then(null,function(err){throw err})
+                .done(done);
+
+        }
+        ,loadFollowersNatively:function(done) {
+
+            Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})
+                .then(function(hResult){
+                    hResult.follows.nTotal.should.equal(nTestSize);
+                    hResult.follows.sSource.should.equal('Redis');
                 })
                 .then(null,function(err){throw err})
                 .done(done);

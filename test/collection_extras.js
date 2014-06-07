@@ -18,10 +18,6 @@ var async       = require('async'),
 var nTestSize = 10;
 var oRedisClient;
 var nStartingMemory;
-// Keep follows created during setup in an array for use later.
-var aFollows = [];
-// Also, keep track of the follower users created so we can clean them up at the end.
-var aFollowerUserIDs = [];
 var user;
 
 module.exports = {
@@ -56,7 +52,7 @@ module.exports = {
                     ,function(cb) {
                         nUserWriteTotal += new Date().getTime()-nStart;
                         // Create n follower records  (n = nTestSize);
-                        var createFollower = function(n,callback) {
+                        async.times(nTestSize,function(n,callback){
                             var follower_user = Base.lookup({sClass:'User'});
                             follower_user.set('name','TestFollower '+n);
                             follower_user.set('email','testfollower'+n+'@test.com');
@@ -66,24 +62,15 @@ module.exports = {
                                     callback(err);
                                 else {
                                     nUserWriteTotal += new Date().getTime()-nStart;
-                                    aFollowerUserIDs.push(follower_user.getKey());
                                     var follow = Base.lookup({sClass:'Follow'});
                                     follow.set('followed_id',user.getKey());
                                     follow.set('follower_id',follower_user.getKey());
                                     follow.set('rank',n);
-                                    follow.save(function(err){
-                                        aFollows.push(follow);
-                                        callback(err);
-                                    });
+                                    follow.save(callback);
                                 }
                             });
-                        };
-                        var q = async.queue(createFollower,1000);
-                        q.drain = cb;
+                        },cb)
 
-                        for (var n = 0; n < nTestSize; n++) {
-                            q.push(n);
-                        }
                     }
                     ,function(cb) {
                         Config.log('User per record writes (Redis + MySql): '+Math.round(nUserWriteTotal/(nTestSize+1))+'ms');
@@ -99,16 +86,13 @@ module.exports = {
                     ,function(res,cb) {
                         var nEndingMemory = res.match(/used_memory\:([^\r]*)/)[1];
                         Config.log('Total estimated memory used by test object keys: '+(nEndingMemory-nStartingMemory)+' bytes ('+((nEndingMemory-nStartingMemory)/1024000)+' MB)');
-
-                        Collection.lookup({sClass:'User',hQuery:{email:'NOT NULL'}},cb);
+                        Collection.lookupAll({sClass:'User'},cb);
                     }
                     ,function(cColl,cb) {
                         cColl.delete(cb);
                     }
                     ,function(ignore,cb){
-                        var hQuery = {};
-                        hQuery[Config.getClasses('Follow').sKeyProperty] = 'NOT NULL';
-                        Collection.lookup({sClass:'Follow',hQuery:hQuery},cb);
+                        Collection.lookupAll({sClass:'Follow'},cb);
                     }
                     ,function(cColl,cb) {
                         cColl.delete(cb);
@@ -120,14 +104,6 @@ module.exports = {
                 var nStart;var nTotal;
                 async.waterfall([
                     function(cb){
-                        async.forEachLimit(aFollows,100,function(follower,callback) {
-                            user.setExtra('follows',follower,callback);
-                        },function(err){
-                            user.follows.nTotal.should.equal(nTestSize);
-                            cb(err,null);
-                        });
-                    }
-                    ,function(o,cb){
                         // Now, lookup follows and include the user and follower properties on cFollower items.
                         nStart = new Date().getTime();
                         user.loadExtras({follows:true},cb);
@@ -136,6 +112,7 @@ module.exports = {
                         nTotal = new Date().getTime()-nStart;
                         Config.log('Extras lookup: '+nTotal+' ms');
                         user.follows.nTotal.should.equal(nTestSize);
+                        user.follows.sSource.should.equal('Redis');
                         cb(null,null);
                     }
                     ,function(o,cb){
@@ -156,22 +133,23 @@ module.exports = {
             }
             ,removeFollowers:function(done) {
 
-                async.waterfall([
+                async.series([
                     function(cb){
-                        async.forEachLimit(aFollows,100,function(follower,callback) {
-                            user.setExtra('follows',follower,callback);
-                        },function(err){
-                            cb(err,null);
-                        });
+                        user.loadExtras({follows:true},cb);
                     }
-                    ,function(o,cb){
-                        async.forEachLimit(aFollows,1,function(follower,callback) {
-                            user.deleteExtra('follows',follower,callback);
-                        },function(err){
-                            cb(err,null);
-                        });
+                    // Delete the follows. Which should update the related user's follows collection.
+                    ,function(cb){
+                        user.follows.nTotal.should.equal(10);
+                        async.forEachLimit(user.follows.aObjects,1,function(follow,callback) {
+                            var follower = Base.lookup({sClass:'Follow',hData:follow});
+                            follower.delete(callback);
+                        },cb);
                     }
-                    ,function(o,cb){
+                    // The next load should be free of follows.
+                    ,function(cb){
+                        user.loadExtras({follows:true},cb);
+                    }
+                    ,function(cb){
                         user.follows.nTotal.should.equal(0);
                         cb(null,null);
                     }

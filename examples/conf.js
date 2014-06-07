@@ -153,6 +153,9 @@ module.exports.hSettings = {
                         ,fnQuery:function(oSelf){
                             return {followed_id:oSelf.getKey()}
                         }
+                        ,fnCreate:function(oFollow){
+                            return {id:oFollow.get('followed_id')};
+                        }
                     }
                     ,referring_user:{
                         sType:'Object'
@@ -223,23 +226,10 @@ module.exports.hSettings = {
             }
             ,Follow:{
                 hProperties:{
-                    id:{
-                        sType:'Number'
-                        ,bPrimary:true
-                        ,sSample:'3'
-                    }
-                    ,followed_id:{
-                        sType:'Number'
-                        ,sSample:'1'
-                    }
-                    ,follower_id:{
-                        sType:'Number'
-                        ,sSample:'2'
-                    }
-                    ,rank:{
-                        sType:'Number'
-                        ,sSample:'0'
-                    }
+                    id:{sType:'Number',bPrimary:true,sSample:'3'}
+                    ,followed_id:{sType:'Number',sSample:'1'}
+                    ,follower_id:{sType:'Number',sSample:'2'}
+                    ,rank:{sType:'Number',sSample:'0'}
                 }
                 ,nClass:2
                 ,hExtras:{

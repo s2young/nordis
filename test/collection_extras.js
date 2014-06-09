@@ -154,8 +154,9 @@ module.exports = {
                         user.follows.nTotal.should.equal(10);
                         user.follows.sSource.should.equal('Redis');
                         async.forEachLimit(user.follows.aObjects,1,function(follow,callback) {
-                            var follower = Base.lookup({sClass:'Follow',hData:follow});
-                            follower.delete(callback);
+                            if ((follow instanceof Base)===false)
+                                follow = Base.lookup({sClass:'Follow',hData:follow});
+                            follow.delete(callback);
                         },cb);
                     }
                     // The next load should be free of follows.

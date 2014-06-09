@@ -99,50 +99,50 @@ module.exports = {
                     }
                 ],done);
             }
-            ,addFollower:function(done){
-
-                var nStart;var nTotal;
-                async.waterfall([
-                    function(cb){
-                        // Now, lookup follows and include the user and follower properties on cFollower items.
-                        nStart = new Date().getTime();
-                        user.loadExtras({follows:true},cb);
-                    }
-                    ,function(user,cb){
-                        nTotal = new Date().getTime()-nStart;
-                        Config.log('Extras lookup: '+nTotal+' ms');
-                        user.follows.nTotal.should.equal(nTestSize);
-                        user.follows.sSource.should.equal('Redis');
-                        cb(null,null);
-                    }
-                    ,function(o,cb){
-                        nStart = new Date().getTime();
-                        // Serialize just the user.
-                        user.toHash();
-                        nTotal = new Date().getTime() - nStart;
-                        Config.log('Serialize just user: '+nTotal+' ms');
-                        // Now benchmark serializing the user and his follows.
-                        nStart = new Date().getTime();
-                        user.toHash({follows:true});
-                        nTotal = new Date().getTime() - nStart;
-                        Config.log('Serialize user & '+nTestSize+' follows: '+nTotal+' ms');
-
-                        cb();
-                    }
-                    // Now, look the user up along with its extras.
-                    ,function(cb){
-                        Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})
-                            .then(function(result){
-                                result.getKey().should.equal(user.getKey());
-                                result.sSource.should.equal('Redis');
-                                result.follows.nTotal.should.equal(nTestSize);
-                                result.follows.sSource.should.equal('Redis');
-                            })
-                            .then(null,Config.handleTestError)
-                        .done(cb);
-                    }
-                ],done);
-            }
+//            ,addFollower:function(done){
+//
+//                var nStart;var nTotal;
+//                async.waterfall([
+//                    function(cb){
+//                        // Now, lookup follows and include the user and follower properties on cFollower items.
+//                        nStart = new Date().getTime();
+//                        user.loadExtras({follows:true},cb);
+//                    }
+//                    ,function(user,cb){
+//                        nTotal = new Date().getTime()-nStart;
+//                        Config.log('Extras lookup: '+nTotal+' ms');
+//                        user.follows.nTotal.should.equal(nTestSize);
+//                        user.follows.sSource.should.equal('Redis');
+//                        cb(null,null);
+//                    }
+//                    ,function(o,cb){
+//                        nStart = new Date().getTime();
+//                        // Serialize just the user.
+//                        user.toHash();
+//                        nTotal = new Date().getTime() - nStart;
+//                        Config.log('Serialize just user: '+nTotal+' ms');
+//                        // Now benchmark serializing the user and his follows.
+//                        nStart = new Date().getTime();
+//                        user.toHash({follows:true});
+//                        nTotal = new Date().getTime() - nStart;
+//                        Config.log('Serialize user & '+nTestSize+' follows: '+nTotal+' ms');
+//
+//                        cb();
+//                    }
+//                    // Now, look the user up along with its extras.
+//                    ,function(cb){
+//                        Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})
+//                            .then(function(result){
+//                                result.getKey().should.equal(user.getKey());
+//                                result.sSource.should.equal('Redis');
+//                                result.follows.nTotal.should.equal(nTestSize);
+//                                result.follows.sSource.should.equal('Redis');
+//                            })
+//                            .then(null,Config.handleTestError)
+//                            .done(cb);
+//                    }
+//                ],done);
+//            }
             ,removeFollowers:function(done) {
 
                 async.series([
@@ -154,8 +154,9 @@ module.exports = {
                         user.follows.nTotal.should.equal(10);
                         user.follows.sSource.should.equal('Redis');
                         async.forEachLimit(user.follows.aObjects,1,function(follow,callback) {
-                            var follower = Base.lookup({sClass:'Follow',hData:follow});
-                            follower.delete(callback);
+                            if ((follow instanceof Base)===false)
+                                follow = Base.lookup({sClass:'Follow',hData:follow});
+                            follow.delete(callback);
                         },cb);
                     }
                     // The next load should be free of follows.

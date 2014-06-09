@@ -4,14 +4,7 @@ var async       = require('async'),
     AppConfig   = require('./../../lib/AppConfig'),
     Base        = require('./../../lib/Base');
 
-AppConfig.init(function(){
-    Base.lookup({sClass:'User',hQuery:{id:'186961'},hExtras:{follows:{hExtras:{follower_user:true}}}},function(err,user){
-        if (err)
-            AppConfig.error(err);
-        else
-            console.log(user);
-
-        console.log(AppConfig.MySql.hTrace);
-    })
-});
-
+Base.lookupP({sClass:'User',hQuery:{id:150603},hExtras:{follows:true}})
+    .then(function(user){
+        console.log(user);
+    },function(err){throw err});

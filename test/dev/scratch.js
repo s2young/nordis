@@ -15,7 +15,7 @@ var async       = require('async'),
  * @type {number}
  */
 
-var nTestSize = 1000;
+var nTestSize = 10;
 var oRedisClient;
 var nStartingMemory;
 var user;
@@ -99,7 +99,7 @@ module.exports = {
                     }
                 ],done);
             }
-            ,getAllFollowers:function(done){
+            ,addFollower:function(done){
 
                 var nStart;var nTotal;
                 async.waterfall([
@@ -129,38 +129,17 @@ module.exports = {
 
                         cb();
                     }
-                ],done);
-            }
-            ,getFirstFollower:function(done){
-
-                var nStart;var nTotal;
-                async.waterfall([
-                    function(cb){
-                        // Now, lookup follows and include the user and follower properties on cFollower items.
-                        nStart = new Date().getTime();
-                        user.loadExtras({follows:{nSize:1}},cb);
-                    }
-                    ,function(user,cb){
-                        nTotal = new Date().getTime()-nStart;
-                        Config.log('getFirstFollower lookup: '+nTotal+' ms');
-                        user.follows.nTotal.should.equal(nTestSize);
-                        user.follows.nCount.should.equal(1);
-                        user.follows.sSource.should.equal('Redis');
-                        cb(null,null);
-                    }
-                    ,function(o,cb){
-                        nStart = new Date().getTime();
-                        // Serialize just the user.
-                        user.toHash();
-                        nTotal = new Date().getTime() - nStart;
-                        Config.log('Serialize just user: '+nTotal+' ms');
-                        // Now benchmark serializing the user and his follows.
-                        nStart = new Date().getTime();
-                        user.toHash({follows:true});
-                        nTotal = new Date().getTime() - nStart;
-                        Config.log('Serialize user & 1 follows: '+nTotal+' ms');
-
-                        cb();
+                    // Now, look the user up along with its extras.
+                    ,function(cb){
+                        Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})
+                            .then(function(result){
+                                result.getKey().should.equal(user.getKey());
+                                result.sSource.should.equal('Redis');
+                                result.follows.nTotal.should.equal(nTestSize);
+                                result.follows.sSource.should.equal('Redis');
+                            })
+                            .then(null,Config.handleTestError)
+                        .done(cb);
                     }
                 ],done);
             }
@@ -172,7 +151,8 @@ module.exports = {
                     }
                     // Delete the follows. Which should update the related user's follows collection.
                     ,function(cb){
-                        user.follows.nTotal.should.equal(nTestSize);
+                        user.follows.nTotal.should.equal(10);
+                        user.follows.sSource.should.equal('Redis');
                         async.forEachLimit(user.follows.aObjects,1,function(follow,callback) {
                             var follower = Base.lookup({sClass:'Follow',hData:follow});
                             follower.delete(callback);

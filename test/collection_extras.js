@@ -129,6 +129,18 @@ module.exports = {
 
                         cb();
                     }
+                    // Now, look the user up along with its extras.
+                    ,function(cb){
+                        Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})
+                            .then(function(result){
+                                result.getKey().should.equal(user.getKey());
+                                result.sSource.should.equal('Redis');
+                                result.follows.nTotal.should.equal(nTestSize);
+                                result.follows.sSource.should.equal('Redis');
+                            })
+                            .then(null,Config.handleTestError)
+                            .done(cb);
+                    }
                 ],done);
             }
             ,removeFollowers:function(done) {
@@ -140,6 +152,7 @@ module.exports = {
                     // Delete the follows. Which should update the related user's follows collection.
                     ,function(cb){
                         user.follows.nTotal.should.equal(10);
+                        user.follows.sSource.should.equal('Redis');
                         async.forEachLimit(user.follows.aObjects,1,function(follow,callback) {
                             var follower = Base.lookup({sClass:'Follow',hData:follow});
                             follower.delete(callback);

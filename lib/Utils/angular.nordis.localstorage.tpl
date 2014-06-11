@@ -81,7 +81,8 @@ angular.module('nordis', ['ngStorage'])
         };
         // This function finds the index of an item in a collection.
         self.findIndex = function(hOpts,aItems) {
-            if (aItems)
+            if (aItems) {
+                if (aItems.aObjects) aItems = aItems.aObjects;
                 for (var i = 0; i < aItems.length; i++) {
                     var bPass = true;
                     for (var sKey in hOpts) {
@@ -90,6 +91,7 @@ angular.module('nordis', ['ngStorage'])
                     }
                     if (bPass) return i;
                 }
+            }
         };
         // Remove an item from a collection. Just pass in the object and the collection.
         self.remove = function(hItem,cColl,sKey) {

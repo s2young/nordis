@@ -83,7 +83,7 @@ module.exports = {
                 Stats.flush(done);
             }
             ,after:function(done) {
-                server.close();
+                if (server) server.close();
                 done();
             }
             ,hitCount:function(done){

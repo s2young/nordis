@@ -308,14 +308,16 @@ angular.module('nordis', ['ngStorage'])
         };
         self.promise = function(sKey,sPath,sMethod,hData,hExtras,bForce){
             var deferred = $q.defer();
-            if (sKey && $db[sKey] && sMethod.toLowerCase()=='get' && !bForce)
+            if (sKey && $db[sKey] && sPath.match(/\}$/) && sMethod.toLowerCase()=='get' && !bForce)
                 deferred.resolve($db[sKey]);
-            else
+            else {
+                self.getSecurity(hData||{});
                 self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                     delete res.txid;
                     if (sKey) $db[sKey] = res;
                     deferred.resolve(res);
                 },deferred.reject);
+            }
             return deferred.promise;
         };
         return self;

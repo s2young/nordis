@@ -1,10 +1,8 @@
-var async       = require('async'),
-    request     = require('request'),
-    moment      = require('moment'),
-    AppConfig   = require('./../../lib/AppConfig'),
-    Base        = require('./../../lib/Base');
+var validator   = require('validator');
 
-Base.lookupP({sClass:'User',hQuery:{id:150603},hExtras:{follows:true}})
-    .then(function(user){
-        console.log(user);
-    },function(err){throw err});
+var value = '1.1';
+
+console.log(validator.isInt(value));
+console.log(parseInt(value));
+console.log(validator.isFloat(value));
+console.log(parseFloat(value));

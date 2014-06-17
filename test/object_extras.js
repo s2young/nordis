@@ -44,10 +44,18 @@ module.exports = {
                         user.save(callback);
                     }
                     ,function(callback) {
-                        user.loadExtras({referring_user:true},callback);
+                        user.loadExtras({referring_user:{sSource:'MySql'}},callback);
                     }
                     ,function(callback) {
+                        user.referring_user.sSource.should.equal('MySql');
                         user.referring_user.getKey().should.equal(follower.getKey());
+                        callback();
+                    }
+                    ,function(callback) {
+                        user.loadExtras({referring_user:{sSource:'Redis'}},callback);
+                    }
+                    ,function(callback) {
+                        user.referring_user.sSource.should.equal('Redis');
                         callback();
                     }
                 ],done)
@@ -76,12 +84,13 @@ module.exports = {
                     }
                     ,function(callback) {
                         nStart = new Date().getTime();
-                        Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{referring_user:true}})
+                        Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{referring_user:{sSource:'MySql'}}})
                             .then(function(result){
                                 Config.log(result.sSource+' lookup time for primary key lookup of user + one object extra: '+(new Date().getTime()-nStart)+' ms');
                                 result.getKey().should.equal(user.getKey());
                                 result.referring_user.getKey().should.equal(user.get('referrer_id'));
                                 result.referring_user.getKey().should.equal(follower.getKey());
+                                result.referring_user.sSource.should.equal('MySql');
                                 result.sSource.should.equal('Redis');
                             })
                             .then(null,Config.handleTestError)

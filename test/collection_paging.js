@@ -103,35 +103,52 @@ module.exports = {
             }
             ,getPageOne:function(done){
 
-                async.waterfall([
+                async.series([
+                    // Let's get half of the items in the collection.
                     function(cb){
-                        // Let's get half of the items in the collection.
-                        user.loadExtras({follows:{nSize:(nTestSize/2)}},cb);
+                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
                     }
-                    ,function(o,cb){
-                        // nTotal will be the whole collection regardless of paging options.
+                    // nTotal will be the whole collection regardless of paging options.
+                    ,function(cb){
                         user.follows.nNextID.should.be.above(0);
-
+                        user.follows.sSource.should.equal('MySql');
                         user.follows.nTotal.should.equal(nTestSize);
                         // nCount will be the number of items in the current page.
                         user.follows.nCount.should.equal((nTestSize/2));
-
+                        cb();
+                    }
+                    // Do it again, but this time look in Redis
+                    ,function(cb){
+                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'Redis'}},cb);
+                    }
+                    ,function(cb){
+                        // nTotal will be the whole collection regardless of paging options.
+                        user.follows.nNextID.should.be.above(0);
+                        user.follows.sSource.should.equal('Redis');
+                        user.follows.nTotal.should.equal(nTestSize);
+                        // nCount will be the number of items in the current page.
+                        user.follows.nCount.should.equal((nTestSize/2));
                         cb();
                     }
                 ],done);
             }
             ,getCollectionInTwoPages:function(done){
 
-                async.waterfall([
+                async.series([
                     function(cb){
                         // Let's get half of the items in the collection.
-                        user.loadExtras({follows:{nSize:(nTestSize/2)}},cb);
+                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
                     }
-                    ,function(o,cb){
+                    ,function(cb){
+                        user.follows.sSource.should.equal('MySql');
+                        cb();
+                    }
+                    ,function(cb){
                         // Now, let's get the next half.
                         user.loadExtras({follows:{nSize:(nTestSize/2),nFirstID:user.follows.nNextID}},cb);
                     }
-                    ,function(o,cb){
+                    ,function(cb){
+                        user.follows.sSource.should.equal('Redis');
                         (user.follows.nNextID===undefined).should.be.ok;
                         // We should now have the second half of our list.
                         user.follows.nCount.should.equal((nTestSize/2));

@@ -102,7 +102,7 @@ module.exports.hSettings = {
                     }
                     ,sid:{
                         sType:'String'
-                        ,bSecondary:true
+                        ,bUnique:true
                         ,nLength:36
                         ,sSample:'Yf8uIoP'
                     }

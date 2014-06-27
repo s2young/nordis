@@ -57,8 +57,6 @@ module.exports.hSettings = {
                             sAlias:'proces_stats'
                             ,fnApiCallProcessor:function(req,AppConfig,callback){
                                 var hOpts = (req.body.nMax && req.body.nMin) ? req.body : null;
-
-                                if (!Stats) var Stats = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Utils/Stats'); // You would use require('nordis').Stats;
                                 Stats.process(hOpts,callback);
                             }
                         }
@@ -79,7 +77,6 @@ module.exports.hSettings = {
                                         req.query.hExtras = {};
                                     if (!req.query.hExtras.nSize) req.query.hExtras.nSize = 20;
 
-                                    if (!Collection) Collection = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Collection'); // You would use require('nordis').Collection;
                                     Collection.lookup({
                                         sClass:'User'
                                         ,hQuery:{sid:'IS NOT NULL'}
@@ -180,7 +177,6 @@ module.exports.hSettings = {
                                     ,sDescription:'You can also create a NEW user by leaving the sid out.'
                                     ,fnApiCallProcessor:function(req,AppConfig,callback){
                                         // Locate the user.
-                                        if (!Base) Base = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Base'); // You would use require('nordis').Base;
                                         var email = (req.body.email) ? req.body.email.toLowerCase() : '';
                                         Base.lookup({sClass:'User',hQuery:{email:email,name:req.body.name}},function(err,user){
                                             if (err)
@@ -272,7 +268,6 @@ module.exports.hSettings = {
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follows:{hExtras:{follower_user:true}}};
                                         req.hNordis.sExtra = 'follows'; // This means the response should start with the follows collection, not the user.
                                         // Track the api request. This is for the redis_stats.js unit test.
-                                        if (!Stats) var Stats = require(AppConfig.NORDIS_ENV_ROOT_DIR+'/lib/Utils/Stats'); // You would use require('nordis').Stats;
                                         Stats.track({sStat:'api_requests',Params:req.hNordis.sPath},callback);
                                     }
                                 }
@@ -345,6 +340,11 @@ module.exports.hSettings = {
             ,misconfigured_stat:{
                 sDescription:'This stat is missing the fnValidate function, and is here for unit testing purposes.'
             }
+        }
+        ,fnInit:function(){
+            Base = require('./../lib/Base');
+            Stats = require('./../lib/Utils/Stats');
+            Collection = require('./../lib/Collection');
         }
     }
 };

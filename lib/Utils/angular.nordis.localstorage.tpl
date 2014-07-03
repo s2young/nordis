@@ -134,7 +134,8 @@ angular.module('nordis', ['ngStorage'])
         };
         // Used to handle error messages and such. The event handler is in the header.dot partial.
         self.alert = function(hMsg,status) {
-            $rootScope.$broadcast('onAlert',hMsg,status);
+            if (hMsg)
+                $rootScope.$broadcast('onAlert',hMsg,status);
         };
         // Grab items from the query string.
         self.query = function(name) {
@@ -308,13 +309,14 @@ angular.module('nordis', ['ngStorage'])
         };
         self.promise = function(sKey,sPath,sMethod,hData,hExtras,bForce){
             var deferred = $q.defer();
-            if (sKey && $db[sKey] && sPath.match(/\}$/) && sMethod.toLowerCase()=='get' && !bForce)
-                deferred.resolve($db[sKey]);
+            if (sKey && hData && $db.hData && $db.hData[hData[sKey]] && sPath.match(/\}$/) && sMethod.toLowerCase()=='get' && !bForce)
+                deferred.resolve($db.hData[sKey]);
             else {
                 self.getSecurity(hData||{});
                 self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                     delete res.txid;
-                    if (sKey) $db[sKey] = res;
+                    if (!$db.hData) $db.hData = {};
+                    if (sKey) $db.hData[res[sKey]] = res;
                     deferred.resolve(res);
                 },deferred.reject);
             }

@@ -3,7 +3,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
     .factory('[[=hData.name]]',function($rootScope,$http,$q,$localStorage){
         var self = this;
         var $db = $localStorage;
-        self.sHost = window.sNordisHost;
+        self.sHost = '';
         self.hSecurity = {};
         self.setSecurity = function(hSecurity,sHost){
             if (hSecurity)
@@ -180,14 +180,14 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         };
         self.promise = function(sKey,sPath,sMethod,hData,hExtras,bForce){
             var deferred = $q.defer();
-            if (sKey && hData && $db.hData && $db.hData[hData[sKey]] && sPath.match(/\}$/) && sMethod.toLowerCase()=='get' && !bForce)
-                deferred.resolve($db.hData[sKey]);
+            if (sKey && hData && $db.[[=hData.name]] && $db.[[=hData.name]][hData[sKey]] && sPath.match(/\}$/) && sMethod.toLowerCase()=='get' && !bForce)
+                deferred.resolve($db.[[=hData.name]][hData[sKey]]);
             else {
                 self.getSecurity(hData||{});
                 self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                     delete res.txid;
-                    if (!$db.hData) $db.hData = {};
-                    if (sKey) $db.hData[res[sKey]] = res;
+                    if (!$db.[[=hData.name]]) $db.[[=hData.name]] = {};
+                    if (sKey) $db.[[=hData.name]][res[sKey]] = res;
                     deferred.resolve(res);
                 },deferred.reject);
             }

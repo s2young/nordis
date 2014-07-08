@@ -14,7 +14,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (sSocketHost) self.sSocketHost = sSocketHost;
         };
         self.socket;
-        var interval;
+        var interval;var wait = 500;
         self.connectSocket = function(){
             if (self.sSocketHost) {
                 if (!self.socket || self.socket.readyState != 1 ) {

@@ -24,6 +24,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                         if (interval) clearTimeout(interval);
                     };
                     self.socket.onclose = function() {
+                        $rootScope.$broadcast('onSocketClosed');
                         if (!self.socket.sever) {
                             interval = setTimeout(function(){
                                 wait+=500;
@@ -49,6 +50,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 self.socket.sever = true;
                 self.socket.close();
             }
+            $rootScope.$broadcast('onSocketClosed');
         };
         self.getSecurity = function(hData) {
             if (self.hSecurity)

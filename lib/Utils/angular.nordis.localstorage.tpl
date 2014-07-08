@@ -23,6 +23,10 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                         $rootScope.$broadcast('onSocketOpen');
                         if (interval) clearTimeout(interval);
                     };
+                    self.socket.onmessage = function(e) {
+                        if (e.data)
+                            $rootScope.$broadcast('onSocketMessage',e.data);
+                    };
                     self.socket.onclose = function() {
                         $rootScope.$broadcast('onSocketClosed');
                         if (!self.socket.sever) {

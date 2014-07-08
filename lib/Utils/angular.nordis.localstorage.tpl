@@ -5,11 +5,50 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         var $db = $localStorage;
         self.sHost = '';
         self.hSecurity = {};
-        self.setSecurity = function(hSecurity,sHost){
+        self.sSocketHost;
+        self.setSecurity = function(hSecurity,sHost,sSocketHost){
             if (hSecurity)
                 self.hSecurity = hSecurity;
             if (sHost)
                 self.sHost = sHost;
+            if (sSocketHost) self.sSocketHost = sSocketHost;
+        };
+        self.socket;
+        var interval;
+        self.connectSocket = function(){
+            if (self.sSocketHost) {
+                if (!self.socket || self.socket.readyState != 1 ) {
+                    self.socket = new SockJS(self.sSocketHost);
+                    self.socket.onopen = function() {
+                        $rootScope.$broadcast('onSocketOpen');
+                        if (interval) clearTimeout(interval);
+                    };
+                    self.socket.onclose = function() {
+                        if (!self.socket.sever) {
+                            interval = setTimeout(function(){
+                                wait+=500;
+                                if (wait <= 10000) {
+                                    $rootScope.$broadcast('onLoad');
+                                    self.socket = null;
+                                    self.connectSocket();
+                                } else if (self.socket.readyState == 3) {
+                                    $rootScope.$broadcast('onUnload');
+                                    $rootScope.$broadcast('onSocketDown');
+                                    clearTimeout(interval);
+                                    wait = 500;
+                                }
+                            },wait);
+                        }
+                    };
+                } else
+                    $rootScope.$broadcast('onSocketOpen');
+            }
+        };
+        self.disconnectSocket = function(){
+            if (self.socket) {
+                self.socket.sever = true;
+                self.socket.close();
+            }
         };
         self.getSecurity = function(hData) {
             if (self.hSecurity)

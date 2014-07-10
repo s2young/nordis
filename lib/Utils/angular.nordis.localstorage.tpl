@@ -2,7 +2,8 @@
 angular.module('[[=hData.name]]', ['ngStorage'])
     .factory('[[=hData.name]]',function($rootScope,$http,$q,$localStorage){
         var self = this;
-        self.$db = $localStorage;
+        if (!$localStorage.[[=hData.name]]) $localStorage.[[=hData.name]] = {};
+        self.$db = $localStorage.[[=hData.name]];
         self.sHost = '';
         self.hSecurity = {};
         self.sSocketHost;
@@ -225,14 +226,13 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         };
         self.promise = function(sKey,sPath,sMethod,hData,hExtras,bForce){
             var deferred = $q.defer();
-            if (sKey && hData && self.$db.[[=hData.name]] && self.$db.[[=hData.name]][hData[sKey]] && sPath.match(/\}$/) && sMethod.toLowerCase()=='get' && !bForce)
-                deferred.resolve(self.$db.[[=hData.name]][hData[sKey]]);
+            if (sKey && hData && hData[sKey] && self.$db[hData[sKey]] && sPath.match(/\}$/) && sMethod.toLowerCase()=='get' && !bForce)
+                deferred.resolve(self.$db[hData[sKey]]);
             else {
                 self.getSecurity(hData||{});
                 self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                     delete res.txid;
-                    if (!self.$db.[[=hData.name]]) self.$db.[[=hData.name]] = {};
-                    if (sKey) self.$db.[[=hData.name]][res[sKey]] = res;
+                    if (sKey) self.$db[res[sKey]] = res;
                     deferred.resolve(res);
                 },deferred.reject);
             }

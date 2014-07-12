@@ -7,12 +7,14 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         self.sHost = '';
         self.hSecurity = {};
         self.sSocketHost;
-        self.setSecurity = function(hSecurity,sHost,sSocketHost){
+        self.bDebug;
+        self.setSecurity = function(hSecurity,sHost,sSocketHost,bDebug){
             if (hSecurity)
                 self.hSecurity = hSecurity;
             if (sHost)
                 self.sHost = sHost;
             if (sSocketHost) self.sSocketHost = sSocketHost;
+            if (bDebug != undefined) self.bDebug = bDebug;
         };
         self.socket;
         var interval;var wait = 500;
@@ -197,6 +199,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
+                if (self.bDebug) console.log(sMethod+' -- '+self.sHost+hOpts.sPath);
                 $http[sMethod.toLowerCase()](self.sHost+hOpts.sPath,hOpts.hData)
                     .success(function(hResult,nStatus){
                         if (hOpts.oObj)

@@ -321,7 +321,7 @@ angular.module('nordis', [])
                         if (hOpts.oObj)
                             hOpts.oObj.bLoading = false;
 
-                        self.emit('onUnload');
+                        if (!hOpts.hData.bHideLoader) self.emit('onUnload');
                         if (hResult && hResult.sException) {
                             if (fnErrorHandler)
                                 fnErrorHandler(hResult);
@@ -332,7 +332,7 @@ angular.module('nordis', [])
                     })
                     .error(function(data, status, headers, config){
                         if (hOpts.oObj) hOpts.oObj.bLoading = false;
-                        self.emit('onUnload');
+                        if (!hOpts.hData.bHideLoader) self.emit('onUnload');
 
                         if (!data && status == 404)
                             self.alert('Request failed. Check your connection or try again later.');

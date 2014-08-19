@@ -205,7 +205,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                         if (hOpts.oObj)
                             hOpts.oObj.bLoading = false;
 
-                        self.emit('onUnload');
+                        if (!hOpts.hData.bHideLoader)  self.emit('onUnload');
                         if (hResult && hResult.sException) {
                             if (fnErrorHandler)
                                 fnErrorHandler(hResult);
@@ -216,7 +216,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                     })
                     .error(function(data, status, headers, config){
                         if (hOpts.oObj) hOpts.oObj.bLoading = false;
-                        self.emit('onUnload');
+                        if (!hOpts.hData.bHideLoader) self.emit('onUnload');
 
                         if (!data && status == 404)
                             self.alert('Request failed. Check your connection or try again later.');
@@ -229,16 +229,12 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         };
         self.promise = function(sKey,sPath,sMethod,hData,hExtras,bForce){
             var deferred = $q.defer();
-            if (sKey && hData && hData[sKey] && self.$db[hData[sKey]] && sPath.match(/\}$/) && sMethod.toLowerCase()=='get' && !bForce)
-                deferred.resolve(self.$db[hData[sKey]]);
-            else {
-                self.getSecurity(hData||{});
-                self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
-                    delete res.txid;
-                    if (sKey) self.$db[res[sKey]] = res;
-                    deferred.resolve(res);
-                },deferred.reject);
-            }
+            self.getSecurity(hData||{});
+            self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
+                delete res.txid;
+                deferred.resolve(res);
+            },deferred.reject);
+
             return deferred.promise;
         };
         [[for (var sClass in hData.hApiCalls) {]]

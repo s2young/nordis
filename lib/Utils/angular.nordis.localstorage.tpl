@@ -8,6 +8,12 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         self.hSecurity = {};
         self.sSocketHost;
         self.bDebug;
+        self.setHosts = function(sHost,sSocketHost,bDebug){
+            if (sHost)
+                self.sHost = sHost;
+            if (sSocketHost) self.sSocketHost = sSocketHost;
+            if (bDebug != undefined) self.bDebug = bDebug;
+        };
         self.setSecurity = function(hSecurity,sHost,sSocketHost,bDebug){
             if (hSecurity)
                 self.hSecurity = hSecurity;

@@ -55,7 +55,7 @@ module.exports = {
                         user.loadExtras({referring_user:{sSource:'Redis'}},callback);
                     }
                     ,function(callback) {
-                        user.referring_user.sSource.should.equal('Redis');
+                        if (!Config.Redis.hOpts.default.bSkip) user.referring_user.sSource.should.equal('Redis');
                         callback();
                     }
                 ],done)
@@ -91,7 +91,10 @@ module.exports = {
                                 result.referring_user.getKey().should.equal(user.get('referrer_id'));
                                 result.referring_user.getKey().should.equal(follower.getKey());
                                 result.referring_user.sSource.should.equal('MySql');
-                                result.sSource.should.equal('Redis');
+                                if (Config.Redis.hOpts.default.bSkip)
+                                    result.sSource.should.equal('MySql');
+                                else
+                                    result.sSource.should.equal('Redis');
                             })
                             .then(null,Config.handleTestError)
                             .done(callback);

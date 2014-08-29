@@ -123,8 +123,8 @@ module.exports = {
                     }
                     ,function(cb){
                         // nTotal will be the whole collection regardless of paging options.
+                        if (!Config.Redis.hOpts.default.bSkip) user.follows.sSource.should.equal('Redis');
                         user.follows.nNextID.should.be.above(0);
-                        user.follows.sSource.should.equal('Redis');
                         user.follows.nTotal.should.equal(nTestSize);
                         // nCount will be the number of items in the current page.
                         user.follows.nCount.should.equal((nTestSize/2));
@@ -148,7 +148,10 @@ module.exports = {
                         user.loadExtras({follows:{nSize:(nTestSize/2),nFirstID:user.follows.nNextID}},cb);
                     }
                     ,function(cb){
-                        user.follows.sSource.should.equal('Redis');
+                        if (Config.Redis.hOpts.default.bSkip)
+                            user.follows.sSource.should.equal('MySql');
+                        else
+                            user.follows.sSource.should.equal('Redis');
                         (user.follows.nNextID===undefined).should.be.ok;
                         // We should now have the second half of our list.
                         user.follows.nCount.should.equal((nTestSize/2));

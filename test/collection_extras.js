@@ -28,7 +28,10 @@ module.exports = {
                 var nUserWriteTotal = 0;
                 var nStart;
                 async.series([
-                    function(cb){
+                    function(cb) {
+                        Config.init(cb);
+                    }
+                    ,function(cb){
                         // Take note of amount of memory in Redis before test begins.
                         Config.Redis.acquire(function(err,oClient){
                             if (err)
@@ -112,7 +115,11 @@ module.exports = {
                         nTotal = new Date().getTime()-nStart;
                         Config.log('Extras lookup: '+nTotal+' ms');
                         user.follows.nTotal.should.equal(nTestSize);
-                        user.follows.sSource.should.equal('Redis');
+
+                        if (Config.Redis.hOpts.default.bSkip)
+                            user.follows.sSource.should.equal('MySql');
+                        else
+                            user.follows.sSource.should.equal('Redis');
                         cb(null,null);
                     }
                     ,function(o,cb){
@@ -134,9 +141,15 @@ module.exports = {
                         Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})
                             .then(function(result){
                                 result.getKey().should.equal(user.getKey());
-                                result.sSource.should.equal('Redis');
                                 result.follows.nTotal.should.equal(nTestSize);
-                                result.follows.sSource.should.equal('Redis');
+
+                                if (Config.Redis.hOpts.default.bSkip) {
+                                    result.sSource.should.equal('MySql');
+                                    result.follows.sSource.should.equal('MySql');
+                                } else {
+                                    result.sSource.should.equal('Redis');
+                                    result.follows.sSource.should.equal('Redis');
+                                }
                             })
                             .then(null,Config.handleTestError)
                             .done(cb);
@@ -152,7 +165,10 @@ module.exports = {
                     // Delete the follows. Which should update the related user's follows collection.
                     ,function(cb){
                         user.follows.nTotal.should.equal(10);
-                        user.follows.sSource.should.equal('Redis');
+                        if (Config.Redis.hOpts.default.bSkip)
+                            user.follows.sSource.should.equal('MySql');
+                        else
+                            user.follows.sSource.should.equal('Redis');
                         async.forEachLimit(user.follows.aObjects,1,function(follow,callback) {
                             if ((follow instanceof Base)===false)
                                 follow = Base.lookup({sClass:'Follow',hData:follow});

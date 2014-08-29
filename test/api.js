@@ -165,7 +165,10 @@ module.exports = {
             Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})
                 .then(function(hResult){
                     hResult.follows.nTotal.should.equal(nTestSize);
-                    hResult.follows.sSource.should.equal('Redis');
+                    if (Config.Redis.hOpts.default.bSkip)
+                        hResult.follows.sSource.should.equal('MySql');
+                    else
+                        hResult.follows.sSource.should.equal('Redis');
                 })
                 .then(null,function(err){throw err})
                 .done(done);

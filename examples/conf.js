@@ -36,6 +36,7 @@ module.exports.hSettings = {
                     ,nPort:6379
                     ,nMaxMemory:524288000
                     ,sMaxMemoryPolicy:'allkeys-lru'
+                    ,bSkip:true
                 }
                 ,statsdb:{
                     sHost:'127.0.0.1'

@@ -4,34 +4,31 @@
   "description": "Framework for rapid nodejs application development using Redis and MySql.",
   "version": "1.1.9",
   "repository": {
-      "type": "git",
-      "url": "https://github.com/s2young/nordis.git"
-  }
-  ,"engines": {
-      "node": ">=0.10.x",
-      "npm": ">=1.2.x"
-  }
-  ,"dependencies": {
-      "async":"*"
-      ,"body-parser":"*"
-      ,"moment-timezone":"*"
-      ,"moment":"*"
-      ,"mysql":"2.0.*"
-      ,"dot":"*"
-      ,"promise":"*"
-      ,"hiredis":"*"
-      ,"redis":"*"
-      ,"request":"*"
-      ,"validator":"*"
-      ,"winston":"*"
-      ,"uglify-js":"*"
-  }
-  ,"devDependencies":{
-    "express":"*"
-    ,"should":"*"
-    ,"mocha":"*"
+    "type": "git",
+    "url": "https://github.com/s2young/nordis.git"
+  },
+  "engines": {
+    "node": ">=0.10.x",
+    "npm": ">=1.2.x"
+  },
+  "dependencies": {
+    "async": "^0.9.0",
+    "body-parser": "^1.8.0",
+    "dot": "^1.0.2",
+    "hiredis": "^0.1.17",
+    "moment": "^2.8.3",
+    "moment-timezone": "^0.2.2",
+    "mysql": "^2.0.1",
+    "promise": "^5.0.0",
+    "redis": "^0.12.1",
+    "request": "^2.42.0",
+    "uglify-js": "^2.4.15",
+    "validator": "^3.17.1",
+    "winston": "^0.7.3"
+  },
+  "devDependencies": {
+    "express": "^4.8.8",
+    "should": "^4.0.4",
+    "mocha": "^1.21.4"
   }
 }
-
-
-

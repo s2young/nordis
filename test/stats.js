@@ -68,7 +68,7 @@ module.exports = {
                         Base.lookupP({sClass:'App',hQuery:{id:'app'},hExtras:{users:{hExtras:{alltime:true}}}})
                             .then(function(oApp){
                                 var new_count;
-                                if (oApp.users && oApp.users.alltime)
+                                if (oApp.users && oApp.users.alltime && oApp.users.alltime.first())
                                     new_count = oApp.users.alltime.first().get('count');
                                 nTestSize.should.equal(new_count);
                             })

@@ -129,6 +129,17 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (hMsg)
                 $rootScope.$broadcast('onAlert',hMsg,status);
         };
+        // Grab items from the query string.
+        self.query = function(name) {
+            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regexS = "[\\?&]" + name + "=([^&#]*)";
+            var regex = new RegExp(regexS);
+            var results = regex.exec(window.location.search);
+            if(results == null) {
+                return "";
+            } else
+                return decodeURIComponent(results[1].replace(/\+/g, " "));
+        };
         // Handles GET requests to the API.
         self.get = function(hOpts,fnCallback,fnErrorHandler){
             hOpts.sMethod = 'GET';

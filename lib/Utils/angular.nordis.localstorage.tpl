@@ -256,9 +256,9 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         };
         [[for (var sClass in hData.hApiCalls) {]]
         self.[[=sClass]] = {
-            sKey:'[[=hData.hKeys[sClass] ]]'[[~hData.hApiCalls[sClass] :hCall:nIndex]]
-            ,[[=hCall.sAlias]]:function(hQuery,hData,hExtras,bForce){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? hCall.sEndpoint.match(/\{(.*)\}/)[1] : ''; ]]
-                return self.promise('[[=hData.sKey]]','[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,bForce);
+            sKey:'[[=hData.hKeys[sClass]||'']]'[[~hData.hApiCalls[sClass] :hCall:nIndex]]
+            ,[[=hCall.sAlias]]:function(hQuery,hData,hExtras,bForce){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? '\''+hCall.sEndpoint.match(/\{(.*)\}/)[1]+'\'' : null; ]]
+                return self.promise([[=hData.sKey]],'[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,bForce);
             }[[~]]
         };[[}]]
         return self;

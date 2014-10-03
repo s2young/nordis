@@ -101,20 +101,36 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         };
         // Update a collection with an item, if the item already exists it is replaced.
         self.update = function(hItem,cColl,sKey) {
-            sKey = (sKey) ? sKey : '[[=hData.sMostCommonPrimaryKey||'id']]';
-            var i;
-            if (cColl) {
-                if (!cColl.aObjects) cColl.aObjects = [];
-                var hLookup = {};hLookup[sKey] = hItem[sKey];
-                i = this.findIndex(hLookup,cColl.aObjects);
-                if (i>=0)
-                    cColl.aObjects.splice(i,1,hItem);
-                else
-                    cColl.aObjects.push(hItem);
-                if (cColl.aObjects.length > cColl.nCount) cColl.nCount = cColl.aObjects.length;
-                if (cColl.aObjects.length > cColl.nTotal) cColl.nTotal = cColl.aObjects.length;
+            if (hItem) {
+                if (hItem instanceof Array || hItem.aObjects) {
+                    var aItems = hItem.aObjects || hItem;
+                    for (var i = 0; i < aItems.length; i++) {
+                        self.update(aItems[i],cColl,sKey);
+                    }
+                    if (hItem.aObjects) {
+                        cColl.sClass = hItem.sClass;
+                        cColl.nTotal = hItem.nTotal;
+                        cColl.nSize = hItem.nSize;
+                        cColl.nCount = hItem.nCount;
+                        cColl.nNextID = hItem.nNextID;
+                        delete cColl.nFirstID;
+                    }
+                } else {
+                    sKey = (sKey) ? sKey : '[[=hData.sMostCommonPrimaryKey||'id']]';
+                    var i;
+                    if (cColl) {
+                        if (!cColl.aObjects) cColl.aObjects = [];
+                        var hLookup = {};hLookup[sKey] = hItem[sKey];
+                        i = this.findIndex(hLookup,cColl.aObjects);
+                        if (i>=0)
+                            cColl.aObjects.splice(i,1,hItem);
+                        else
+                            cColl.aObjects.push(hItem);
+                        if (cColl.aObjects.length > cColl.nCount) cColl.nCount = cColl.aObjects.length;
+                        if (cColl.aObjects.length > cColl.nTotal) cColl.nTotal = cColl.aObjects.length;
+                    }
+                }
             }
-            return i;
         };
         // Emit an event from any controller to the root scope.
         self.emit = function(sEvent,Value,Value2,Value3) {

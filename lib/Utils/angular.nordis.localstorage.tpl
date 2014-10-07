@@ -107,7 +107,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                     for (var i = 0; i < aItems.length; i++) {
                         self.update(aItems[i],cColl,sKey);
                     }
-                    if (hItem.aObjects) {
+                    if (hItem.aObjects && cColl) {
                         cColl.sClass = hItem.sClass;
                         cColl.nTotal = hItem.nTotal;
                         cColl.nSize = hItem.nSize;

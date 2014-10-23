@@ -183,16 +183,8 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (hOpts.sPath) {
                 if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
-
-                if (sMethod=='get')
-                    hOpts.hData = {params:hOpts.hData,headers:self.hHeaders};
-                else
-                    hOpts.hData = {data:hOpts.hData,headers:self.hHeaders};
-
-                console.log(hOpts.hData);
                 if (self.bDebug) console.log(sMethod+' -- '+self.sHost+hOpts.sPath);
-
-                $http[sMethod.toLowerCase()](self.sHost+hOpts.sPath,hOpts.hData)
+                $http({method:sMethod,url:self.sHost+hOpts.sPath,params:(sMethod=='get')?hOpts.hData:null,data:(sMethod=='post')?hOpts.hData:null,headers:self.hHeaders})
                     .success(function(hResult,nStatus){
                         if (hOpts.oObj)
                             hOpts.oObj.bLoading = false;

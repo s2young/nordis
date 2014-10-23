@@ -14,6 +14,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (sSocketHost) self.sSocketHost = sSocketHost;
             if (bDebug != undefined) self.bDebug = bDebug;
         };
+        self.hHeaders = {};
         self.setSecurity = function(hSecurity,sHost,sSocketHost,bDebug){
             if (hSecurity)
                 self.hSecurity = hSecurity;
@@ -233,7 +234,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
                 if (self.bDebug) console.log(sMethod+' -- '+self.sHost+hOpts.sPath);
-                $http[sMethod.toLowerCase()](self.sHost+hOpts.sPath,hOpts.hData)
+                $http[sMethod.toLowerCase()](self.sHost+hOpts.sPath,hOpts.hData,self.hHeaders)
                     .success(function(hResult,nStatus){
                         if (hOpts.oObj)
                             hOpts.oObj.bLoading = false;

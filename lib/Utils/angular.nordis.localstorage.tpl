@@ -233,6 +233,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 else
                     hOpts.hData = {form:hOpts.hData,headers:self.hHeaders};
 
+                console.log(hOpts.hData);
                 if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
 

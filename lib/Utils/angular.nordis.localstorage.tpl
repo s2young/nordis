@@ -187,7 +187,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 if (sMethod=='get')
                     hOpts.hData = {params:hOpts.hData,headers:self.hHeaders};
                 else
-                    hOpts.hData = {form:hOpts.hData,headers:self.hHeaders};
+                    hOpts.hData = {data:hOpts.hData,headers:self.hHeaders};
 
                 console.log(hOpts.hData);
                 if (self.bDebug) console.log(sMethod+' -- '+self.sHost+hOpts.sPath);

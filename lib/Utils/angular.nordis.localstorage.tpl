@@ -228,13 +228,16 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             var self = this;
             var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod : 'GET';
             if (hOpts.sPath) {
-                if (!hOpts.hData) hOpts.hData = {};
+                if (sMethod.toLowerCase()=='get')
+                    hOpts.hData = {qs:hOpts.hData,headers:self.hHeaders};
+                else
+                    hOpts.hData = {form:hOpts.hData,headers:self.hHeaders};
 
                 if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
                 if (self.bDebug) console.log(sMethod+' -- '+self.sHost+hOpts.sPath);
-                hOpts.hData.headers = self.hHeaders;
+
                 $http[sMethod.toLowerCase()](self.sHost+hOpts.sPath,hOpts.hData)
                     .success(function(hResult,nStatus){
                         if (hOpts.oObj)

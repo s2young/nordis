@@ -5,7 +5,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         if (!$localStorage.[[=hData.name]]) $localStorage.[[=hData.name]] = {};
         self.$db = $localStorage.[[=hData.name]];
         self.sHost = '';
-        self.hSecurity = {};
         self.sSocketHost;
         self.bDebug;
         self.setHosts = function(sHost,sSocketHost,bDebug){
@@ -15,14 +14,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (bDebug != undefined) self.bDebug = bDebug;
         };
         self.hHeaders = {};
-        self.setSecurity = function(hSecurity,sHost,sSocketHost,bDebug){
-            if (hSecurity)
-                self.hSecurity = hSecurity;
-            if (sHost)
-                self.sHost = sHost;
-            if (sSocketHost) self.sSocketHost = sSocketHost;
-            if (bDebug != undefined) self.bDebug = bDebug;
-        };
         self.socket;
         var interval;var wait = 500;
         self.connectSocket = function(){
@@ -65,12 +56,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 self.socket.close();
             }
             $rootScope.$broadcast('onSocketClosed');
-        };
-        self.getSecurity = function(hData) {
-            if (self.hSecurity)
-                for (var sProp in self.hSecurity) {
-                    hData[sProp] = self.hSecurity[sProp];
-                }
         };
         // This function finds the index of an item in a collection.
         self.findIndex = function(hOpts,aItems) {
@@ -163,61 +148,29 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (!hOpts.hData) hOpts.hData = {};
             if (hOpts.hExtras)
                 hOpts.hData.hExtras = hOpts.hExtras;
-
-            self.getSecurity(hOpts.hData);
-            if (hOpts.hData) {
-                // Convert hData into serialized query string.
-                var serialize = function(obj, prefix) {
-                    var str = [];
-                    for (var p in obj) {
-                        var k = prefix ? prefix + "[" + p + "]" : p, v = obj[p];
-                        str.push(typeof v == "object" ?
-                            serialize(v, k) :
-                            encodeURIComponent(k) + "=" + encodeURIComponent(v));
-                    }
-                    return str.join("&");
-                };
-                hOpts.sPath += '?';
-                for (var sItem in hOpts.hData) {
-                    switch (sItem) {
-                        case 'hExtras':
-                            hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
-                            break;
-                        default:
-                            hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
-                            break;
-                    }
-                }
-            }
             this.callAPI(hOpts,fnCallback,fnErrorHandler);
         };
         // Handles POST requests to the API.
         self.post = function(hOpts,fnCallback,fnErrorHandler){
             hOpts.sMethod = 'POST';
             if (!hOpts.hData) hOpts.hData = {};
-            self.getSecurity(hOpts.hData);
             if (hOpts.hExtras)
                 hOpts.hData.hExtras = hOpts.hExtras;
-
             this.callAPI(hOpts,fnCallback,fnErrorHandler);
         };
         // Handles DELETE requests to the API.
         self.delete = function(hOpts,fnCallback,fnErrorHandler){
             if (!hOpts.hData) hOpts.hData = {};
-            self.getSecurity(hOpts.hData);
+            hOpts.sPath += '?'
+            for (var sItem in hOpts.hData) {
+                switch (sItem) {
+                    case 'hExtras':
+                        hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
+                        break;
+                    default:
+                        hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
+                        break;
 
-            if (hOpts.hData) {
-                hOpts.sPath += '?'
-                for (var sItem in hOpts.hData) {
-                    switch (sItem) {
-                        case 'hExtras':
-                            hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
-                            break;
-                        default:
-                            hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
-                            break;
-
-                    }
                 }
             }
             hOpts.sMethod = 'DELETE';
@@ -226,17 +179,17 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         // This method is shared by POST, GET, and DELETE methods.
         self.callAPI = function(hOpts,fnCallback,fnErrorHandler){
             var self = this;
-            var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod : 'GET';
+            var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod.toLowerCase() : 'get';
             if (hOpts.sPath) {
-                if (sMethod.toLowerCase()=='get')
+                if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
+                if (hOpts.oObj) hOpts.oObj.bLoading = true;
+
+                if (sMethod=='get')
                     hOpts.hData = {qs:hOpts.hData,headers:self.hHeaders};
                 else
                     hOpts.hData = {form:hOpts.hData,headers:self.hHeaders};
 
                 console.log(hOpts.hData);
-                if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
-                if (hOpts.oObj) hOpts.oObj.bLoading = true;
-
                 if (self.bDebug) console.log(sMethod+' -- '+self.sHost+hOpts.sPath);
 
                 $http[sMethod.toLowerCase()](self.sHost+hOpts.sPath,hOpts.hData)
@@ -268,7 +221,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         };
         self.promise = function(sKey,sPath,sMethod,hData,hExtras,bForce){
             var deferred = $q.defer();
-            self.getSecurity(hData||{});
             self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                 delete res.txid;
                 deferred.resolve(res);

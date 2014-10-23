@@ -234,7 +234,8 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
                 if (self.bDebug) console.log(sMethod+' -- '+self.sHost+hOpts.sPath);
-                $http[sMethod.toLowerCase()](self.sHost+hOpts.sPath,hOpts.hData,self.hHeaders)
+                hOpts.hData.headers = self.hHeaders;
+                $http[sMethod.toLowerCase()](self.sHost+hOpts.sPath,hOpts.hData)
                     .success(function(hResult,nStatus){
                         if (hOpts.oObj)
                             hOpts.oObj.bLoading = false;

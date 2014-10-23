@@ -185,7 +185,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
 
                 if (sMethod=='get')
-                    hOpts.hData = {qs:hOpts.hData,headers:self.hHeaders};
+                    hOpts.hData = {params:hOpts.hData,headers:self.hHeaders};
                 else
                     hOpts.hData = {form:hOpts.hData,headers:self.hHeaders};
 

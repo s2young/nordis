@@ -1,9 +1,10 @@
 
 angular.module('[[=hData.name]]', ['ngStorage'])
-    .factory('[[=hData.name]]',function($rootScope,$http,$q,$localStorage){
+    .factory('[[=hData.name]]',function($rootScope,$http,$q,$localStorage,$cacheFactory){
         var self = this;
         if (!$localStorage.[[=hData.name]]) $localStorage.[[=hData.name]] = {};
         self.$db = $localStorage.[[=hData.name]];
+        self.$cache = $cacheFactory('[[=hData.name]]',{capacity:20});
         self.sHost = '';
         self.sSocketHost;
         self.bDebug;
@@ -86,12 +87,12 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             }
         };
         // Update a collection with an item, if the item already exists it is replaced.
-        self.update = function(hItem,cColl,sKey) {
+        self.update = function(hItem,cColl,sKey,bAppend) {
             if (hItem) {
                 if (hItem instanceof Array || hItem.aObjects) {
                     var aItems = hItem.aObjects || hItem;
                     for (var i = 0; i < aItems.length; i++) {
-                        self.update(aItems[i],cColl,sKey);
+                        self.update(aItems[i],cColl,sKey,bAppend);
                     }
                     if (hItem.aObjects && cColl) {
                         cColl.sClass = hItem.sClass;
@@ -107,7 +108,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                     if (cColl) {
                         if (!cColl.aObjects) cColl.aObjects = [];
                         var hLookup = {};hLookup[sKey] = hItem[sKey];
-                        i = this.findIndex(hLookup,cColl.aObjects);
+                        if (!bAppend) i = this.findIndex(hLookup,cColl.aObjects);
                         if (i>=0)
                             cColl.aObjects.splice(i,1,hItem);
                         else
@@ -143,12 +144,30 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 return decodeURIComponent(results[1].replace(/\+/g, " "));
         };
         // Handles GET requests to the API.
-        self.get = function(hOpts,fnCallback,fnErrorHandler){
+        self.get = function(hOpts,fnCallback,fnErrorHandler,nLastUpdate){
             hOpts.sMethod = 'GET';
             if (!hOpts.hData) hOpts.hData = {};
             if (hOpts.hExtras)
                 hOpts.hData.hExtras = hOpts.hExtras;
-            this.callAPI(hOpts,fnCallback,fnErrorHandler);
+
+            var sCacheId = hOpts.sPath;
+            if (hOpts.hData) sCacheId += JSON.stringify(hOpts.hData);
+            if (hOpts.hExtras) sCacheId += JSON.stringify(hOpts.hExtras);
+
+            var cache = self.$cache.get(sCacheId);
+            var expired =  (cache && nLastUpdate && cache.time <= nLastUpdate) ? true : false;
+            //if (cache) console.log('cache.time: '+moment(Number(cache.time)).toString());
+            //if (nLastUpdate) console.log('last updated on server:'+moment(Number(nLastUpdate)).toString());
+
+            if (cache && !expired) {
+                //console.log('cached:'+hOpts.sPath);
+                fnCallback(cache.result);
+            } else
+                this.callAPI(hOpts,function(result){
+                    if (nLastUpdate) cache = {time:new Date().getTime(),result:result};
+                    self.$cache.put(sCacheId,cache);
+                    fnCallback(result);
+                },fnErrorHandler);
         };
         // Handles POST requests to the API.
         self.post = function(hOpts,fnCallback,fnErrorHandler){
@@ -184,6 +203,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
                 if (self.bDebug) console.log(sMethod+' -- '+self.sHost+hOpts.sPath);
+
                 $http({method:sMethod,url:self.sHost+hOpts.sPath,params:(sMethod=='get')?hOpts.hData:null,data:(sMethod=='post')?hOpts.hData:null,headers:self.hHeaders})
                     .success(function(hResult,nStatus){
                         if (hOpts.oObj)
@@ -211,20 +231,20 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                     });
             }
         };
-        self.promise = function(sKey,sPath,sMethod,hData,hExtras,bForce){
+        self.promise = function(sKey,sPath,sMethod,hData,hExtras,hCache){
             var deferred = $q.defer();
             self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                 delete res.txid;
                 deferred.resolve(res);
-            },deferred.reject);
+            },deferred.reject,hCache);
 
             return deferred.promise;
         };
         [[for (var sClass in hData.hApiCalls) {]]
         self.[[=sClass]] = {
             sKey:'[[=hData.hKeys[sClass]||'']]'[[~hData.hApiCalls[sClass] :hCall:nIndex]]
-            ,[[=hCall.sAlias]]:function(hQuery,hData,hExtras,bForce){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? '\''+hCall.sEndpoint.match(/\{(.*)\}/)[1]+'\'' : null; ]]
-                return self.promise([[=hData.sKey]],'[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,bForce);
+            ,[[=hCall.sAlias]]:function(hQuery,hData,hExtras,hCache){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? '\''+hCall.sEndpoint.match(/\{(.*)\}/)[1]+'\'' : null; ]]
+                return self.promise([[=hData.sKey]],'[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,hCache);
             }[[~]]
         };[[}]]
         return self;

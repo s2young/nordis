@@ -160,7 +160,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             //if (nLastUpdate) console.log('last updated on server:'+moment(Number(nLastUpdate)).toString());
 
             if (cache && !expired) {
-                //console.log('cached:'+hOpts.sPath);
+                cache.result['1'] = 1;
                 fnCallback(cache.result);
             } else
                 this.callAPI(hOpts,function(result){

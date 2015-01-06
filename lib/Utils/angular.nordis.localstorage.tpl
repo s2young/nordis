@@ -156,8 +156,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
 
             var cache = self.$cache.get(sCacheId);
             var expired =  (cache && nLastUpdate && cache.time <= nLastUpdate) ? true : false;
-            //if (cache) console.log('cache.time: '+moment(Number(cache.time)).toString());
-            //if (nLastUpdate) console.log('last updated on server:'+moment(Number(nLastUpdate)).toString());
 
             if (cache && !expired) {
                 cache.result['1'] = 1;
@@ -202,8 +200,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (hOpts.sPath) {
                 if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
                 if (hOpts.oObj) hOpts.oObj.bLoading = true;
-                if (self.bDebug) console.log(sMethod+' -- '+self.sHost+hOpts.sPath);
-
                 $http({method:sMethod,url:self.sHost+hOpts.sPath,params:(sMethod=='get')?hOpts.hData:null,data:(sMethod=='post')?hOpts.hData:null,headers:self.hHeaders})
                     .success(function(hResult,nStatus){
                         if (hOpts.oObj)

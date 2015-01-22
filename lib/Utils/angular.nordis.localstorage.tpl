@@ -35,11 +35,9 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                             interval = setTimeout(function(){
                                 wait+=500;
                                 if (wait <= 10000) {
-                                    $rootScope.$broadcast('onLoad');
                                     self.socket = null;
                                     self.connectSocket();
                                 } else if (self.socket.readyState == 3) {
-                                    $rootScope.$broadcast('onUnload');
                                     $rootScope.$broadcast('onSocketDown');
                                     clearTimeout(interval);
                                     wait = 500;

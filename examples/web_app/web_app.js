@@ -3,7 +3,7 @@ var express     = require('express'),
     Template    = require('./../../lib/Utils/Template'),// In your app, this needs to be require('nordis').Template - or use your own templating engine of course.
     AppConfig   = require('./../../lib/AppConfig'),// In your app, this needs to be require('nordis').AppConfig
     Base        = require('./../../lib/Base'),// In your app, this needs to be require('nordis').Base
-    Stats       = require('./../../lib/Utils/Stats'),// In your app, this needs to be require('nordis').Stats
+    Metric      = require('./../../lib/Metric'),// In your app, this needs to be require('nordis').Metric
     Collection  = require('./../../lib/Collection'),// In your app, this needs to be require('nordis').Collection
     NordisMiddleware  = require('./../../lib/Utils/Middleware');// In your app, this needs to be require('nordis').Middleware
 
@@ -73,9 +73,9 @@ var configureExpress = function(){
         .use(function(req,res,next){
             // Track page hits and api requests.
             if (!req.hNordis.hEndpoint) {
-                Stats.track({sStat:'hits',Params:req.hNordis.sPath},next);
+                Metric.track({sStat:'hits',Params:req.hNordis.sPath},next);
             } else if (req.hNordis.hEndpoint)
-                Stats.track({sStat:'api_requests',Params:req.hNordis.sPath},next);
+                Metric.track({sStat:'api_requests',Params:req.hNordis.sPath},next);
             else
                 next();
         })
@@ -94,7 +94,7 @@ var configureRoutes = function(){
         render(req,res,null,'index');
     });
     /**
-     * Stats display page.
+     * Metric display page.
      */
     exp_app.get('/stats', function (req, res) {
         render(req,res,null,'stats');

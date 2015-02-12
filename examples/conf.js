@@ -34,9 +34,7 @@ module.exports.hSettings = {
                 default:{
                     sHost:'127.0.0.1'
                     ,nPort:6379
-                    ,nMaxMemory:524288000
-                    ,sMaxMemoryPolicy:'allkeys-lru'
-                    ,bSkip:true
+                    ,nDb:1
                 }
                 ,statsdb:{
                     sHost:'127.0.0.1'
@@ -104,6 +102,7 @@ module.exports.hSettings = {
                         ,nLength:36
                         ,sSample:'Yf8uIoP'
                     }
+                    ,client:{sType:'String', sMySqlType:'CHAR(20)', bIndex:true }
                     ,created:{
                         sType:'Timestamp'
                         ,bOnCreate:true
@@ -163,6 +162,36 @@ module.exports.hSettings = {
                         }
                         ,fnCreate:function(oUser){
                             return {id:oUser.getKey()};
+                        }
+                    }
+                }
+                ,hMetrics:{
+                    users:{
+                        sTitle:'Stat: User count'
+                        ,sDescription:'Total number of new user accounts created during the period.'
+                        ,sSource:'MySql'
+                        ,sDbAlias:'default'
+                        ,sAlias:'users'
+                        ,hGrains:{alltime:true,year:true,day:true,month:false,hour:true}
+                        ,fnQuery:function(hOpts,AppConfig,fnCallback){
+                            var sStatement = 'id IS NOT NULL'; // default lookup is everything.
+                            var aValues =  [];
+
+                            if (hOpts.sFilter) {
+                                aValues = (hOpts.sFilter) ? hOpts.sFilter.split(',') : [];
+                                var aFilters = [];
+                                aValues.forEach(function(item){
+                                    aFilters.push('?');
+                                });
+                                sStatement =  'client IN ('+aFilters.join(',')+') ';
+                            }
+                            if (hOpts && hOpts.nMin && hOpts.nMax) {
+                                sStatement = (hOpts.sFilter) ? sStatement + ' AND created >= ? AND created<?' : 'created >= ? AND created<?';
+                                aValues.push(hOpts.nMin);
+                                aValues.push(hOpts.nMax);
+                            }
+                            // Even if you're not doing any lookups, callback pattern is required.
+                            fnCallback(null,{aStatements:[sStatement],aValues:aValues});
                         }
                     }
                 }
@@ -269,7 +298,8 @@ module.exports.hSettings = {
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follows:{hExtras:{follower_user:true}}};
                                         req.hNordis.sExtra = 'follows'; // This means the response should start with the follows collection, not the user.
                                         // Track the api request. This is for the redis_stats.js unit test.
-                                        Stats.track({sStat:'api_requests',Params:req.hNordis.sPath},callback);
+                                        //Stats.track({sStat:'api_requests',Params:req.hNordis.sPath},callback);
+                                        callback();
                                     }
                                 }
                             }
@@ -290,18 +320,6 @@ module.exports.hSettings = {
         }
         ,hStats:{
             sDbAlias:'statsdb'
-            ,users:{
-                sTitle:'Stat: User count'
-                ,sDescription:'Total number of new user accounts created during the period.'
-                ,sSource:'MySql'
-                ,sDbAlias:'default'
-                ,sClass:'User'
-                ,sAlias:'users'
-                ,fnProcessQuery:function(hOpts,AppConfig){
-                    var sWhere = (hOpts && hOpts.nMin && hOpts.nMax) ? ' created >='+hOpts.nMin+' AND created<'+hOpts.nMax : 'id IS NOT NULL';
-                    return {sWhere:sWhere};
-                }
-            }
             ,uniques:{
                 sDescription:'Total number of unique users active during the period. Multiple hits by one user count as one unique.'
                 ,fnValidate:function(params,callback){
@@ -344,7 +362,7 @@ module.exports.hSettings = {
         }
         ,fnInit:function(){
             Base = require('./../lib/Base');
-            Stats = require('./../lib/Utils/Stats');
+            Metric = require('./../lib/Metric');
             Collection = require('./../lib/Collection');
         }
     }

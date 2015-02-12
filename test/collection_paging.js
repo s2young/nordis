@@ -12,14 +12,13 @@ var async       = require('async'),
  * NOTE: nTestSize must be both divisible by two and five (i.e. use 10, 20, 30, etc as test size).
  *
  */
-var nTestSize = 50;
+var nTestSize = 10;
 var user;
 
 module.exports = {
     collection:{
         paging:{
             beforeEach:function(done) {
-
                 if (nTestSize < 5 || nTestSize%2 || nTestSize%2)
                     Config.error('nTestSize must be at least 5 and be divisble by 2 and 5.');
                 else
@@ -82,6 +81,7 @@ module.exports = {
                     ],done);
             }
             ,afterEach:function(done) {
+                this.timeout(30000);
                 async.series([
                     function(cb){
                         Collection.lookupAll({sClass:'Follow'},function(err,cColl){
@@ -133,7 +133,6 @@ module.exports = {
                 ],done);
             }
             ,getCollectionInTwoPages:function(done){
-
                 async.series([
                     function(cb){
                         // Let's get half of the items in the collection.
@@ -265,7 +264,7 @@ module.exports = {
                 ],done);
             }
             ,getCollectionInFivePagesMySql:function(done){
-                
+
                 async.waterfall([
                     function(cb){
                         // Let's get first 20% of the items.

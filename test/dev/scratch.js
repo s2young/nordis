@@ -1,100 +1,130 @@
-var express     = require('express'),
-    request     = require('request'),
-    async       = require('async'),
+var async       = require('async'),
     should      = require('should'),
     Base        = require('./../../lib/Base'),
     Collection  = require('./../../lib/Collection'),
-    Middleware  = require('./../../lib/Utils/Middleware'),
     Config      = require('./../../lib/AppConfig');
 
-var nTestSize = 10;
-var nPort = 2002; // Port on which to run api instance during test.
-var server;
+/**
+ * This test creates follows on a user and shows how to look up a user, his followers and his followers followers.
+ *
+ * @type {number}
+ */
+
+var nTestSize = 5;
 var user;
+var dNow = new Date();
 
 module.exports = {
-    api:{
-        before:function(done) {
+    collection:{
+        nested_extras:{
+            beforeEach:function(done) {
 
-            async.series([
-                function(cb) {
-                    Config.init({bBuildMySql:true},cb);
-                }
-                // Create a user we'll look up via an api call.
-                ,function(cb){
-                    user = Base.lookup({sClass:'User'});
-                    user.set('name','TestUser');
-                    user.set('email','test@test.com');
-                    user.save(cb);
-                }
-                ,function(cb) {
-                    // Create n follower records  (n = nTestSize);
-                    var createFollower = function(n,callback) {
-                        var follower_user = Base.lookup({sClass:'User'});
-                        follower_user.set('name','TestFollower '+n);
-                        follower_user.set('email','testfollower'+n+'@test.com');
-                        follower_user.save(function(err){
-                            if (err)
-                                callback(err);
-                            else {
-                                var follow = Base.lookup({sClass:'Follow'});
-                                follow.set('followed_id',user.getKey());
-                                follow.set('follower_id',follower_user.getKey());
-                                follow.set('rank',n);
-                                follow.save(function(err){
-                                    callback(err);
-                                });
+                if (nTestSize < 2) {
+                    Config.error('nTestSize must be at least 2.');
+                } else
+                    async.series([
+                        function(cb) {
+                            user = Base.lookup({sClass:'User'});
+                            user.set('name','TestUser');
+                            user.set('email','test@test.com');
+                            user.save(cb);
+                        }
+                        ,function(cb) {
+                            // Create n follower records  (n = nTestSize);
+                            var createFollower = function(n,callback) {
+                                // Create follow between newly created user and first user, as well as with previously created user.
+                                var follower_user;
+                                async.waterfall([
+                                    function(cb) {
+                                        follower_user = Base.lookup({sClass:'User'});
+                                        follower_user.setData({
+                                            name:dNow.valueOf()
+                                            ,email:dNow.valueOf()+'-'+n+'@test.com'
+                                        });
+                                        follower_user.save(cb);
+                                    }
+                                    ,function(follower_user,cb) {
+                                        var follow = Base.lookup({sClass:'Follow'});
+                                        follow.setData({
+                                            followed_id:user.getKey()
+                                            ,follower_id:follower_user.getKey()
+                                            ,rank:n
+                                        });
+                                        follow.save(cb);
+                                    }
+                                    ,function(o,cb) {
+                                        Base.lookup({sClass:'User',hQuery:{email:dNow.valueOf()+'-'+(n-1)+'@test.com'}},cb);
+                                    }
+                                    ,function(oLastUser,cb){
+                                        if (oLastUser.getKey()) {
+                                            var followerOfFollower = Base.lookup({sClass:'Follow'});
+                                            followerOfFollower.setData({
+                                                followed_id:follower_user.getKey()
+                                                ,follower_id:oLastUser.getKey()
+                                                ,rank:1
+                                            });
+                                            followerOfFollower.save(cb);
+                                        } else {
+                                            cb(null,null);
+                                        }
+                                    }
+                                    ,function(followerOfFollower,cb){
+                                        if (followerOfFollower) {
+                                            follower_user.setExtra('follows',followerOfFollower,cb);
+                                        } else
+                                            cb();
+                                    }
+                                ],callback);
+
+                            };
+                            var q = async.queue(createFollower,1000);
+                            q.drain = cb;
+
+                            for (var n = 1; n <= nTestSize; n++) {
+                                q.push(n);
                             }
-                        });
-                    };
-                    var q = async.queue(createFollower,100);
-                    q.drain = cb;
-
-                    for (var n = 0; n < nTestSize; n++) {
-                        q.push(n);
+                        }
+                    ],done);
+            }
+            ,afterEach:function(done) {
+                async.series([
+                    function(cb) {
+                        Config.MySql.execute('DELETE FROM UserTbl WHERE name = ?',[dNow.getTime()],cb);
                     }
-                }
-                // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
-                ,function(cb) {
-                    var exp_app = express();
-                    server = exp_app.listen(nPort);
-                    exp_app.use(require('body-parser')());
-                    exp_app.use(Middleware.apiParser);
-                    cb();
-                }
-            ],done);
-        }
-        ,after:function(done) {
+                    ,function(cb) {
+                        Config.MySql.execute('DELETE FROM FollowTbl',null,cb);
+                    }
+                ],done);
+            }
+            ,loadFollowersOfFollowers:function(done){
 
-            async.waterfall([
-                function(cb) {
-                    Collection.lookupAll({sClass:'User'},cb);
-                }
-                ,function(users,cb) {
-                    users.delete(cb);
-                }
-                ,function(ignore,cb){
-                    Collection.lookupAll({sClass:'Follow'},cb);
-                }
-                ,function(follows,cb) {
-                    follows.delete(cb);
-                }
-                ,function(ignore,cb){
-                    if (server)
-                        server.close();
-                    cb(null,null);
-                }
-            ],done);
-        }
-        ,lookupUser:function(done) {
+                user.loadExtras({
+                    follows:{
+                        hExtras:{
+                            follower_user:{
+                                hExtras:{
+                                    follows:{hExtras:{
+                                        follower_user:true
+                                        ,followed_user:true
+                                    }}
+                                }
+                            }
+                        }
+                    }
+                },function(err){
+                    if (err)
+                        done(err);
+                    else {
+                        user.follows.nTotal.should.equal(nTestSize);
+                        // The first user has no follows because there was no one before him.
+                        user.follows.last().follower_user.follows.nTotal.should.equal(0);
+                        // The second user should have a follower.
+                        user.follows.first().follower_user.follows.nTotal.should.equal(1);
+                        done();
+                    }
+                });
 
-            Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey())
-                .then(function(hResult){
-                    hResult.id.should.equal(user.getKey());
-                })
-                .then(null,function(err){throw err})
-                .done(done);
-
+            }
         }
     }
 };

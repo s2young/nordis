@@ -1,4 +1,5 @@
 var async       = require('async'),
+    should      = require('should'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
     Config      = require('./../lib/AppConfig');
@@ -9,8 +10,9 @@ var async       = require('async'),
  * @type {number}
  */
 
-var nTestSize = 20;
+var nTestSize = 5;
 var user;
+var dNow = new Date();
 
 module.exports = {
     collection:{
@@ -36,8 +38,8 @@ module.exports = {
                                     function(cb) {
                                         follower_user = Base.lookup({sClass:'User'});
                                         follower_user.setData({
-                                            name:'TestFollower '+n
-                                            ,email:'testfollower'+n+'@test.com'
+                                            name:dNow.valueOf()
+                                            ,email:dNow.valueOf()+'-'+n+'@test.com'
                                         });
                                         follower_user.save(cb);
                                     }
@@ -50,11 +52,8 @@ module.exports = {
                                         });
                                         follow.save(cb);
                                     }
-                                    ,function(follower,cb) {
-                                        user.setExtra('follows',follower,cb);
-                                    }
                                     ,function(o,cb) {
-                                        Base.lookup({sClass:'User',hQuery:{email:'testfollower'+(n-1)+'@test.com'}},cb);
+                                        Base.lookup({sClass:'User',hQuery:{email:dNow.valueOf()+'-'+(n-1)+'@test.com'}},cb);
                                     }
                                     ,function(oLastUser,cb){
                                         if (oLastUser.getKey()) {
@@ -65,8 +64,9 @@ module.exports = {
                                                 ,rank:1
                                             });
                                             followerOfFollower.save(cb);
-                                        } else
+                                        } else {
                                             cb(null,null);
+                                        }
                                     }
                                     ,function(followerOfFollower,cb){
                                         if (followerOfFollower) {
@@ -88,52 +88,42 @@ module.exports = {
             }
             ,afterEach:function(done) {
                 async.series([
-                    function(cb){
-                        Collection.lookupAll({sClass:'Follow'},function(err,cColl){
-                            if (err)
-                                cb(err);
-                            else
-                                cColl.delete(cb);
-                        });
+                    function(cb) {
+                        Config.MySql.execute('DELETE FROM UserTbl WHERE name = ?',[dNow.getTime()],cb);
                     }
-                    ,function(cb){
-                        Collection.lookupAll({sClass:'User'},function(err,cColl){
-                            if (err)
-                                cb(err);
-                            else
-                                cColl.delete(cb);
-                        });
+                    ,function(cb) {
+                        Config.MySql.execute('DELETE FROM FollowTbl',null,cb);
                     }
                 ],done);
             }
             ,loadFollowersOfFollowers:function(done){
 
-                async.waterfall([
-                    function(cb){
-                        user.loadExtras({
-                            follows:{
+                user.loadExtras({
+                    follows:{
+                        hExtras:{
+                            follower_user:{
                                 hExtras:{
-                                    follower_user:{
-                                        hExtras:{
-                                            follows:{hExtras:{
-                                                follower_user:true
-                                                ,followed_user:true
-                                            }}
-                                        }
-                                    }
+                                    follows:{hExtras:{
+                                        follower_user:true
+                                        ,followed_user:true
+                                    }}
                                 }
                             }
-                        },cb);
+                        }
                     }
-                    ,function(o,cb){
+                },function(err){
+                    if (err)
+                        done(err);
+                    else {
                         user.follows.nTotal.should.equal(nTestSize);
                         // The first user has no follows because there was no one before him.
                         user.follows.last().follower_user.follows.nTotal.should.equal(0);
                         // The second user should have a follower.
                         user.follows.first().follower_user.follows.nTotal.should.equal(1);
-                        cb();
+                        done();
                     }
-                ],done);
+                });
+
             }
         }
     }

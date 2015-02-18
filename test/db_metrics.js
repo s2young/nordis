@@ -101,7 +101,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{hMetrics:{users:{alltime:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{hMetrics:{users:{alltime:true}}})
                             .then(function(hStat){
                                 should.exist(hStat);
                                 should.exist(hStat.users);
@@ -160,7 +160,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,year:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,year:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
@@ -223,7 +223,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,month:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,month:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
@@ -287,7 +287,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,day:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,day:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
@@ -358,7 +358,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
@@ -429,7 +429,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
@@ -542,7 +542,7 @@ module.exports = {
                             .done(callback);
                     }
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{sFilter:'client1,client5,client9',hMetrics:{users:{alltime:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'client1,client5,client9',hMetrics:{users:{alltime:true}}})
                             .then(function(hStat){
                                 should.exist(hStat);
                                 should.exist(hStat.users);
@@ -607,7 +607,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,year:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,year:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
@@ -675,7 +675,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,month:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,month:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
@@ -743,7 +743,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{nMin:dStart.valueOf(),sFilter:'clientA',nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),sFilter:'clientA',nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
@@ -818,7 +818,7 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user/users',{sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);

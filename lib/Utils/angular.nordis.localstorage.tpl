@@ -225,7 +225,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                     });
             }
         };
-        self.promise = function(sKey,sPath,sMethod,hData,hExtras,hCache){
+        self.promise = function(sPath,sMethod,hData,hExtras,hCache){
             var deferred = $q.defer();
             self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                 delete res.txid;
@@ -238,7 +238,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         self.[[=sClass]] = {
             sKey:'[[=hData.hKeys[sClass]||'']]'[[~hData.hApiCalls[sClass] :hCall:nIndex]]
             ,[[=hCall.sAlias]]:function(hQuery,hData,hExtras,hCache){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? '\''+hCall.sEndpoint.match(/\{(.*)\}/)[1]+'\'' : null; ]]
-                return self.promise([[=hData.sKey]],'[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,hCache);
+                return self.promise('[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,hCache);
             }[[~]]
         };[[}]]
         return self;

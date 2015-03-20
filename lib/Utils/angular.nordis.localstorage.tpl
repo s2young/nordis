@@ -196,14 +196,8 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             var self = this;
             var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod.toLowerCase() : 'get';
             if (hOpts.sPath) {
-                if (!hOpts.hData.bHideLoader)  self.emit('onLoad');
-                if (hOpts.oObj) hOpts.oObj.bLoading = true;
                 $http({method:sMethod,url:self.sHost+hOpts.sPath,params:(sMethod=='get')?hOpts.hData:null,data:(sMethod=='post')?hOpts.hData:null,headers:self.hHeaders})
                     .success(function(hResult,nStatus){
-                        if (hOpts.oObj)
-                            hOpts.oObj.bLoading = false;
-
-                        if (!hOpts.hData.bHideLoader)  self.emit('onUnload');
                         if (hResult && hResult.sException) {
                             if (fnErrorHandler)
                                 fnErrorHandler(hResult);
@@ -213,9 +207,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                             fnCallback(hResult,nStatus);
                     })
                     .error(function(data, status, headers, config){
-                        if (hOpts.oObj) hOpts.oObj.bLoading = false;
-                        if (!hOpts.hData.bHideLoader) self.emit('onUnload');
-
                         if (!data && status == 404)
                             self.alert('Request failed. Check your connection or try again later.');
                         else if (fnErrorHandler)

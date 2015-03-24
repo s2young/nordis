@@ -15,7 +15,7 @@
     "async": "^0.9.0",
     "body-parser": "^1.8.0",
     "dot": "^1.0.2",
-    "hiredis": "^0.1.17",
+    "hiredis": "^0.2.0",
     "moment": "^2.8.3",
     "moment-timezone": "^0.2.2",
     "mysql2": "^0.15.4",

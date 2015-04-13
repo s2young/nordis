@@ -88,26 +88,26 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',hMetrics:{users:{alltime:true}}})
+                        Metric.lookupP({sClass:'User',hMetrics:{new_users:{alltime:true}}})
                             .then(function(oStat){
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nTestSize);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nTestSize);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{hMetrics:{users:{alltime:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{hMetrics:{new_users:{alltime:true}}})
                             .then(function(hStat){
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nTestSize);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nTestSize);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
@@ -140,19 +140,19 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,year:true}}})
+                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,year:true}}})
                             .then(function(oStat){
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nTestSize);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nTestSize);
 
-                                should.exist(oStat.users.year);
-                                should.exist(oStat.users.year.nTotal);
-                                if (oStat.users.year.nTotal)
-                                    while (oStat.users.year.next()) {
-                                        oStat.users.year.getItem().get('nCount').should.equal(1);
+                                should.exist(oStat.new_users.year);
+                                should.exist(oStat.new_users.year.nTotal);
+                                if (oStat.new_users.year.nTotal)
+                                    while (oStat.new_users.year.next()) {
+                                        oStat.new_users.year.getItem().get('nCount').should.equal(1);
                                     }
                             })
                             .then(null,function(err){throw err})
@@ -160,19 +160,19 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,year:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,year:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nTestSize);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nTestSize);
                                 // validate year
-                                should.exist(hStat.users.year);
-                                should.exist(hStat.users.year.nTotal);
-                                should.exist(hStat.users.year.aObjects);
-                                hStat.users.year.aObjects.forEach(function(item) {
+                                should.exist(hStat.new_users.year);
+                                should.exist(hStat.new_users.year.nTotal);
+                                should.exist(hStat.new_users.year.aObjects);
+                                hStat.new_users.year.aObjects.forEach(function(item) {
                                     item.nCount.should.equal(1);
                                 });
                             })
@@ -207,32 +207,32 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,month:true}}})
+                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,month:true}}})
                             .then(function(oStat){
                                 // validate alltime
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nTestSize);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nTestSize);
                                 // The 'month' grain does not exist because it's not supported on this stat.
-                                should.not.exist(oStat.users.month);
+                                should.not.exist(oStat.new_users.month);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,month:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,month:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nTestSize);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nTestSize);
                                 // validate month, which shouldn't exist.
-                                should.not.exist(hStat.users.month);
+                                should.not.exist(hStat.new_users.month);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
@@ -265,21 +265,21 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,day:true}}})
+                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,day:true}}})
                             .then(function(oStat){
                                 // validate alltime
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nTestSize);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nTestSize);
 
 
-                                should.exist(oStat.users.day);
-                                should.exist(oStat.users.day.nTotal);
-                                oStat.users.day.nTotal.should.equal(nTestSize);
-                                while (oStat.users.day.next()) {
-                                    oStat.users.day.getItem().get('nCount').should.equal(1);
+                                should.exist(oStat.new_users.day);
+                                should.exist(oStat.new_users.day.nTotal);
+                                oStat.new_users.day.nTotal.should.equal(nTestSize);
+                                while (oStat.new_users.day.next()) {
+                                    oStat.new_users.day.getItem().get('nCount').should.equal(1);
                                 }
                             })
                             .then(null,function(err){throw err})
@@ -287,22 +287,22 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,day:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,day:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nTestSize);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nTestSize);
 
                                 // validate day stats
-                                should.exist(hStat.users.day);
-                                should.exist(hStat.users.day.nTotal);
-                                should.exist(hStat.users.day.aObjects);
-                                hStat.users.day.nTotal.should.equal(nTestSize);
+                                should.exist(hStat.new_users.day);
+                                should.exist(hStat.new_users.day.nTotal);
+                                should.exist(hStat.new_users.day.aObjects);
+                                hStat.new_users.day.nTotal.should.equal(nTestSize);
 
-                                hStat.users.day.aObjects.forEach(function(item) {
+                                hStat.new_users.day.aObjects.forEach(function(item) {
                                     item.nCount.should.equal(1);
                                 });
                             })
@@ -337,20 +337,20 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
                             .then(function(oStat){
                                 // validate alltime
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nTestSize);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nTestSize);
 
-                                should.exist(oStat.users.hour);
-                                should.exist(oStat.users.hour.nTotal);
-                                oStat.users.hour.nTotal.should.equal(nTestSize);
-                                while (oStat.users.hour.next()) {
-                                    oStat.users.hour.getItem().get('nCount').should.equal(1);
+                                should.exist(oStat.new_users.hour);
+                                should.exist(oStat.new_users.hour.nTotal);
+                                oStat.new_users.hour.nTotal.should.equal(nTestSize);
+                                while (oStat.new_users.hour.next()) {
+                                    oStat.new_users.hour.getItem().get('nCount').should.equal(1);
                                 }
                             })
                             .then(null,function(err){throw err})
@@ -358,22 +358,22 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nTestSize);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nTestSize);
 
                                 // validate hour stats
-                                should.exist(hStat.users.hour);
-                                should.exist(hStat.users.hour.nTotal);
-                                should.exist(hStat.users.hour.aObjects);
-                                hStat.users.hour.nTotal.should.equal(nTestSize);
+                                should.exist(hStat.new_users.hour);
+                                should.exist(hStat.new_users.hour.nTotal);
+                                should.exist(hStat.new_users.hour.aObjects);
+                                hStat.new_users.hour.nTotal.should.equal(nTestSize);
 
-                                hStat.users.hour.aObjects.forEach(function(item) {
+                                hStat.new_users.hour.aObjects.forEach(function(item) {
                                     item.nCount.should.equal(1);
                                 });
                             })
@@ -415,13 +415,13 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Metric.lookupP({sClass:'User',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
                             .then(function(oStat){
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nTotal);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nTotal);
 
                             })
                             .then(null,function(err){throw err})
@@ -429,22 +429,22 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nTotal);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nTotal);
 
                                 // validate hour stats
-                                should.exist(hStat.users.hour);
-                                should.exist(hStat.users.hour.nTotal);
-                                should.exist(hStat.users.hour.aObjects);
-                                hStat.users.hour.nTotal.should.equal(nTotal);
+                                should.exist(hStat.new_users.hour);
+                                should.exist(hStat.new_users.hour.nTotal);
+                                should.exist(hStat.new_users.hour.aObjects);
+                                hStat.new_users.hour.nTotal.should.equal(nTotal);
 
-                                hStat.users.hour.aObjects.forEach(function(item) {
+                                hStat.new_users.hour.aObjects.forEach(function(item) {
                                     if (!item.nCount)
                                         console.log(moment.utc(item.date).toString());
 
@@ -514,11 +514,11 @@ module.exports = {
                     }
                     // Get total count, no filter.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',hMetrics:{users:{alltime:true}}})
+                        Metric.lookupP({sClass:'User',hMetrics:{new_users:{alltime:true}}})
                             .then(function(oStat){
                                 var new_count;
-                                if (oStat.users && oStat.users.alltime)
-                                    new_count = oStat.users.alltime.get('nCount');
+                                if (oStat.new_users && oStat.new_users.alltime)
+                                    new_count = oStat.new_users.alltime.get('nCount');
                                 nTestSize.should.equal(new_count);
                             })
                             .then(null,function(err){throw err})
@@ -530,25 +530,25 @@ module.exports = {
                     }
                     // Get filtered totals.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',sFilter:'client1,client5,client9',hMetrics:{users:{alltime:true}}})
+                        Metric.lookupP({sClass:'User',sFilter:'client1,client5,client9',hMetrics:{new_users:{alltime:true}}})
                             .then(function(oStat){
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(3);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(3);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
                     }
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'client1,client5,client9',hMetrics:{users:{alltime:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'client1,client5,client9',hMetrics:{new_users:{alltime:true}}})
                             .then(function(hStat){
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(3);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(3);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
@@ -587,19 +587,19 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,year:true}}})
+                        Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,year:true}}})
                             .then(function(oStat){
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nTotal);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nTotal);
 
-                                should.exist(oStat.users.year);
-                                should.exist(oStat.users.year.nTotal);
+                                should.exist(oStat.new_users.year);
+                                should.exist(oStat.new_users.year.nTotal);
                                 var n = 0;
-                                while (oStat.users.year.next()) {
-                                    if (n%2) oStat.users.year.getItem().get('nCount').should.equal(1);
+                                while (oStat.new_users.year.next()) {
+                                    if (n%2) oStat.new_users.year.getItem().get('nCount').should.equal(1);
                                 }
                             })
                             .then(null,function(err){throw err})
@@ -607,20 +607,20 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,year:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,year:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nTotal);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nTotal);
                                 // validate year
-                                should.exist(hStat.users.year);
-                                should.exist(hStat.users.year.nTotal);
-                                should.exist(hStat.users.year.aObjects);
+                                should.exist(hStat.new_users.year);
+                                should.exist(hStat.new_users.year.nTotal);
+                                should.exist(hStat.new_users.year.aObjects);
                                 var n = 0;
-                                hStat.users.year.aObjects.forEach(function(item) {
+                                hStat.new_users.year.aObjects.forEach(function(item) {
                                     if (n%2) item.nCount.should.equal(1);
                                 });
                             })
@@ -659,32 +659,32 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,month:true}}})
+                        Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,month:true}}})
                             .then(function(oStat){
                                 // validate alltime
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nTotal);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nTotal);
                                 // The 'month' grain does not exist because it's not supported on this stat.
-                                should.not.exist(oStat.users.month);
+                                should.not.exist(oStat.new_users.month);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,month:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,month:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nTotal);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nTotal);
                                 // validate month, which shouldn't exist.
-                                should.not.exist(hStat.users.month);
+                                should.not.exist(hStat.new_users.month);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
@@ -721,21 +721,21 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
                             .then(function(oStat){
                                 // validate alltime
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nTotal);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nTotal);
 
-                                should.exist(oStat.users.hour);
-                                should.exist(oStat.users.hour.nTotal);
-                                oStat.users.hour.nTotal.should.equal(nTestSize);
+                                should.exist(oStat.new_users.hour);
+                                should.exist(oStat.new_users.hour.nTotal);
+                                oStat.new_users.hour.nTotal.should.equal(nTestSize);
                                 var n = 0;
-                                while (oStat.users.hour.next()) {
-                                    if (n%2) oStat.users.hour.getItem().get('nCount').should.equal(1);
+                                while (oStat.new_users.hour.next()) {
+                                    if (n%2) oStat.new_users.hour.getItem().get('nCount').should.equal(1);
                                 }
                             })
                             .then(null,function(err){throw err})
@@ -743,22 +743,22 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),sFilter:'clientA',nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),sFilter:'clientA',nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nTotal);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nTotal);
 
                                 // validate hour stats
-                                should.exist(hStat.users.hour);
-                                should.exist(hStat.users.hour.nTotal);
-                                should.exist(hStat.users.hour.aObjects);
-                                hStat.users.hour.nTotal.should.equal(nTestSize);
+                                should.exist(hStat.new_users.hour);
+                                should.exist(hStat.new_users.hour.nTotal);
+                                should.exist(hStat.new_users.hour.aObjects);
+                                hStat.new_users.hour.nTotal.should.equal(nTestSize);
                                 var n = 0;
-                                hStat.users.hour.aObjects.forEach(function(item) {
+                                hStat.new_users.hour.aObjects.forEach(function(item) {
                                     if (n%2) item.nCount.should.equal(1);
                                 });
                             })
@@ -804,13 +804,13 @@ module.exports = {
                     }
                     // Look up the stats.
                     ,function(callback) {
-                        Metric.lookupP({sClass:'User',sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Metric.lookupP({sClass:'User',sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
                             .then(function(oStat){
                                 should.exist(oStat);
-                                should.exist(oStat.users);
-                                should.exist(oStat.users.alltime);
-                                should.exist(oStat.users.alltime.get('nCount'));
-                                oStat.users.alltime.get('nCount').should.equal(nFiltered);
+                                should.exist(oStat.new_users);
+                                should.exist(oStat.new_users.alltime);
+                                should.exist(oStat.new_users.alltime.get('nCount'));
+                                oStat.new_users.alltime.get('nCount').should.equal(nFiltered);
 
                             })
                             .then(null,function(err){throw err})
@@ -818,22 +818,22 @@ module.exports = {
                     }
                     // Lookup again using API
                     ,function(callback) {
-                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{users:{alltime:true,hour:true}}})
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
                             .then(function(hStat){
                                 // validate alltime
                                 should.exist(hStat);
-                                should.exist(hStat.users);
-                                should.exist(hStat.users.alltime);
-                                should.exist(hStat.users.alltime.nCount);
-                                hStat.users.alltime.nCount.should.equal(nFiltered);
+                                should.exist(hStat.new_users);
+                                should.exist(hStat.new_users.alltime);
+                                should.exist(hStat.new_users.alltime.nCount);
+                                hStat.new_users.alltime.nCount.should.equal(nFiltered);
 
                                 // validate hour stats
-                                should.exist(hStat.users.hour);
-                                should.exist(hStat.users.hour.nTotal);
-                                should.exist(hStat.users.hour.aObjects);
-                                hStat.users.hour.nTotal.should.equal(nTotal);
+                                should.exist(hStat.new_users.hour);
+                                should.exist(hStat.new_users.hour.nTotal);
+                                should.exist(hStat.new_users.hour.aObjects);
+                                hStat.new_users.hour.nTotal.should.equal(nTotal);
 
-                                hStat.users.hour.aObjects.forEach(function(item) {
+                                hStat.new_users.hour.aObjects.forEach(function(item) {
                                     if ((nTotal % 3)==0 || (nTotal % 2)==0)  item.nCount.should.equal(1);
                                 });
                             })

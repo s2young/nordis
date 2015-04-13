@@ -12,11 +12,11 @@ Config.init(function(err){
         console.error(err);
     else {
 
-        Base.lookup({sClass:'User',hQuery:{id:'1234'}},function(err,oUser){
+        Metric.flush(function(err){
             if (err)
                 Config.error(err);
 
-            console.log(oUser);
+
             Config.exit();
         })
 

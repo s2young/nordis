@@ -12,13 +12,14 @@ var async       = require('async'),
  * NOTE: nTestSize must be both divisible by two and five (i.e. use 10, 20, 30, etc as test size).
  *
  */
-var nTestSize = 10;
+var nTestSize = 1000;
 var user;
 
 module.exports = {
     collection:{
         paging:{
-            beforeEach:function(done) {
+            before:function(done) {
+                this.timeout(30000);
                 if (nTestSize < 5 || nTestSize%2 || nTestSize%2)
                     Config.error('nTestSize must be at least 5 and be divisble by 2 and 5.');
                 else
@@ -80,7 +81,7 @@ module.exports = {
                         }
                     ],done);
             }
-            ,afterEach:function(done) {
+            ,after:function(done) {
                 this.timeout(30000);
                 async.series([
                     function(cb){
@@ -307,6 +308,44 @@ module.exports = {
                         (user.follows.nNextID===undefined).should.be.ok;
                         // We should now have the second half of our list.
                         user.follows.nCount.should.equal((nTestSize/5));
+                        cb();
+                    }
+                ],done);
+            }
+            ,deleteRecordAndPageOne:function(done) {
+                async.series([
+                    function(cb) {
+                        Base.lookup({sClass:'User',hQuery:{email:'testfollower1@test.com'},hExtras:{followed:true}},function(err,user){
+                            if (err || !user || !user.getKey())
+                                cb(err||'User not found.');
+                            else
+                                user.followed.delete(cb);
+                        });
+                    }
+                    // Let's get half of the items in the collection.
+                    ,function(cb){
+                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
+                    }
+                    // nTotal will be the whole collection regardless of paging options.
+                    ,function(cb){
+                        user.follows.nNextID.should.be.above(0);
+                        user.follows.sSource.should.equal('MySql');
+                        user.follows.nTotal.should.equal(nTestSize-1);
+                        // nCount will be the number of items in the current page.
+                        user.follows.nCount.should.equal((nTestSize/2));
+                        cb();
+                    }
+                    // Do it again, but this time look in Redis
+                    ,function(cb){
+                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'Redis'}},cb);
+                    }
+                    ,function(cb){
+                        // nTotal will be the whole collection regardless of paging options.
+                        if (!Config.Redis.hOpts.default.bSkip) user.follows.sSource.should.equal('Redis');
+                        user.follows.nNextID.should.be.above(0);
+                        user.follows.nTotal.should.equal(nTestSize-1);
+                        // nCount will be the number of items in the current page.
+                        user.follows.nCount.should.equal((nTestSize/2));
                         cb();
                     }
                 ],done);

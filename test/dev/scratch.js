@@ -12,13 +12,14 @@ var async       = require('async'),
  * NOTE: nTestSize must be both divisible by two and five (i.e. use 10, 20, 30, etc as test size).
  *
  */
-var nTestSize = 10;
+var nTestSize = 1000;
 var user;
 
 module.exports = {
     collection:{
         paging:{
-            beforeEach:function(done) {
+            before:function(done) {
+                this.timeout(30000);
                 if (nTestSize < 5 || nTestSize%2 || nTestSize%2)
                     Config.error('nTestSize must be at least 5 and be divisble by 2 and 5.');
                 else
@@ -80,7 +81,7 @@ module.exports = {
                         }
                     ],done);
             }
-            ,afterEach:function(done) {
+            ,after:function(done) {
                 this.timeout(30000);
                 async.series([
                     function(cb){
@@ -101,37 +102,37 @@ module.exports = {
                     }
                 ],done);
             }
-            //,getPageOne:function(done){
-            //
-            //    async.series([
-            //        // Let's get half of the items in the collection.
-            //        function(cb){
-            //            user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
-            //        }
-            //        // nTotal will be the whole collection regardless of paging options.
-            //        ,function(cb){
-            //            user.follows.nNextID.should.be.above(0);
-            //            user.follows.sSource.should.equal('MySql');
-            //            user.follows.nTotal.should.equal(nTestSize);
-            //            // nCount will be the number of items in the current page.
-            //            user.follows.nCount.should.equal((nTestSize/2));
-            //            cb();
-            //        }
-            //        // Do it again, but this time look in Redis
-            //        ,function(cb){
-            //            user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'Redis'}},cb);
-            //        }
-            //        ,function(cb){
-            //            // nTotal will be the whole collection regardless of paging options.
-            //            if (!Config.Redis.hOpts.default.bSkip) user.follows.sSource.should.equal('Redis');
-            //            user.follows.nNextID.should.be.above(0);
-            //            user.follows.nTotal.should.equal(nTestSize);
-            //            // nCount will be the number of items in the current page.
-            //            user.follows.nCount.should.equal((nTestSize/2));
-            //            cb();
-            //        }
-            //    ],done);
-            //}
+            ,getPageOne:function(done){
+
+                async.series([
+                    // Let's get half of the items in the collection.
+                    function(cb){
+                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
+                    }
+                    // nTotal will be the whole collection regardless of paging options.
+                    ,function(cb){
+                        user.follows.nNextID.should.be.above(0);
+                        user.follows.sSource.should.equal('MySql');
+                        user.follows.nTotal.should.equal(nTestSize);
+                        // nCount will be the number of items in the current page.
+                        user.follows.nCount.should.equal((nTestSize/2));
+                        cb();
+                    }
+                    // Do it again, but this time look in Redis
+                    ,function(cb){
+                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'Redis'}},cb);
+                    }
+                    ,function(cb){
+                        // nTotal will be the whole collection regardless of paging options.
+                        if (!Config.Redis.hOpts.default.bSkip) user.follows.sSource.should.equal('Redis');
+                        user.follows.nNextID.should.be.above(0);
+                        user.follows.nTotal.should.equal(nTestSize);
+                        // nCount will be the number of items in the current page.
+                        user.follows.nCount.should.equal((nTestSize/2));
+                        cb();
+                    }
+                ],done);
+            }
             ,getCollectionInTwoPages:function(done){
                 async.series([
                     function(cb){
@@ -143,14 +144,10 @@ module.exports = {
                         cb();
                     }
                     ,function(cb){
-                        console.log('PAGE 1');
-                        console.log(user.follows);
                         // Now, let's get the next half.
                         user.loadExtras({follows:{nSize:(nTestSize/2),nFirstID:user.follows.nNextID}},cb);
                     }
                     ,function(cb){
-                        console.log('PAGE 2');
-                        console.log(user.follows);
                         if (Config.Redis.hOpts.default.bSkip)
                             user.follows.sSource.should.equal('MySql');
                         else
@@ -162,159 +159,197 @@ module.exports = {
                     }
                 ],done);
             }
-            //,getCollectionInFivePages:function(done){
-            //
-            //    async.waterfall([
-            //        function(cb){
-            //            // Let's get first 20% of the items.
-            //            user.loadExtras({follows:{nSize:(nTestSize/5)}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
-            //            // Confirm paging is correct by testing the rank of the first and last items.
-            //            user.follows.first().get('rank').should.equal((nTestSize-1));
-            //            user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
-            //            // Let's get second 20% of the items.
-            //            user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
-            //            // Confirm paging is correct by testing the rank of the first and last items.
-            //            user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
-            //            user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
-            //            // Let's get third 20% of the items.
-            //            user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
-            //            // Confirm paging is correct by testing the rank of the first and last items.
-            //            user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
-            //            user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
-            //            // Let's get fourth 20% of the items.
-            //            user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
-            //            // Confirm paging is correct by testing the rank of the first and last items.
-            //            user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
-            //            user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));
-            //            // Let's get fifth 20% of the items.
-            //            user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            user.follows.last().get('rank').should.equal(0);
-            //            (user.follows.nNextID===undefined).should.be.ok;
-            //            // We should now have the second half of our list.
-            //            user.follows.nCount.should.equal((nTestSize/5));
-            //            cb();
-            //        }
-            //    ],done);
-            //}
-            //,getPageOneMySql:function(done){
-            //
-            //    async.waterfall([
-            //        function(cb){
-            //            // Let's get half of the items in the collection.
-            //            user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/2)}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            // nTotal will be the whole collection regardless of paging options.
-            //            user.follows.nNextID.should.be.above(0);
-            //            user.follows.nTotal.should.equal(nTestSize);
-            //            // nCount will be the number of items in the current page.
-            //            user.follows.nCount.should.equal((nTestSize/2));
-            //            // The first item in the list should have an rank of nTestSize-1.
-            //            user.follows.first().get('rank').should.equal((nTestSize-1));
-            //            // And the last should have (nTestSize/2)
-            //            user.follows.last().get('rank').should.equal((nTestSize/2));
-            //
-            //            cb();
-            //        }
-            //    ],done);
-            //}
-            //,getCollectionInTwoPagesMySql:function(done){
-            //
-            //    async.waterfall([
-            //        function(cb){
-            //            // Let's get half of the items in the collection.
-            //            user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/2)}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            // The first item in the list should have an rank of nTestSize-1.
-            //            user.follows.first().get('rank').should.equal((nTestSize-1));
-            //            // And the last should have (nTestSize/2)
-            //            user.follows.last().get('rank').should.equal((nTestSize/2));
-            //
-            //            // Now, let's get the next half.
-            //            user.loadExtras({
-            //                sSource:'MySql',
-            //                follows:{
-            //                    nSize:(nTestSize/2),
-            //                    nFirstID:user.follows.nNextID
-            //                }
-            //            },cb);
-            //        }
-            //        ,function(o,cb){
-            //            (user.follows.nNextID===undefined).should.be.ok;
-            //
-            //            // The first item in the list should have an rank of (nTestSize/2)-1.
-            //            user.follows.first().get('rank').should.equal(((nTestSize/2)-1));
-            //            // And the last should have (nTestSize/2)
-            //            user.follows.last().get('rank').should.equal(0);
-            //            // We should now have the second half of our list.
-            //            user.follows.nCount.should.equal((nTestSize/2));
-            //            cb();
-            //        }
-            //    ],done);
-            //}
-            //,getCollectionInFivePagesMySql:function(done){
-            //
-            //    async.waterfall([
-            //        function(cb){
-            //            // Let's get first 20% of the items.
-            //            user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5)}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
-            //            // Confirm paging is correct by testing the rank of the first and last items.
-            //            user.follows.first().get('rank').should.equal((nTestSize-1));
-            //            user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
-            //            // Let's get second 20% of the items.
-            //            user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
-            //            // Confirm paging is correct by testing the rank of the first and last items.
-            //            user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
-            //            user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
-            //            // Let's get third 20% of the items.
-            //            user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
-            //            // Confirm paging is correct by testing the rank of the first and last items.
-            //            user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
-            //            user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
-            //            // Let's get fourth 20% of the items.
-            //            user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
-            //            // Confirm paging is correct by testing the rank of the first and last items.
-            //            user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
-            //            user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));
-            //            // Let's get fifth 20% of the items.
-            //            user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-            //        }
-            //        ,function(o,cb){
-            //            user.follows.last().get('rank').should.equal(0);
-            //            (user.follows.nNextID===undefined).should.be.ok;
-            //            // We should now have the second half of our list.
-            //            user.follows.nCount.should.equal((nTestSize/5));
-            //            cb();
-            //        }
-            //    ],done);
-            //}
+            ,getCollectionInFivePages:function(done){
+
+                async.waterfall([
+                    function(cb){
+                        // Let's get first 20% of the items.
+                        user.loadExtras({follows:{nSize:(nTestSize/5)}},cb);
+                    }
+                    ,function(o,cb){
+                        //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
+                        // Confirm paging is correct by testing the rank of the first and last items.
+                        user.follows.first().get('rank').should.equal((nTestSize-1));
+                        user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
+                        // Let's get second 20% of the items.
+                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
+                    }
+                    ,function(o,cb){
+                        //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
+                        // Confirm paging is correct by testing the rank of the first and last items.
+                        user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
+                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
+                        // Let's get third 20% of the items.
+                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
+                    }
+                    ,function(o,cb){
+                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
+                        // Confirm paging is correct by testing the rank of the first and last items.
+                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
+                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
+                        // Let's get fourth 20% of the items.
+                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
+                    }
+                    ,function(o,cb){
+                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
+                        // Confirm paging is correct by testing the rank of the first and last items.
+                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
+                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));
+                        // Let's get fifth 20% of the items.
+                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
+                    }
+                    ,function(o,cb){
+                        user.follows.last().get('rank').should.equal(0);
+                        (user.follows.nNextID===undefined).should.be.ok;
+                        // We should now have the second half of our list.
+                        user.follows.nCount.should.equal((nTestSize/5));
+                        cb();
+                    }
+                ],done);
+            }
+            ,getPageOneMySql:function(done){
+
+                async.waterfall([
+                    function(cb){
+                        // Let's get half of the items in the collection.
+                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/2)}},cb);
+                    }
+                    ,function(o,cb){
+                        // nTotal will be the whole collection regardless of paging options.
+                        user.follows.nNextID.should.be.above(0);
+                        user.follows.nTotal.should.equal(nTestSize);
+                        // nCount will be the number of items in the current page.
+                        user.follows.nCount.should.equal((nTestSize/2));
+                        // The first item in the list should have an rank of nTestSize-1.
+                        user.follows.first().get('rank').should.equal((nTestSize-1));
+                        // And the last should have (nTestSize/2)
+                        user.follows.last().get('rank').should.equal((nTestSize/2));
+
+                        cb();
+                    }
+                ],done);
+            }
+            ,getCollectionInTwoPagesMySql:function(done){
+
+                async.waterfall([
+                    function(cb){
+                        // Let's get half of the items in the collection.
+                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/2)}},cb);
+                    }
+                    ,function(o,cb){
+                        // The first item in the list should have an rank of nTestSize-1.
+                        user.follows.first().get('rank').should.equal((nTestSize-1));
+                        // And the last should have (nTestSize/2)
+                        user.follows.last().get('rank').should.equal((nTestSize/2));
+
+                        // Now, let's get the next half.
+                        user.loadExtras({
+                            sSource:'MySql',
+                            follows:{
+                                nSize:(nTestSize/2),
+                                nFirstID:user.follows.nNextID
+                            }
+                        },cb);
+                    }
+                    ,function(o,cb){
+                        (user.follows.nNextID===undefined).should.be.ok;
+
+                        // The first item in the list should have an rank of (nTestSize/2)-1.
+                        user.follows.first().get('rank').should.equal(((nTestSize/2)-1));
+                        // And the last should have (nTestSize/2)
+                        user.follows.last().get('rank').should.equal(0);
+                        // We should now have the second half of our list.
+                        user.follows.nCount.should.equal((nTestSize/2));
+                        cb();
+                    }
+                ],done);
+            }
+            ,getCollectionInFivePagesMySql:function(done){
+
+                async.waterfall([
+                    function(cb){
+                        // Let's get first 20% of the items.
+                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5)}},cb);
+                    }
+                    ,function(o,cb){
+                        //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
+                        // Confirm paging is correct by testing the rank of the first and last items.
+                        user.follows.first().get('rank').should.equal((nTestSize-1));
+                        user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
+                        // Let's get second 20% of the items.
+                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
+                    }
+                    ,function(o,cb){
+                        //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
+                        // Confirm paging is correct by testing the rank of the first and last items.
+                        user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
+                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
+                        // Let's get third 20% of the items.
+                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
+                    }
+                    ,function(o,cb){
+                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
+                        // Confirm paging is correct by testing the rank of the first and last items.
+                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
+                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
+                        // Let's get fourth 20% of the items.
+                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
+                    }
+                    ,function(o,cb){
+                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
+                        // Confirm paging is correct by testing the rank of the first and last items.
+                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
+                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));
+                        // Let's get fifth 20% of the items.
+                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
+                    }
+                    ,function(o,cb){
+                        user.follows.last().get('rank').should.equal(0);
+                        (user.follows.nNextID===undefined).should.be.ok;
+                        // We should now have the second half of our list.
+                        user.follows.nCount.should.equal((nTestSize/5));
+                        cb();
+                    }
+                ],done);
+            }
+            ,deleteRecordAndPageOne:function(done) {
+                async.series([
+                    function(cb) {
+                        Base.lookup({sClass:'User',hQuery:{email:'testfollower1@test.com'},hExtras:{followed:true}},function(err,user){
+                            if (err || !user || !user.getKey())
+                                cb(err||'User not found.');
+                            else
+                                user.followed.delete(cb);
+                        });
+                    }
+                    // Let's get half of the items in the collection.
+                    ,function(cb){
+                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
+                    }
+                    // nTotal will be the whole collection regardless of paging options.
+                    ,function(cb){
+                        user.follows.nNextID.should.be.above(0);
+                        user.follows.sSource.should.equal('MySql');
+                        user.follows.nTotal.should.equal(nTestSize-1);
+                        // nCount will be the number of items in the current page.
+                        user.follows.nCount.should.equal((nTestSize/2));
+                        cb();
+                    }
+                    // Do it again, but this time look in Redis
+                    ,function(cb){
+                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'Redis'}},cb);
+                    }
+                    ,function(cb){
+                        // nTotal will be the whole collection regardless of paging options.
+                        if (!Config.Redis.hOpts.default.bSkip) user.follows.sSource.should.equal('Redis');
+                        user.follows.nNextID.should.be.above(0);
+                        user.follows.nTotal.should.equal(nTestSize-1);
+                        // nCount will be the number of items in the current page.
+                        user.follows.nCount.should.equal((nTestSize/2));
+                        cb();
+                    }
+                ],done);
+            }
         }
     }
 };

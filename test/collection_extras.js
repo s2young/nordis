@@ -164,7 +164,7 @@ module.exports = {
                     }
                     // Delete the follows. Which should update the related user's follows collection.
                     ,function(cb){
-                        user.follows.nTotal.should.equal(10);
+                        user.follows.nTotal.should.equal(nTestSize);
                         if (Config.Redis.hOpts.default.bSkip)
                             user.follows.sSource.should.equal('MySql');
                         else

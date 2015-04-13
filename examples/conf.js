@@ -5,6 +5,7 @@
 var Base; // We're going to need the Base class is api override functions below.
 var Collection; // And Collection.
 var Stats; // Used to track stats.
+var moment; // Used for date-related stuff.
 
 module.exports.hSettings = {
     global: {
@@ -154,6 +155,18 @@ module.exports.hSettings = {
                             return {id:oFollow.get('followed_id')};
                         }
                     }
+                    ,followed:{
+                        sType:'Collection'
+                        ,sClass:'Follow'
+                        ,sOrderBy:'rank'
+                        ,bReverse:true
+                        ,fnQuery:function(oSelf){
+                            return {follower_id:oSelf.getKey()}
+                        }
+                        ,fnCreate:function(oFollow){
+                            return {id:oFollow.get('follower_id')};
+                        }
+                    }
                     ,referring_user:{
                         sType:'Object'
                         ,sClass:'User'
@@ -166,12 +179,12 @@ module.exports.hSettings = {
                     }
                 }
                 ,hMetrics:{
-                    users:{
+                    new_users:{
                         sTitle:'Stat: User count'
                         ,sDescription:'Total number of new user accounts created during the period.'
                         ,sSource:'MySql'
                         ,sDbAlias:'default'
-                        ,sAlias:'users'
+                        ,sAlias:'new_users'
                         ,hGrains:{alltime:true,year:true,day:true,month:false,hour:true}
                         ,fnQuery:function(hOpts,AppConfig,fnCallback){
                             var sStatement = 'id IS NOT NULL'; // default lookup is everything.
@@ -194,9 +207,45 @@ module.exports.hSettings = {
                             fnCallback(null,{aStatements:[sStatement],aValues:aValues});
                         }
                     }
+                    ,returning_users:{
+                        sTitle:'Returning User Counts'
+                        ,sDescription:'Total number of unique users active during the period. Multiple hits by one user count as one unique.'
+                        ,sSource:'Redis'
+                        ,sDbAlias:'statsdb'
+                        ,sAlias:'returning_users'
+                        ,hGrains:{alltime:false,year:true,day:true,month:true,hour:true}
+                        ,fnFilter:function(params,callback){
+                            // This function makes sure the proper, related object is passed into the AppConfig.trackStat method
+                            // and returns a string that will help uniquely identify the stat in Redis.
+                            if (!params || !params[0] || params[0].sClass != 'User')
+                                callback('This stat requires a User object as first param.');
+                            else if (!params || !params[1])
+                                callback('This stat requires a url path string as the second param.');
+                            else {
+                                // A returning user, by definition, is one who is coming back - having created his account in the past.
+                                // Make sure the created date is before today.
+                                if (!moment) moment = require('moment');
+                                if (params[0].get('created') < moment.utc().startOf('day').valueOf())
+                                    callback(null,params[0].getKey()+'|'+params[1]);
+                                else
+                                    callback();
+                            }
+                        }
+                        ,fnProcessFilters:function(aKeys,callback) {
+                            var hMeta = {};
+                            aKeys.forEach(function(sKey){
+                                var sPath = sKey.split('|')[1];
+                                if (hMeta[sPath])
+                                    hMeta[sPath]++;
+                                else
+                                    hMeta[sPath] = 1;
+                            });
+                            callback(null,hMeta);
+                        }
+                    }
                 }
                 ,hApi:{
-                    sDescription:'Users are usually people, but can sometimes be bots. Users can be created, saved and deleted. These methods are marked unprotected, but a security layer can be applied via custom handler or here in configuration using the fnValidate function.'
+                    sDescription:'Users are usually people, but can sometimes be bots. Users can be created, saved and deleted. These methods are marked unprotected, but a security layer can be applied via custom handler or here in configuration using the fnApiCallProcessor function.'
                     ,hEndpoints:{
                         '/user/{id}':{
                             sDescription:'Retrieve, update and delete user.'
@@ -318,26 +367,14 @@ module.exports.hSettings = {
                 ,sClassPath:'examples/overrides/class/Sale.js'
             }
         }
-        ,hStats:{
-            sDbAlias:'statsdb'
-            ,uniques:{
-                sDescription:'Total number of unique users active during the period. Multiple hits by one user count as one unique.'
-                ,fnValidate:function(params,callback){
-                    // This function makes sure the proper, related object is passed into the AppConfig.trackStat method
-                    // and returns a string that will help uniquely identify the stat in Redis.
-                    if (!params || !params[0] || params[0].sClass != 'User')
-                        callback('This stat requires a User object as first param.');
-                    else if (!params || !params[1])
-                        callback('This stat requires a url path string as the second param.');
-                    else
-                        callback(null,params[0].getKey());
-                }
-            }
-            ,hits:{
+        ,hMetrics:{
+            hits:{
                 sDescription:'Total number of hits to the web, including page-level filters.'
                 ,bFilters:true
                 ,sAlias:'hits'
-                ,fnValidate:function(path,callback){
+                ,sDbAlias:'statsdb'
+                ,sSource:'Redis'
+                ,fnFilter:function(path,callback){
                     // This stat is just a flat, total count. No filter required.
                     if (!path)
                         callback('This stat requires a url path string as the first param.');
@@ -348,7 +385,9 @@ module.exports.hSettings = {
             ,api_requests:{
                 sDescription:'Total number of hits to the api, regardless of user.'
                 ,sAlias:'api_requests'
-                ,fnValidate:function(endpoint,callback){
+                ,sDbAlias:'statsdb'
+                ,sSource:'Redis'
+                ,fnFilter:function(endpoint,callback){
                     // The first param should be the api endpoint path.
                     if (!endpoint)
                         callback('This stat requires an api endpoint string as the first param.');
@@ -357,13 +396,14 @@ module.exports.hSettings = {
                 }
             }
             ,misconfigured_stat:{
-                sDescription:'This stat is missing the fnValidate function, and is here for unit testing purposes.'
+                sDescription:'This stat is missing the fnFilter function, and is here for unit testing purposes.'
             }
         }
         ,fnInit:function(){
             Base = require('./../lib/Base');
             Metric = require('./../lib/Metric');
             Collection = require('./../lib/Collection');
+            moment = require('moment');
         }
     }
 };

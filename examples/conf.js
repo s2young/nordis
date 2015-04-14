@@ -4,7 +4,7 @@
  */
 var Base; // We're going to need the Base class is api override functions below.
 var Collection; // And Collection.
-var Stats; // Used to track stats.
+var Metrics; // Used to track stats.
 var moment; // Used for date-related stuff.
 
 module.exports.hSettings = {
@@ -57,7 +57,7 @@ module.exports.hSettings = {
                             sAlias:'proces_stats'
                             ,fnApiCallProcessor:function(req,AppConfig,callback){
                                 var hOpts = (req.body.nMax && req.body.nMin) ? req.body : null;
-                                Stats.process(hOpts,callback);
+                                Metrics.process(hOpts,callback);
                             }
                         }
                     }
@@ -213,6 +213,7 @@ module.exports.hSettings = {
                         ,sSource:'Redis'
                         ,sDbAlias:'statsdb'
                         ,sAlias:'returning_users'
+                        ,bUniques:true
                         ,hGrains:{alltime:false,year:true,day:true,month:true,hour:true}
                         ,fnFilter:function(params,callback){
                             // This function makes sure the proper, related object is passed into the AppConfig.trackStat method
@@ -230,17 +231,6 @@ module.exports.hSettings = {
                                 else
                                     callback();
                             }
-                        }
-                        ,fnProcessFilters:function(aKeys,callback) {
-                            var hMeta = {};
-                            aKeys.forEach(function(sKey){
-                                var sPath = sKey.split('|')[1];
-                                if (hMeta[sPath])
-                                    hMeta[sPath]++;
-                                else
-                                    hMeta[sPath] = 1;
-                            });
-                            callback(null,hMeta);
                         }
                     }
                 }
@@ -347,7 +337,7 @@ module.exports.hSettings = {
                                         req.hNordis.hExtras = (req.hNordis.hExtras) ? req.hNordis.hExtras : {follows:{hExtras:{follower_user:true}}};
                                         req.hNordis.sExtra = 'follows'; // This means the response should start with the follows collection, not the user.
                                         // Track the api request. This is for the redis_stats.js unit test.
-                                        //Stats.track({sStat:'api_requests',Params:req.hNordis.sPath},callback);
+                                        Metrics.track({sMetric:'api_requests',Params:req.hNordis.sPath},callback);
                                         callback();
                                     }
                                 }
@@ -374,6 +364,7 @@ module.exports.hSettings = {
                 ,sAlias:'hits'
                 ,sDbAlias:'statsdb'
                 ,sSource:'Redis'
+                ,hGrains:{alltime:false,year:false,day:true,month:true,hour:true}
                 ,fnFilter:function(path,callback){
                     // This stat is just a flat, total count. No filter required.
                     if (!path)
@@ -387,6 +378,8 @@ module.exports.hSettings = {
                 ,sAlias:'api_requests'
                 ,sDbAlias:'statsdb'
                 ,sSource:'Redis'
+                ,bUniques:false
+                ,hGrains:{alltime:false,year:false,day:true,month:true,hour:true}
                 ,fnFilter:function(endpoint,callback){
                     // The first param should be the api endpoint path.
                     if (!endpoint)
@@ -401,7 +394,7 @@ module.exports.hSettings = {
         }
         ,fnInit:function(){
             Base = require('./../lib/Base');
-            Metric = require('./../lib/Metric');
+            Metrics = require('./../lib/Metric');
             Collection = require('./../lib/Collection');
             moment = require('moment');
         }

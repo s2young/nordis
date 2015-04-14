@@ -12,13 +12,11 @@ Config.init(function(err){
         console.error(err);
     else {
 
-        Metric.flush(function(err){
-            if (err)
-                Config.error(err);
-
+        Metric.track({sMetric:'api_requests',Params:'/'},function(err){
+            console.error(err);
 
             Config.exit();
-        })
+        });
 
     }
 });

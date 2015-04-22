@@ -150,16 +150,6 @@ module.exports = {
                 .done(done);
 
         }
-        ,loadFollowersDirectly:function(done) {
-
-            Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey()+'/follows')
-                .then(function(hResult){
-                    hResult.nTotal.should.equal(nTestSize);
-                })
-                .then(null,function(err){throw err})
-                .done(done);
-
-        }
         ,loadFollowersNatively:function(done) {
 
             Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})

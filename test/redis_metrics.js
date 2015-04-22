@@ -209,12 +209,12 @@ module.exports = {
                     // Create the user accounts with which we'll make hits.
                     function(callback) {
                         var q = [];
-                        for (var n = 0; n < nTestSize; n++) {
+                        for (var n = 0; n <= nTestSize; n++) {
                             q.push(dEnd.clone());
-                            if (n < (nTestSize-1)) dEnd.add(1,'month');
+                            if (n < nTestSize) dEnd.add(1,'month');
                         }
                         async.forEach(q,function(dDate,cb) {
-                            Metric.track({sFilter:'clientA',sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
+                            Metric.track({aFilters:['clientA'],sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
                         },callback);
                     }
                     // Process the stats.
@@ -250,157 +250,236 @@ module.exports = {
                     }
                 ],done);
             }
-        //    ,userByHour:function(done){
-        //        var dStart = moment.utc().subtract(nTestSize,'hours').startOf('hour');
-        //        var dEnd = dStart.clone();
-        //        var nTotal = 0;
-        //        async.series([
-        //            // Create the user accounts with which we'll make hits.
-        //            function(callback) {
-        //                var q = [];
-        //                for (var n = 0; n < nTestSize; n++) {
-        //                    var client = (n%2) ? 'clientA' : 'clientB';
-        //                    q.push({
-        //                        name:dNow.getTime()
-        //                        ,email:'testfollower'+n+'@test.com'
-        //                        ,created:dEnd.valueOf()
-        //                        ,client:client
-        //                    });
-        //                    if (n%2) nTotal++;
-        //                    if (n < (nTestSize-1)) dEnd.add(1,'hour');
-        //                }
-        //                async.forEach(q,function(hData,cb) {
-        //                    var user = Base.lookup({sClass:'User',hData:hData});
-        //                    user.save(cb);
-        //                },callback);
-        //            }
-        //            // Process the stats.
-        //            ,function(callback) {
-        //                Metric.process({sFilter:'clientA',dStart:dStart,dEnd:dEnd,sGrain:'hour'},callback);
-        //            }
-        //            // Look up the stats.
-        //            ,function(callback) {
-        //                Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
-        //                    .then(function(oStat){
-        //                        // validate alltime
-        //                        should.exist(oStat);
-        //                        should.exist(oStat.new_users);
-        //                        should.exist(oStat.new_users.alltime);
-        //                        should.exist(oStat.new_users.alltime.get('nCount'));
-        //                        oStat.new_users.alltime.get('nCount').should.equal(nTotal);
-        //
-        //                        should.exist(oStat.new_users.hour);
-        //                        should.exist(oStat.new_users.hour.nTotal);
-        //                        oStat.new_users.hour.nTotal.should.equal(nTestSize);
-        //                        var n = 0;
-        //                        while (oStat.new_users.hour.next()) {
-        //                            if (n%2) oStat.new_users.hour.getItem().get('nCount').should.equal(1);
-        //                        }
-        //                    })
-        //                    .then(null,function(err){throw err})
-        //                    .done(callback);
-        //            }
-        //            // Lookup again using API
-        //            ,function(callback) {
-        //                Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),sFilter:'clientA',nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
-        //                    .then(function(hStat){
-        //                        // validate alltime
-        //                        should.exist(hStat);
-        //                        should.exist(hStat.new_users);
-        //                        should.exist(hStat.new_users.alltime);
-        //                        should.exist(hStat.new_users.alltime.nCount);
-        //                        hStat.new_users.alltime.nCount.should.equal(nTotal);
-        //
-        //                        // validate hour stats
-        //                        should.exist(hStat.new_users.hour);
-        //                        should.exist(hStat.new_users.hour.nTotal);
-        //                        should.exist(hStat.new_users.hour.aObjects);
-        //                        hStat.new_users.hour.nTotal.should.equal(nTestSize);
-        //                        var n = 0;
-        //                        hStat.new_users.hour.aObjects.forEach(function(item) {
-        //                            if (n%2) item.nCount.should.equal(1);
-        //                        });
-        //                    })
-        //                    .then(null,function(err){throw err})
-        //                    .done(callback);
-        //            }
-        //        ],done);
-        //    }
-        //    ,userAllGrains:function(done){
-        //        this.timeout(30000);
-        //
-        //        var dStart = moment.utc().subtract(1,'months').startOf('months');
-        //        var dEnd = moment.utc().startOf('day');
-        //        var nTotal = 0;
-        //        var nFiltered = 0;
-        //
-        //        async.series([
-        //            // Create the user accounts with which we'll make hits.
-        //            function(callback) {
-        //                var dDate = dStart.clone();
-        //                var q = [];
-        //                while (dDate <= dEnd) {
-        //                    var client = ((nTotal % 3)==0) ? 'clientA' : ((nTotal %2)==0) ? 'clientB' : 'clientC';
-        //                    q.push({
-        //                        name:dNow.getTime()
-        //                        ,email:'testfollower'+nTotal+'@test.com'
-        //                        ,created:dDate.valueOf()
-        //                        ,client:client
-        //                    });
-        //                    if ((nTotal % 3)==0 || (nTotal % 2)==0) nFiltered++;
-        //                    dDate.add(1,'hour');
-        //                    nTotal++;
-        //                }
-        //                async.forEachLimit(q,100,function(hData,cb) {
-        //                    var user = Base.lookup({sClass:'User',hData:hData});
-        //                    user.save(cb);
-        //                },callback);
-        //            }
-        //            // Process the stats.
-        //            ,function(callback) {
-        //                console.log(dStart.toString()+' -> '+dEnd.toString());
-        //                Metric.process({sFilter:'clientA,clientB',dStart:dStart,dEnd:dEnd},callback);
-        //            }
-        //            // Look up the stats.
-        //            ,function(callback) {
-        //                Metric.lookupP({sClass:'User',sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
-        //                    .then(function(oStat){
-        //                        should.exist(oStat);
-        //                        should.exist(oStat.new_users);
-        //                        should.exist(oStat.new_users.alltime);
-        //                        should.exist(oStat.new_users.alltime.get('nCount'));
-        //                        oStat.new_users.alltime.get('nCount').should.equal(nFiltered);
-        //
-        //                    })
-        //                    .then(null,function(err){throw err})
-        //                    .done(callback);
-        //            }
-        //            // Lookup again using API
-        //            ,function(callback) {
-        //                Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
-        //                    .then(function(hStat){
-        //                        // validate alltime
-        //                        should.exist(hStat);
-        //                        should.exist(hStat.new_users);
-        //                        should.exist(hStat.new_users.alltime);
-        //                        should.exist(hStat.new_users.alltime.nCount);
-        //                        hStat.new_users.alltime.nCount.should.equal(nFiltered);
-        //
-        //                        // validate hour stats
-        //                        should.exist(hStat.new_users.hour);
-        //                        should.exist(hStat.new_users.hour.nTotal);
-        //                        should.exist(hStat.new_users.hour.aObjects);
-        //                        hStat.new_users.hour.nTotal.should.equal(nTotal);
-        //
-        //                        hStat.new_users.hour.aObjects.forEach(function(item) {
-        //                            if ((nTotal % 3)==0 || (nTotal % 2)==0)  item.nCount.should.equal(1);
-        //                        });
-        //                    })
-        //                    .then(null,function(err){throw err})
-        //                    .done(callback);
-        //            }
-        //        ],done);
-        //    }
+            ,apiByMonthTwoFilters:function(done){
+                var dStart = moment.utc().subtract(nTestSize,'months').startOf('month');
+                var dEnd = dStart.clone();
+                async.series([
+                    // Create the user accounts with which we'll make hits.
+                    function(callback) {
+                        var q = [];
+                        for (var n = 0; n <= nTestSize; n++) {
+                            q.push(dEnd.clone());
+                            if (n < nTestSize) dEnd.add(1,'month');
+                        }
+                        async.forEach(q,function(dDate,cb) {
+                            Metric.track({aFilters:['clientA','clientB'],sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
+                        },callback);
+                    }
+                    // Process clientA's stats.
+                    ,function(callback) {
+                        Metric.process({dStart:dStart,dEnd:dEnd,sFilter:'clientA',sGrain:'month'},callback);
+                    }
+                    // Look up the stats.
+                    ,function(callback) {
+                        Metric.lookupP({sName:'api_requests',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+                            .then(function(oStat){
+                                should.exist(oStat);
+                                should.exist(oStat.api_requests);
+                                should.exist(oStat.api_requests.month);
+                                oStat.api_requests.month.nTotal.should.equal(nTestSize)
+                                oStat.api_requests.month.first().get('nCount').should.equal(1);
+                            })
+                            .then(null,function(err){throw err})
+                            .done(callback);
+                    }
+                    // Lookup again using API
+                    ,function(callback) {
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/api_requests',{sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+                            .then(function(hStat){
+                                should.exist(hStat);
+                                should.exist(hStat.api_requests);
+                                should.exist(hStat.api_requests.month);
+                                should.exist(hStat.api_requests.month.nCount);
+                                hStat.api_requests.month.nTotal.should.equal(nTestSize);
+                                hStat.api_requests.month.aObjects[0].nCount.should.equal(1);
+                            })
+                            .then(null,function(err){throw err})
+                            .done(callback);
+                    }
+                    // process clientB's stats.
+                    ,function(callback) {
+                        Metric.process({dStart:dStart,dEnd:dEnd,sFilter:'clientB',sGrain:'month'},callback);
+                    }
+                    // Look up clientB's stats.
+                    ,function(callback) {
+                        Metric.lookupP({sName:'api_requests',sFilter:'clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+                            .then(function(oStat){
+                                should.exist(oStat);
+                                should.exist(oStat.api_requests);
+                                should.exist(oStat.api_requests.month);
+                                oStat.api_requests.month.nTotal.should.equal(nTestSize)
+                                oStat.api_requests.month.first().get('nCount').should.equal(1);
+                            })
+                            .then(null,function(err){throw err})
+                            .done(callback);
+                    }
+                    // Lookup clientB's stats again using API
+                    ,function(callback) {
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/api_requests',{sFilter:'clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+                            .then(function(hStat){
+                                should.exist(hStat);
+                                should.exist(hStat.api_requests);
+                                should.exist(hStat.api_requests.month);
+                                should.exist(hStat.api_requests.month.nCount);
+                                hStat.api_requests.month.nTotal.should.equal(nTestSize);
+                                hStat.api_requests.month.aObjects[0].nCount.should.equal(1);
+                            })
+                            .then(null,function(err){throw err})
+                            .done(callback);
+                    }
+                ],done);
+            }
+            //    ,userByHour:function(done){
+            //        var dStart = moment.utc().subtract(nTestSize,'hours').startOf('hour');
+            //        var dEnd = dStart.clone();
+            //        var nTotal = 0;
+            //        async.series([
+            //            // Create the user accounts with which we'll make hits.
+            //            function(callback) {
+            //                var q = [];
+            //                for (var n = 0; n < nTestSize; n++) {
+            //                    var client = (n%2) ? 'clientA' : 'clientB';
+            //                    q.push({
+            //                        name:dNow.getTime()
+            //                        ,email:'testfollower'+n+'@test.com'
+            //                        ,created:dEnd.valueOf()
+            //                        ,client:client
+            //                    });
+            //                    if (n%2) nTotal++;
+            //                    if (n < (nTestSize-1)) dEnd.add(1,'hour');
+            //                }
+            //                async.forEach(q,function(hData,cb) {
+            //                    var user = Base.lookup({sClass:'User',hData:hData});
+            //                    user.save(cb);
+            //                },callback);
+            //            }
+            //            // Process the stats.
+            //            ,function(callback) {
+            //                Metric.process({sFilter:'clientA',dStart:dStart,dEnd:dEnd,sGrain:'hour'},callback);
+            //            }
+            //            // Look up the stats.
+            //            ,function(callback) {
+            //                Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
+            //                    .then(function(oStat){
+            //                        // validate alltime
+            //                        should.exist(oStat);
+            //                        should.exist(oStat.new_users);
+            //                        should.exist(oStat.new_users.alltime);
+            //                        should.exist(oStat.new_users.alltime.get('nCount'));
+            //                        oStat.new_users.alltime.get('nCount').should.equal(nTotal);
+            //
+            //                        should.exist(oStat.new_users.hour);
+            //                        should.exist(oStat.new_users.hour.nTotal);
+            //                        oStat.new_users.hour.nTotal.should.equal(nTestSize);
+            //                        var n = 0;
+            //                        while (oStat.new_users.hour.next()) {
+            //                            if (n%2) oStat.new_users.hour.getItem().get('nCount').should.equal(1);
+            //                        }
+            //                    })
+            //                    .then(null,function(err){throw err})
+            //                    .done(callback);
+            //            }
+            //            // Lookup again using API
+            //            ,function(callback) {
+            //                Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),sFilter:'clientA',nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
+            //                    .then(function(hStat){
+            //                        // validate alltime
+            //                        should.exist(hStat);
+            //                        should.exist(hStat.new_users);
+            //                        should.exist(hStat.new_users.alltime);
+            //                        should.exist(hStat.new_users.alltime.nCount);
+            //                        hStat.new_users.alltime.nCount.should.equal(nTotal);
+            //
+            //                        // validate hour stats
+            //                        should.exist(hStat.new_users.hour);
+            //                        should.exist(hStat.new_users.hour.nTotal);
+            //                        should.exist(hStat.new_users.hour.aObjects);
+            //                        hStat.new_users.hour.nTotal.should.equal(nTestSize);
+            //                        var n = 0;
+            //                        hStat.new_users.hour.aObjects.forEach(function(item) {
+            //                            if (n%2) item.nCount.should.equal(1);
+            //                        });
+            //                    })
+            //                    .then(null,function(err){throw err})
+            //                    .done(callback);
+            //            }
+            //        ],done);
+            //    }
+            //    ,userAllGrains:function(done){
+            //        this.timeout(30000);
+            //
+            //        var dStart = moment.utc().subtract(1,'months').startOf('months');
+            //        var dEnd = moment.utc().startOf('day');
+            //        var nTotal = 0;
+            //        var nFiltered = 0;
+            //
+            //        async.series([
+            //            // Create the user accounts with which we'll make hits.
+            //            function(callback) {
+            //                var dDate = dStart.clone();
+            //                var q = [];
+            //                while (dDate <= dEnd) {
+            //                    var client = ((nTotal % 3)==0) ? 'clientA' : ((nTotal %2)==0) ? 'clientB' : 'clientC';
+            //                    q.push({
+            //                        name:dNow.getTime()
+            //                        ,email:'testfollower'+nTotal+'@test.com'
+            //                        ,created:dDate.valueOf()
+            //                        ,client:client
+            //                    });
+            //                    if ((nTotal % 3)==0 || (nTotal % 2)==0) nFiltered++;
+            //                    dDate.add(1,'hour');
+            //                    nTotal++;
+            //                }
+            //                async.forEachLimit(q,100,function(hData,cb) {
+            //                    var user = Base.lookup({sClass:'User',hData:hData});
+            //                    user.save(cb);
+            //                },callback);
+            //            }
+            //            // Process the stats.
+            //            ,function(callback) {
+            //                console.log(dStart.toString()+' -> '+dEnd.toString());
+            //                Metric.process({sFilter:'clientA,clientB',dStart:dStart,dEnd:dEnd},callback);
+            //            }
+            //            // Look up the stats.
+            //            ,function(callback) {
+            //                Metric.lookupP({sClass:'User',sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
+            //                    .then(function(oStat){
+            //                        should.exist(oStat);
+            //                        should.exist(oStat.new_users);
+            //                        should.exist(oStat.new_users.alltime);
+            //                        should.exist(oStat.new_users.alltime.get('nCount'));
+            //                        oStat.new_users.alltime.get('nCount').should.equal(nFiltered);
+            //
+            //                    })
+            //                    .then(null,function(err){throw err})
+            //                    .done(callback);
+            //            }
+            //            // Lookup again using API
+            //            ,function(callback) {
+            //                Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
+            //                    .then(function(hStat){
+            //                        // validate alltime
+            //                        should.exist(hStat);
+            //                        should.exist(hStat.new_users);
+            //                        should.exist(hStat.new_users.alltime);
+            //                        should.exist(hStat.new_users.alltime.nCount);
+            //                        hStat.new_users.alltime.nCount.should.equal(nFiltered);
+            //
+            //                        // validate hour stats
+            //                        should.exist(hStat.new_users.hour);
+            //                        should.exist(hStat.new_users.hour.nTotal);
+            //                        should.exist(hStat.new_users.hour.aObjects);
+            //                        hStat.new_users.hour.nTotal.should.equal(nTotal);
+            //
+            //                        hStat.new_users.hour.aObjects.forEach(function(item) {
+            //                            if ((nTotal % 3)==0 || (nTotal % 2)==0)  item.nCount.should.equal(1);
+            //                        });
+            //                    })
+            //                    .then(null,function(err){throw err})
+            //                    .done(callback);
+            //            }
+            //        ],done);
+            //    }
         }
     }
 };

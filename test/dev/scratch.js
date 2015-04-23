@@ -262,7 +262,9 @@ module.exports = {
                             if (n < nTestSize) dEnd.add(1,'month');
                         }
                         async.forEach(q,function(dDate,cb) {
-                            Metric.track({aFilters:['clientA','clientB'],sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
+                            Metric.track({aFilters:['clientA'],sMetric:'api_requests',dDate:dDate,Params:'/'},function(){
+                                Metric.track({aFilters:['clientA','clientB'],sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
+                            });
                         },callback);
                     }
                     // Process clientA's stats.
@@ -277,7 +279,7 @@ module.exports = {
                                 should.exist(oStat.api_requests);
                                 should.exist(oStat.api_requests.month);
                                 oStat.api_requests.month.nTotal.should.equal(nTestSize)
-                                oStat.api_requests.month.first().get('nCount').should.equal(1);
+                                oStat.api_requests.month.first().get('nCount').should.equal(2);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
@@ -291,7 +293,7 @@ module.exports = {
                                 should.exist(hStat.api_requests.month);
                                 should.exist(hStat.api_requests.month.nCount);
                                 hStat.api_requests.month.nTotal.should.equal(nTestSize);
-                                hStat.api_requests.month.aObjects[0].nCount.should.equal(1);
+                                hStat.api_requests.month.aObjects[0].nCount.should.equal(2);
                             })
                             .then(null,function(err){throw err})
                             .done(callback);

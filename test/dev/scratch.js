@@ -209,7 +209,7 @@ module.exports = {
                     // Create the user accounts with which we'll make hits.
                     function(callback) {
                         var q = [];
-                        for (var n = 0; n <= nTestSize; n++) {
+                        for (var n = 0; n < nTestSize; n++) {
                             q.push(dEnd.clone());
                             if (n < nTestSize) dEnd.add(1,'month');
                         }
@@ -257,7 +257,7 @@ module.exports = {
                     // Create the user accounts with which we'll make hits.
                     function(callback) {
                         var q = [];
-                        for (var n = 0; n <= nTestSize; n++) {
+                        for (var n = 0; n < nTestSize; n++) {
                             q.push(dEnd.clone());
                             if (n < nTestSize) dEnd.add(1,'month');
                         }

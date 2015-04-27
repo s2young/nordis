@@ -360,7 +360,6 @@ module.exports.hSettings = {
         ,hMetrics:{
             hits:{
                 sDescription:'Total number of hits to the web, including page-level filters.'
-                ,bFilters:true
                 ,sAlias:'hits'
                 ,sDbAlias:'statsdb'
                 ,sSource:'Redis'

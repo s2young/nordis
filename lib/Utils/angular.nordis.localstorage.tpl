@@ -85,7 +85,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             }
         };
         // Update a collection with an item, if the item already exists it is replaced.
-        self.update = function(hItem,cColl,sKey,bAppend) {
+        self.update = function(hItem,cColl,sKey,bAppend,bPrepend) {
             if (hItem) {
                 if (hItem instanceof Array || hItem.aObjects) {
                     var aItems = hItem.aObjects || hItem;
@@ -106,11 +106,13 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                     if (cColl) {
                         if (!cColl.aObjects) cColl.aObjects = [];
                         var hLookup = {};hLookup[sKey] = hItem[sKey];
-                        if (!bAppend) i = this.findIndex(hLookup,cColl.aObjects);
+                        if (!bAppend && !bPrepend) i = this.findIndex(hLookup,cColl.aObjects);
                         if (i>=0)
                             cColl.aObjects.splice(i,1,hItem);
-                        else
+                        else if (bAppend)
                             cColl.aObjects.push(hItem);
+                        else if (bPrepend)
+                            cColl.aObjects.unshift(hItem);
                         if (cColl.aObjects.length > cColl.nCount) cColl.nCount = cColl.aObjects.length;
                         if (cColl.aObjects.length > cColl.nTotal) cColl.nTotal = cColl.aObjects.length;
                     }

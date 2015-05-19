@@ -109,10 +109,10 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                         if (!bAppend && !bPrepend) i = this.findIndex(hLookup,cColl.aObjects);
                         if (i>=0)
                             cColl.aObjects.splice(i,1,hItem);
-                        else if (bAppend)
-                            cColl.aObjects.push(hItem);
                         else if (bPrepend)
                             cColl.aObjects.unshift(hItem);
+                        else
+                            cColl.aObjects.push(hItem);
                         if (cColl.aObjects.length > cColl.nCount) cColl.nCount = cColl.aObjects.length;
                         if (cColl.aObjects.length > cColl.nTotal) cColl.nTotal = cColl.aObjects.length;
                     }

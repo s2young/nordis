@@ -225,7 +225,7 @@ module.exports.hSettings = {
                             else {
                                 // A returning user, by definition, is one who is coming back - having created his account in the past.
                                 // Make sure the created date is before today.
-                                if (!moment) moment = require('moment');
+                                if (!moment) moment = require('moment-timezone');
                                 if (params[0].get('created') < moment.utc().startOf('day').valueOf())
                                     callback(null,params[0].getKey()+'|'+params[1]);
                                 else
@@ -395,7 +395,7 @@ module.exports.hSettings = {
             Base = require('./../lib/Base');
             Metrics = require('./../lib/Metric');
             Collection = require('./../lib/Collection');
-            moment = require('moment');
+            moment = require('moment-timezone');
         }
     }
 };

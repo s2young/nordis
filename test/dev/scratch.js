@@ -1,6 +1,6 @@
 var async       = require('async'),
     request     = require('request'),
-    moment      = require('moment'),
+    moment      = require('moment-timezone'),
     should      = require('should'),
     express     = require('express'),
     bodyParser  = require('body-parser'),

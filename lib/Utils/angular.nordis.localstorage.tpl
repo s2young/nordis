@@ -199,7 +199,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod.toLowerCase() : 'get';
             if (hOpts.sPath) {
                 hOpts.hData.t = new Date().getTime();
-                console.log('t:'+hOpts.hData.t);
                 $http({method:sMethod,url:self.sHost+hOpts.sPath,params:(sMethod=='get')?hOpts.hData:{t:hOpts.hData.t},data:(sMethod=='post')?hOpts.hData:null,headers:self.hHeaders})
                     .success(function(hResult,nStatus){
                         if (hResult && hResult.sException) {

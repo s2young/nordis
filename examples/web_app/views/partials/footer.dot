@@ -36,7 +36,6 @@
             require(['nordis_conf','angular','jquery'], function(nordis_conf) {
                 requirejs.s.contexts._.config.paths.nordis = '/_nordis_client_'+nordis_conf.version;
                 require(['nordis','bootstrap'], function(nordis) {
-                    console.log(nordis);
                     angular.bootstrap(document.getElementsByTagName('body')[0], ['nordis']);
                 });
             });

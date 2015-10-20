@@ -251,24 +251,24 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                     });
             }
         };
-        self.promise = function(sPath,sMethod,hData,hExtras,hCache){
+        self.promise = function(sPath,sMethod,hData,hExtras,bForce){
             console.log(sPath,sMethod);
             console.log(hData,hExtras);
-            console.log('hCache',hCache);
+            console.log('bForce',bForce);
 
             var deferred = $q.defer();
             self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                 delete res.txid;
                 deferred.resolve(res);
-            },deferred.reject,hCache);
+            },deferred.reject,bForce);
 
             return deferred.promise;
         };
         [[for (var sClass in hData.hApiCalls) {]]
         self.[[=sClass]] = {
             sKey:'[[=hData.hKeys[sClass]||'']]'[[~hData.hApiCalls[sClass] :hCall:nIndex]]
-            ,[[=hCall.sAlias]]:function(hQuery,hData,hExtras,hCache){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? '\''+hCall.sEndpoint.match(/\{(.*)\}/)[1]+'\'' : null; ]]
-                return self.promise('[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,hCache);
+            ,[[=hCall.sAlias]]:function(hQuery,hData,hExtras,bForce){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? '\''+hCall.sEndpoint.match(/\{(.*)\}/)[1]+'\'' : null; ]]
+                return self.promise('[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,bForce);
             }[[~]]
         };[[}]]
         return self;

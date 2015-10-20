@@ -177,18 +177,18 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 return decodeURIComponent(results[1].replace(/\+/g, " "));
         };
         // Handles GET requests to the API.
-        self.get = function(hOpts,fnCallback,fnErrorHandler,bForce){
-            hOpts.sMethod = 'GET';
-            if (!hOpts.hData) hOpts.hData = {};
-            if (hOpts.hExtras)
-                hOpts.hData.hExtras = hOpts.hExtras;
+        self.get = function(hOpts,fnCallback,fnErrorHandler,f){
+            hOpts.m = 'GET';
+            if (!hOpts.d) hOpts.d = {};
+            if (hOpts.x)
+                hOpts.d.hExtras = hOpts.x;
 
-            var sCacheId = hOpts.sPath;
-            if (hOpts.hData) sCacheId += JSON.stringify(hOpts.hData);
+            var sCacheId = hOpts.p;
+            if (hOpts.d) sCacheId += JSON.stringify(hOpts.d);
             console.log(sCacheId);
             self.$cache.get(sCacheId)
                 .then(function(res){
-                    if (res && !bForce) {
+                    if (res && !f) {
                         console.log('cached!',res);
                         fnCallback(res);
                     } else
@@ -201,37 +201,36 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         };
         // Handles POST requests to the API.
         self.post = function(hOpts,fnCallback,fnErrorHandler){
-            hOpts.sMethod = 'POST';
-            if (!hOpts.hData) hOpts.hData = {};
-            if (hOpts.hExtras)
-                hOpts.hData.hExtras = hOpts.hExtras;
+            hOpts.m = 'POST';
+            if (!hOpts.d) hOpts.d = {};
+            if (hOpts.x)
+                hOpts.d.hExtras = hOpts.x;
             self.callAPI(hOpts,fnCallback,fnErrorHandler);
         };
         // Handles DELETE requests to the API.
         self.delete = function(hOpts,fnCallback,fnErrorHandler){
-            if (!hOpts.hData) hOpts.hData = {};
-            hOpts.sPath += '?'
-            for (var sItem in hOpts.hData) {
+            if (!hOpts.d) hOpts.d = {};
+            hOpts.p += '?'
+            for (var sItem in hOpts.d) {
                 switch (sItem) {
                     case 'hExtras':
-                        hOpts.sPath += serialize(hOpts.hData[sItem],sItem)+'&';
+                        hOpts.p += serialize(hOpts.d[sItem],sItem)+'&';
                         break;
                     default:
-                        hOpts.sPath += sItem+'='+hOpts.hData[sItem]+'&';
+                        hOpts.p += sItem+'='+hOpts.d[sItem]+'&';
                         break;
-
                 }
             }
-            hOpts.sMethod = 'DELETE';
+            hOpts.m = 'DELETE';
             this.callAPI(hOpts,fnCallback,fnErrorHandler);
         };
         // This method is shared by POST, GET, and DELETE methods.
         self.callAPI = function(hOpts,fnCallback,fnErrorHandler){
             var self = this;
-            var sMethod = (hOpts.sMethod && hOpts.sMethod.match(/(GET|POST|DELETE)/)) ? hOpts.sMethod.toLowerCase() : 'get';
-            if (hOpts.sPath) {
-                hOpts.hData.t = new Date().getTime();
-                $http({method:sMethod,url:self.sHost+hOpts.sPath,params:(sMethod=='get')?hOpts.hData:{t:hOpts.hData.t},data:(sMethod=='post')?hOpts.hData:null,headers:self.hHeaders})
+            var m = (hOpts.m && hOpts.m.match(/(GET|POST|DELETE)/)) ? hOpts.m.toLowerCase() : 'get';
+            if (hOpts.p) {
+                hOpts.d.t = new Date().getTime();
+                $http({method:m,url:self.sHost+hOpts.p,params:(m=='get')?hOpts.d:{t:hOpts.d.t},data:(m=='post')?hOpts.d:null,headers:self.hHeaders})
                     .success(function(hResult,nStatus){
                         if (hResult && hResult.sException) {
                             if (fnErrorHandler)
@@ -251,16 +250,12 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                     });
             }
         };
-        self.promise = function(sPath,sMethod,hData,hExtras,bForce){
-            console.log(sPath,sMethod);
-            console.log(hData,hExtras);
-            console.log('bForce',bForce);
-
+        self.promise = function(p,m,d,x,f){
             var deferred = $q.defer();
-            self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
+            self[m]({p:p,d:d,x:x},function(res){
                 delete res.txid;
                 deferred.resolve(res);
-            },deferred.reject,bForce);
+            },deferred.reject,f);
 
             return deferred.promise;
         };
@@ -268,7 +263,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         self.[[=sClass]] = {
             sKey:'[[=hData.hKeys[sClass]||'']]'[[~hData.hApiCalls[sClass] :hCall:nIndex]]
             ,[[=hCall.sAlias]]:function(q,d,x,f){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? '\''+hCall.sEndpoint.match(/\{(.*)\}/)[1]+'\'' : null; ]]
-                console.log(arguments);
                 return self.promise('[[=hCall.sEndpoint.replace('{','\'+q.').replace('}','+\'')]]','[[=hCall.sMethod]]',d,x,f);
             }[[~]]
         };[[}]]

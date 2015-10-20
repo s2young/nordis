@@ -267,9 +267,9 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         [[for (var sClass in hData.hApiCalls) {]]
         self.[[=sClass]] = {
             sKey:'[[=hData.hKeys[sClass]||'']]'[[~hData.hApiCalls[sClass] :hCall:nIndex]]
-            ,[[=hCall.sAlias]]:function(hQuery,hData,hExtras,bForce){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? '\''+hCall.sEndpoint.match(/\{(.*)\}/)[1]+'\'' : null; ]]
+            ,[[=hCall.sAlias]]:function(q,d,x,f){[[ hData.sKey = (hCall.sEndpoint.match(/\{(.*)\}/)) ? '\''+hCall.sEndpoint.match(/\{(.*)\}/)[1]+'\'' : null; ]]
                 console.log(arguments);
-                return self.promise('[[=hCall.sEndpoint.replace('{','\'+hQuery.').replace('}','+\'')]]','[[=hCall.sMethod]]',hData,hExtras,bForce);
+                return self.promise('[[=hCall.sEndpoint.replace('{','\'+q.').replace('}','+\'')]]','[[=hCall.sMethod]]',d,x,f);
             }[[~]]
         };[[}]]
         return self;

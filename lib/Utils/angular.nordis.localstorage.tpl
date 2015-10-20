@@ -186,7 +186,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                         console.log('cached!');
                         fnCallback(res);
                     } else
-                        this.callAPI(hOpts,function(result){
+                        self.callAPI(hOpts,function(result){
                             console.log('not cached');
                             self.$cache.set(sCacheId,result);
                             fnCallback(result);
@@ -199,7 +199,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (!hOpts.hData) hOpts.hData = {};
             if (hOpts.hExtras)
                 hOpts.hData.hExtras = hOpts.hExtras;
-            this.callAPI(hOpts,fnCallback,fnErrorHandler);
+            self.callAPI(hOpts,fnCallback,fnErrorHandler);
         };
         // Handles DELETE requests to the API.
         self.delete = function(hOpts,fnCallback,fnErrorHandler){

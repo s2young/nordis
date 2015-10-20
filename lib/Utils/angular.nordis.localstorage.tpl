@@ -14,18 +14,26 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             console.log('localforage not present');
         }
         self.$cache.get = function(n){
+            var q = $q.defer();
             if (window.localforage)
-                return self.$cache.db.getItem(n);
+                self.$cache.db.getItem(n)
+                    .then(function(res){
+                        if (res)
+                            q.resolve(JSON.parse(res));
+                        else
+                            q.resolve();
+                    });
             else {
-                var q = $q.defer();
                 q.resolve(self.$cache.db.get(n));
-                return q.promise;
             }
+            return q.promise;
         };
         self.$cache.set = function(n,v){
-            if (window.localforage)
-                self.$cache.db.setItem(n,v);
-            else {
+            if (window.localforage) {
+                console.log('set in localforage',v);
+                self.$cache.db.setItem(n,JSON.stringify(v));
+            } else {
+                console.log('set in cache',v);
                 self.$cache.db.put(n,v)
             }
         };

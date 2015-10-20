@@ -4,7 +4,32 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         var self = this;
         if (!$localStorage.[[=hData.name]]) $localStorage.[[=hData.name]] = {};
         self.$db = $localStorage.[[=hData.name]];
-        self.$cache = $cacheFactory('[[=hData.name]]',{capacity:20});
+
+        self.$cache = {};
+        if (window.localforage) {
+           self.$cache.db = localforage.config({name:'[[=hData.name]]'});
+           console.log('localforage present!');
+        } else {
+            self.$cache.db = $cacheFactory('[[=hData.name]]',{capacity:20});
+            console.log('localforage not present');
+        }
+        self.$cache.get = function(n){
+            if (window.localforage)
+                return self.$cache.db.getItem(n);
+            else {
+                var q = $q.defer();
+                q.resolve(self.$cache.db.get(n));
+                return q.promise;
+            }
+        };
+        self.$cache.set = function(n,v){
+            if (window.localforage)
+                self.$cache.db.setItem(n,v);
+            else {
+                self.$cache.db.put(n,v)
+            }
+        };
+
         self.sHost = '';
         self.sSocketHost;
         self.bDebug;
@@ -144,7 +169,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 return decodeURIComponent(results[1].replace(/\+/g, " "));
         };
         // Handles GET requests to the API.
-        self.get = function(hOpts,fnCallback,fnErrorHandler,nLastUpdate){
+        self.get = function(hOpts,fnCallback,fnErrorHandler,bForce){
             hOpts.sMethod = 'GET';
             if (!hOpts.hData) hOpts.hData = {};
             if (hOpts.hExtras)
@@ -154,18 +179,19 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (hOpts.hData) sCacheId += JSON.stringify(hOpts.hData);
             if (hOpts.hExtras) sCacheId += JSON.stringify(hOpts.hExtras);
 
-            var cache = self.$cache.get(sCacheId);
-            var expired =  (cache && nLastUpdate && cache.time <= nLastUpdate) ? true : false;
-
-            if (cache && !expired) {
-                cache.result['1'] = 1;
-                fnCallback(cache.result);
-            } else
-                this.callAPI(hOpts,function(result){
-                    if (nLastUpdate) cache = {time:new Date().getTime(),result:result};
-                    self.$cache.put(sCacheId,cache);
-                    fnCallback(result);
-                },fnErrorHandler);
+            console.log(sCacheId);
+            self.$cache.get(sCacheId)
+                .then(function(res){
+                    if (res && !bForce) {
+                        console.log('cached!');
+                        fnCallback(res);
+                    } else
+                        this.callAPI(hOpts,function(result){
+                            console.log('not cached');
+                            self.$cache.set(sCacheId,result);
+                            fnCallback(result);
+                        },fnErrorHandler);
+                });
         };
         // Handles POST requests to the API.
         self.post = function(hOpts,fnCallback,fnErrorHandler){

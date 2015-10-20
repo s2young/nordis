@@ -185,8 +185,6 @@ angular.module('[[=hData.name]]', ['ngStorage'])
 
             var sCacheId = hOpts.sPath;
             if (hOpts.hData) sCacheId += JSON.stringify(hOpts.hData);
-            if (hOpts.hExtras) sCacheId += JSON.stringify(hOpts.hExtras);
-
             console.log(sCacheId);
             self.$cache.get(sCacheId)
                 .then(function(res){

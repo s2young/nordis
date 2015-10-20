@@ -183,7 +183,7 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             self.$cache.get(sCacheId)
                 .then(function(res){
                     if (res && !bForce) {
-                        console.log('cached!');
+                        console.log('cached!',res);
                         fnCallback(res);
                     } else
                         self.callAPI(hOpts,function(result){

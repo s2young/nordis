@@ -252,6 +252,10 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             }
         };
         self.promise = function(sPath,sMethod,hData,hExtras,hCache){
+            console.log(sPath,sMethod);
+            console.log(hData,hExtras);
+            console.log('hCache',hCache);
+
             var deferred = $q.defer();
             self[sMethod]({sPath:sPath,hData:hData,hExtras:hExtras},function(res){
                 delete res.txid;

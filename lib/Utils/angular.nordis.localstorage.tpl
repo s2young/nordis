@@ -8,10 +8,10 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         self.$cache = {};
         if (window.localforage) {
            self.$cache.db = localforage.config({name:'[[=hData.name]]'});
-           console.log('localforage present!');
+           //console.log('localforage present!');
         } else {
             self.$cache.db = $cacheFactory('[[=hData.name]]',{capacity:20});
-            console.log('localforage not present');
+            //console.log('localforage not present');
         }
         self.$cache.get = function(n){
             var q = $q.defer();
@@ -30,10 +30,10 @@ angular.module('[[=hData.name]]', ['ngStorage'])
         };
         self.$cache.set = function(n,v){
             if (window.localforage) {
-                console.log('set in localforage',v);
+                //console.log('set in localforage',v);
                 self.$cache.db.setItem(n,JSON.stringify(v));
             } else {
-                console.log('set in cache',v);
+                //console.log('set in cache',v);
                 self.$cache.db.put(n,v)
             }
         };
@@ -191,15 +191,15 @@ angular.module('[[=hData.name]]', ['ngStorage'])
 
             var sCacheId = hOpts.p;
             if (hOpts.d) sCacheId += JSON.stringify(hOpts.d);
-            console.log(sCacheId);
+            //console.log(sCacheId);
             self.$cache.get(sCacheId)
                 .then(function(res){
                     if (res && !f) {
-                        console.log('cached!',res);
+                        //console.log('cached!',res);
                         fnCallback(res);
                     } else
                         self.callAPI(hOpts,function(result){
-                            console.log('not cached');
+                            //console.log('not cached');
                             self.$cache.set(sCacheId,result);
                             fnCallback(result);
                         },fnErrorHandler);

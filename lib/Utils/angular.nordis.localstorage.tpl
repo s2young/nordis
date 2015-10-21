@@ -37,6 +37,12 @@ angular.module('[[=hData.name]]', ['ngStorage'])
                 self.$cache.db.put(n,v)
             }
         };
+        self.$cache.removeAll = function(){
+            if (window.localforage)
+                self.$cache.db.clear();
+            else
+                self.$cache.db.removeAll();
+        };
 
         self.sHost = '';
         self.sSocketHost;

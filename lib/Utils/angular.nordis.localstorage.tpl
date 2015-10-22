@@ -188,22 +188,10 @@ angular.module('[[=hData.name]]', ['ngStorage'])
             if (!hOpts.d) hOpts.d = {};
             if (hOpts.x)
                 hOpts.d.hExtras = hOpts.x;
-
-            var sCacheId = hOpts.p;
-            if (hOpts.d) sCacheId += JSON.stringify(hOpts.d);
-            //console.log(sCacheId);
-            self.$cache.get(sCacheId)
-                .then(function(res){
-                    if (res && !f) {
-                        //console.log('cached!',res);
-                        fnCallback(res);
-                    } else
-                        self.callAPI(hOpts,function(result){
-                            //console.log('not cached');
-                            self.$cache.set(sCacheId,result);
-                            fnCallback(result);
-                        },fnErrorHandler);
-                });
+            self.callAPI(hOpts,function(result){
+                //console.log('not cached');
+                fnCallback(result);
+            },fnErrorHandler);
         };
         // Handles POST requests to the API.
         self.post = function(hOpts,fnCallback,fnErrorHandler){

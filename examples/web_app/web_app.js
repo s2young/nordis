@@ -40,7 +40,6 @@ function render(req,res,err,sPath) {
                 res.end('Oopsie! Something went really wrong.');
             }
         } else {
-            AppConfig.debug('sPath: '+sPath);
             res.end(html);
         }
     });

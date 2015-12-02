@@ -77,7 +77,7 @@ module.exports = {
                     }
                     ,function(cb) {
                         Config.log('User per record writes (Redis + MySql): '+Math.round(nUserWriteTotal/(nTestSize+1))+'ms');
-                        cb();
+                        setTimeout(cb,1000); // Make sure the async setExtras have time to run.
                     }
                 ],done);
             }

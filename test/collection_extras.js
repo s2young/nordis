@@ -187,4 +187,95 @@ module.exports = {
             }
         }
     }
+    ,min_max:{
+        before:function(done){
+
+            async.series([
+                // Create a user.
+                function(callback) {
+                    user = Base.lookup({sClass:'User'});
+                    user.set('name','TestUser');
+                    user.set('email','test@test.com');
+                    user.save(callback);
+                }
+                // Assign random dates to our sales.
+                ,function(callback) {
+                    function randomDate(start, end) {
+                        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+                    }
+
+                    dates = []; // Keep as a way to compare with what we lookup.
+                    async.times(nTestSize,function(n,cb){
+
+                        var date = randomDate(new Date(2012, 0, 1), new Date()).getTime();
+                        dates.push(date);
+                        var sale = Base.lookup({sClass:'Sale'});
+                        sale.setData({
+                            amount:n+'.00'
+                            ,user_id:user.getKey()
+                            ,date:date
+                        });
+                        sale.save(cb);
+
+                    },function(){
+
+                        sorted_dates = dates.sort(function(x, y){
+                            return x - y;
+                        });
+
+                        callback();
+                    });
+                }
+            ],done);
+
+        }
+        ,sort:function(done) {
+
+            async.series([
+                function(callback){
+                    user.loadExtras({sales:true,sales_reverse:true},callback);
+                }
+                ,function(callback) {
+                    should.exist(user.sales);
+                    should.exist(user.sales.aObjects);
+                    should.exist(user.sales_reverse);
+                    should.exist(user.sales_reverse.aObjects);
+
+                    user.sales.first().get('date').should.equal(sorted_dates[0]);
+
+                    // Now test the reverse.
+                    sorted_dates.reverse();
+
+                    user.sales.last().get('date').should.equal(sorted_dates[0]);
+                    user.sales_reverse.first().get('date').should.equal(sorted_dates[0]);
+
+                    //console.log(JSON.stringify(user.sales.aObjects));
+                    //console.log(JSON.stringify(user.sales_reverse.aObjects));
+                    callback();
+                }
+            ],done);
+
+        }
+        ,min_max:function(done) {
+
+            sorted_dates = dates.sort(function(x, y){
+                return x - y;
+            });
+
+            async.series([
+                function(callback){
+                    user.loadExtras({sales:{nMin:sorted_dates[0],nMax:sorted_dates[1]}},callback);
+                }
+                ,function(callback) {
+                    should.exist(user.sales);
+                    should.exist(user.sales.aObjects);
+
+                    user.sales.nTotal.should.equal(2);
+
+                    callback();
+                }
+            ],done);
+
+        }
+    }
 };

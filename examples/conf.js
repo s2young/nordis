@@ -155,6 +155,31 @@ module.exports.hSettings = {
                             return {id:oFollow.get('followed_id')};
                         }
                     }
+                    ,sales_reverse:{
+                        sType:'Collection'
+                        ,sClass:'Sale'
+                        ,sOrderBy:'date'
+                        ,bReverse:true
+                        ,fnQuery:function(oSelf){
+                            return {user_id:oSelf.getKey()}
+                        }
+                        ,fnCreate:function(oSale){
+                            if (oSale.get('user_id'))
+                                return {id:oSale.get('user_id')};
+                        }
+                    }
+                    ,sales:{
+                        sType:'Collection'
+                        ,sClass:'Sale'
+                        ,sOrderBy:'date'
+                        ,fnQuery:function(oSelf){
+                            return {user_id:oSelf.getKey()}
+                        }
+                        ,fnCreate:function(oSale){
+                            if (oSale.get('user_id'))
+                                return {id:oSale.get('user_id')};
+                        }
+                    }
                     ,followed:{
                         sType:'Collection'
                         ,sClass:'Follow'
@@ -352,6 +377,7 @@ module.exports.hSettings = {
                     id:{bPrimary:true,sType:'Number'}
                     ,user_id:{sType:'Number'}
                     ,amount:{sType:'Decimal',nMax:20,nScale:2}
+                    ,date:{sType:'Timestamp'}
                 }
                 ,sAdapterPath:'examples/overrides/adapter/Sale.js'
                 ,sClassPath:'examples/overrides/class/Sale.js'

@@ -103,7 +103,6 @@ module.exports.hSettings = {
                         ,nLength:36
                         ,sSample:'Yf8uIoP'
                     }
-                    ,tenant_id:{sType:'Number'}
                     ,client:{sType:'String', sMySqlType:'CHAR(20)', bIndex:true }
                     ,created:{
                         sType:'Timestamp'
@@ -320,7 +319,6 @@ module.exports.hSettings = {
             ,Follow:{
                 hProperties:{
                     id:{sType:'Number',bPrimary:true,sSample:'3'}
-                    ,tenant_id:{sType:'Number'}
                     ,followed_id:{sType:'Number',sSample:'1'}
                     ,follower_id:{sType:'Number',sSample:'2'}
                     ,rank:{sType:'Number',sSample:'0'}
@@ -375,23 +373,14 @@ module.exports.hSettings = {
             }
             ,Sale:{
                 nClass:3
-                ,sTenantProperty:'tenant_id'
                 ,hProperties:{
                     id:{bPrimary:true,sType:'Number'}
-                    ,tenant_id:{sType:'Number'}
                     ,user_id:{sType:'Number'}
                     ,amount:{sType:'Decimal',nMax:20,nScale:2}
                     ,date:{sType:'Timestamp'}
                 }
                 ,sAdapterPath:'examples/overrides/adapter/Sale.js'
                 ,sClassPath:'examples/overrides/class/Sale.js'
-            }
-            ,Tenant:{
-                nClass:4
-                ,hProperties:{
-                    id:{bPrimary:true,sType:'Number'}
-                    ,title:{sType:'String'}
-                }
             }
         }
         ,hMetrics:{

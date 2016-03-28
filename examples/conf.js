@@ -151,8 +151,8 @@ module.exports.hSettings = {
                         ,fnQuery:function(oSelf){
                             return {followed_id:oSelf.getKey()}
                         }
-                        ,fnCreate:function(oFollow){
-                            return {id:oFollow.get('followed_id')};
+                        ,fnCreate:function(oFollow,Config,bNew,hDelta,bRemoved,fnCallback){
+                            fnCallback(null,{id:oFollow.get('followed_id')});
                         }
                     }
                     ,sales_reverse:{
@@ -163,9 +163,11 @@ module.exports.hSettings = {
                         ,fnQuery:function(oSelf){
                             return {user_id:oSelf.getKey()}
                         }
-                        ,fnCreate:function(oSale){
+                        ,fnCreate:function(oSale,Config,bNew,hDelta,bRemoved,fnCallback){
                             if (oSale.get('user_id'))
-                                return {id:oSale.get('user_id')};
+                                fnCallback(null, {id:oSale.get('user_id')});
+                            else
+                                fnCallback();
                         }
                     }
                     ,sales:{
@@ -175,9 +177,11 @@ module.exports.hSettings = {
                         ,fnQuery:function(oSelf){
                             return {user_id:oSelf.getKey()}
                         }
-                        ,fnCreate:function(oSale){
+                        ,fnCreate:function(oSale,Config,bNew,hDelta,bRemoved,fnCallback){
                             if (oSale.get('user_id'))
-                                return {id:oSale.get('user_id')};
+                                fnCallback(null,{id:oSale.get('user_id')});
+                            else
+                                fnCallback();
                         }
                     }
                     ,followed:{
@@ -188,8 +192,8 @@ module.exports.hSettings = {
                         ,fnQuery:function(oSelf){
                             return {follower_id:oSelf.getKey()}
                         }
-                        ,fnCreate:function(oFollow){
-                            return {id:oFollow.get('follower_id')};
+                        ,fnCreate:function(oFollow,Config,bNew,hDelta,bRemoved,fnCallback){
+                            fnCallback(null,{id:oFollow.get('follower_id')});
                         }
                     }
                     ,referring_user:{
@@ -198,8 +202,8 @@ module.exports.hSettings = {
                         ,fnQuery:function(oSelf){
                             return {id:oSelf.get('referrer_id')}
                         }
-                        ,fnCreate:function(oUser){
-                            return {id:oUser.getKey()};
+                        ,fnCreate:function(oUser,Config,bNew,hDelta,bRemoved,fnCallback){
+                            fnCallback(null,{id:oUser.getKey()});
                         }
                     }
                 }
@@ -331,8 +335,8 @@ module.exports.hSettings = {
                         ,fnQuery:function(oSelf){
                             return {id:oSelf.get('followed_id')}
                         }
-                        ,fnCreate:function(oUser){
-                            return {id:oUser.getKey()};
+                        ,fnCreate:function(oUser,Config,bNew,hDelta,bRemoved,fnCallback){
+                            fnCallback(null,{id:oUser.getKey()});
                         }
                     }
                     ,follower_user:{
@@ -341,8 +345,8 @@ module.exports.hSettings = {
                         ,fnQuery:function(oSelf){
                             return {id:oSelf.get('follower_id')}
                         }
-                        ,fnCreate:function(oUser){
-                            return {id:oUser.getKey()};
+                        ,fnCreate:function(oUser,Config,bNew,hDelta,bRemoved,fnCallback){
+                            fnCallback(null,{id:oUser.getKey()});
                         }
                     }
                 }

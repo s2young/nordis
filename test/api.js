@@ -26,7 +26,12 @@ module.exports = {
                 }
                 ,function(cb) {
                     // Create n follower records  (n = nTestSize);
-                    var createFollower = function(n,callback) {
+                    var q = [];
+                    for (var n = 0; n < nTestSize; n++) {
+                        q.push(n);
+                    }
+                    async.forEachOfLimit(q,100,function(n,ind,callback){
+
                         var follower_user = Base.lookup({sClass:'User'});
                         follower_user.set('name','TestFollower '+n);
                         follower_user.set('email','testfollower'+n+'@test.com');
@@ -43,13 +48,8 @@ module.exports = {
                                 });
                             }
                         });
-                    };
-                    var q = async.queue(createFollower,100);
-                    q.drain = cb;
 
-                    for (var n = 0; n < nTestSize; n++) {
-                        q.push(n);
-                    }
+                    },cb);
                 }
                 // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
                 ,function(cb) {
@@ -74,17 +74,18 @@ module.exports = {
                     Collection.lookupAll({sClass:'User'},cb);
                 }
                 ,function(users,cb) {
+                    console.log('users.delete');
                     users.delete(cb);
                 }
                 ,function(ignore,cb){
                     Collection.lookupAll({sClass:'Follow'},cb);
                 }
                 ,function(follows,cb) {
+                    console.log('follows.delete');
                     follows.delete(cb);
                 }
                 ,function(ignore,cb){
-                    if (server)
-                        server.close();
+                    if (server) server.close();
                     cb(null,null);
                 }
             ],done);

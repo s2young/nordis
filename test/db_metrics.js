@@ -75,7 +75,7 @@ module.exports = {
                         for (var n = 0; n < nTestSize; n++) {
                             q.push(n);
                         }
-                        async.forEachLimit(q,1,function(n,cb) {
+                        async.forEachOfLimit(q,1,function(n,ind,cb) {
                             var user = Base.lookup({sClass:'User'});
                             user.set('name',dNow.getTime());
                             user.set('email','testfollower'+n+'@test.com');
@@ -129,7 +129,7 @@ module.exports = {
                             });
                             if (n < (nTestSize-1)) dEnd.add(1,'year');
                         }
-                        async.forEach(q,function(hData,cb) {
+                        async.forEachOf(q,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
                         },callback);
@@ -196,7 +196,7 @@ module.exports = {
                             });
                             if (n < (nTestSize-1)) dEnd.add(1,'month');
                         }
-                        async.forEach(q,function(hData,cb) {
+                        async.forEachOf(q,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
                         },callback);
@@ -254,7 +254,7 @@ module.exports = {
                             });
                             if (n < (nTestSize-1)) dEnd.add(1,'day');
                         }
-                        async.forEach(q,function(hData,cb) {
+                        async.forEachOf(q,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
                         },callback);
@@ -326,7 +326,7 @@ module.exports = {
                             });
                             if (n < (nTestSize-1)) dEnd.add(1,'hour');
                         }
-                        async.forEach(q,function(hData,cb) {
+                        async.forEachOf(q,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
                         },callback);
@@ -403,7 +403,7 @@ module.exports = {
                             dDate.add(1,'hour');
                             nTotal++;
                         }
-                        async.forEachLimit(q,100,function(hData,cb) {
+                        async.forEachOfLimit(q,100,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
                         },callback);
@@ -500,7 +500,7 @@ module.exports = {
                         for (var n = 0; n < nTestSize; n++) {
                             q.push(n);
                         }
-                        async.forEachLimit(q,10,function(n,cb) {
+                        async.forEachOfLimit(q,10,function(n,ind,cb) {
                             var user = Base.lookup({sClass:'User'});
                             user.set('name',dNow.getTime());
                             user.set('email','testfollower'+n+'@test.com');
@@ -576,7 +576,7 @@ module.exports = {
                             if (n < (nTestSize-1)) dEnd.add(1,'year');
                         }
                         console.log('nTotal:'+nTotal);
-                        async.forEach(q,function(hData,cb) {
+                        async.forEachOf(q,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
                         },callback);
@@ -648,7 +648,7 @@ module.exports = {
                             if (n%2) nTotal++;
                             if (n < (nTestSize-1)) dEnd.add(1,'month');
                         }
-                        async.forEach(q,function(hData,cb) {
+                        async.forEachOf(q,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
                         },callback);
@@ -710,7 +710,9 @@ module.exports = {
                             if (n%2) nTotal++;
                             if (n < (nTestSize-1)) dEnd.add(1,'hour');
                         }
-                        async.forEach(q,function(hData,cb) {
+                        dEnd.subtract(1,'minute');
+
+                        async.forEachOf(q,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
                         },callback);
@@ -752,6 +754,7 @@ module.exports = {
                                 should.exist(hStat.new_users.alltime.nCount);
                                 hStat.new_users.alltime.nCount.should.equal(nTotal);
 
+                                console.log(hStat.new_users.hour.aObjects);
                                 // validate hour stats
                                 should.exist(hStat.new_users.hour);
                                 should.exist(hStat.new_users.hour.nTotal);
@@ -792,14 +795,15 @@ module.exports = {
                             dDate.add(1,'hour');
                             nTotal++;
                         }
-                        async.forEachLimit(q,100,function(hData,cb) {
+                        dEnd.subtract(1,'minute');
+
+                        async.forEachOfLimit(q,100,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
                         },callback);
                     }
                     // Process the stats.
                     ,function(callback) {
-                        console.log(dStart.toString()+' -> '+dEnd.toString());
                         Metric.process({sFilter:'clientA,clientB',dStart:dStart,dEnd:dEnd},callback);
                     }
                     // Look up the stats.

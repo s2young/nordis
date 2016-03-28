@@ -1,355 +1,485 @@
 var async       = require('async'),
+    request     = require('request'),
+    moment      = require('moment-timezone'),
     should      = require('should'),
+    express     = require('express'),
+    bodyParser  = require('body-parser'),
+    Config      = require('./../../lib/AppConfig'),
     Base        = require('./../../lib/Base'),
+    Metric      = require('./../../lib/Metric'),
     Collection  = require('./../../lib/Collection'),
-    Config      = require('./../../lib/AppConfig');
+    Middleware  = require('./../../lib/Utils/Middleware');
 
 /**
- * This test creates a user and n follows (defined by nTestSize). Then, each test shows how to get a subset of those
- * follows in a paged collection. The test shows how to retrieve a collection from Redis (the framework's default) as
- * well as how to specify that the collection come from MySql only.
+ * This test is all about confirming the accuracy of the stats-tracking capabilities of Nordis. There are a couple
+ * of types of stats one can track using Nordis: 1) those that can be recreated via queries of existing tables, and
+ * 2) those that are stored in nordis and cannot be recreated from the data model directly.
  *
- * NOTE: nTestSize must be both divisible by two and five (i.e. use 10, 20, 30, etc as test size).
+ * For example, you can easily determine how many new users you have by querying your users table. If you want to
+ * track unique visits to a page on your site, that's a different kind of stat.  By defining your stats in your
+ * configuration file you can track either type.
+ *
+ * These tests confirm the db-related stats are accurate.
  *
  */
-var nTestSize = 1000;
-var user;
+
+var nTestSize = 1;
+var nPort = 10002; var server;
+var dNow = new Date();
 
 module.exports = {
-    collection:{
-        paging:{
-            before:function(done) {
-                this.timeout(30000);
-                if (nTestSize < 5 || nTestSize%2 || nTestSize%2)
-                    Config.error('nTestSize must be at least 5 and be divisble by 2 and 5.');
-                else
-                    async.series([
-                        function(cb){
-                            Collection.lookupAll({sClass:'Follow'},function(err,cColl){
-                                if (err)
-                                    cb(err);
-                                else
-                                    cColl.delete(cb);
-                            });
-                        }
-                        ,function(cb){
-                            Collection.lookupAll({sClass:'User'},function(err,cColl){
-                                if (err)
-                                    cb(err);
-                                else
-                                    cColl.delete(cb);
-                            });
-                        }
-                        ,function(cb) {
-                            user = Base.lookup({sClass:'User'});
-                            user.set('name','TestUser');
-                            user.set('email','test@test.com');
-                            user.save(cb);
-                        }
-                        ,function(cb) {
-                            // Create n follower records  (n = nTestSize);
-                            var createFollower = function(n,callback) {
-                                // Create follow between newly created user and first user, as well as with previously created user.
-                                var follower_user;
-                                async.waterfall([
-                                    function(cb) {
-                                        follower_user = Base.lookup({sClass:'User'});
-                                        follower_user.set('name','TestFollower '+n);
-                                        follower_user.set('email','testfollower'+n+'@test.com');
-                                        follower_user.save(cb);
-                                    }
-                                    ,function(follower_user,cb) {
-                                        var follow = Base.lookup({sClass:'Follow'});
-                                        follow.set('followed_id',user.getKey());
-                                        follow.set('follower_id',follower_user.getKey());
-                                        // Store rank as an inverted number to show that we can sort by rank instead of id.
-                                        follow.set('rank',nTestSize-n);
-                                        follow.save(cb);
-                                    }
-                                    ,function(follower,cb) {
-                                        user.setExtra('follows',follower,cb);
-                                    }
-                                ],callback);
-
-                            };
-                            var q = async.queue(createFollower,1000);
-                            q.drain = cb;
-
-                            for (var n = 1; n <= nTestSize; n++) {
-                                q.push(n);
-                            }
-                        }
-                    ],done);
-            }
-            ,after:function(done) {
-                this.timeout(30000);
+    stats:{
+        //db:{
+        //    beforeEach:function(done) {
+        //        async.series([
+        //            function(callback) {
+        //                Metric.flush(callback);
+        //            }
+        //            ,function(callback) {
+        //                // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
+        //                Config.init(null,function(err){
+        //                    if (err)
+        //                        callback(err);
+        //                    else {
+        //                        var exp_app = express();
+        //                        server = exp_app.listen(nPort);
+        //                        exp_app.use(bodyParser.json({limit: '1mb'}))
+        //                        exp_app.use(bodyParser.urlencoded({extended:true}))
+        //                        exp_app.use(Middleware.apiParser);
+        //                        callback();
+        //                    }
+        //                });
+        //            }
+        //        ],done);
+        //    }
+        //    ,afterEach:function(done) {
+        //        async.series([
+        //            function(callback) {
+        //                Config.MySql.execute('DELETE FROM UserTbl WHERE name = ?',[dNow.getTime()],callback);
+        //            }
+        //            ,function(callback) {
+        //                Config.MySql.execute('DELETE FROM _CrossReferenceTbl',null,callback);
+        //            }
+        //            ,function(callback) {
+        //                if (server)
+        //                    server.close();
+        //                callback();
+        //            }
+        //        ],done);
+        //    }
+        //    ,apiByMonth:function(done){
+        //        var dStart = moment.utc().subtract(nTestSize,'months').startOf('month');
+        //        var dEnd = dStart.clone();
+        //        async.series([
+        //            // Create the user accounts with which we'll make hits.
+        //            function(callback) {
+        //                var q = [];
+        //                for (var n = 0; n < nTestSize; n++) {
+        //                    q.push(dEnd.clone());
+        //                    if (n < (nTestSize-1)) dEnd.add(1,'month');
+        //                }
+        //                async.forEachOf(q,function(dDate,ind,cb) {
+        //                    Metric.track({sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
+        //                },callback);
+        //            }
+        //            // Process the stats.
+        //            ,function(callback) {
+        //                Metric.process({dStart:dStart,dEnd:dEnd,sGrain:'month'},callback);
+        //            }
+        //            // Look up the stats.
+        //            ,function(callback) {
+        //                Metric.lookupP({sName:'api_requests',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+        //                    .then(function(oStat){
+        //                        should.exist(oStat);
+        //                        should.exist(oStat.api_requests);
+        //                        should.exist(oStat.api_requests.month);
+        //                        oStat.api_requests.month.nTotal.should.equal(nTestSize)
+        //                        oStat.api_requests.month.first().get('nCount').should.equal(1);
+        //                    })
+        //                    .then(null,function(err){throw err})
+        //                    .done(callback);
+        //            }
+        //            // Lookup again using API
+        //            ,function(callback) {
+        //                Base.requestP('get','http://localhost:'+nPort+'/metric/api_requests',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+        //                    .then(function(hStat){
+        //                        should.exist(hStat);
+        //                        should.exist(hStat.api_requests);
+        //                        should.exist(hStat.api_requests.month);
+        //                        should.exist(hStat.api_requests.month.nCount);
+        //                        hStat.api_requests.month.nTotal.should.equal(nTestSize);
+        //                        hStat.api_requests.month.aObjects[0].nCount.should.equal(1);
+        //                    })
+        //                    .then(null,function(err){throw err})
+        //                    .done(callback);
+        //            }
+        //        ],done);
+        //    }
+        //    ,apiByDay:function(done){
+        //        var dStart = moment.utc().subtract(nTestSize,'days').startOf('day');
+        //        var dEnd = dStart.clone();
+        //        async.series([
+        //            // Create the user accounts with which we'll make hits.
+        //            function(callback) {
+        //                var q = [];
+        //                for (var n = 0; n < nTestSize; n++) {
+        //                    q.push(dEnd.clone());
+        //                    if (n < (nTestSize-1)) dEnd.add(1,'day');
+        //                }
+        //                async.forEachOf(q,function(dDate,ind,cb) {
+        //                    Metric.track({sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
+        //                },callback);
+        //            }
+        //            // Process the stats.
+        //            ,function(callback) {
+        //                Metric.process({dStart:dStart,dEnd:dEnd,sGrain:'day'},callback);
+        //            }
+        //            // Look up the stats.
+        //            ,function(callback) {
+        //                Metric.lookupP({sName:'api_requests',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{day:true}}})
+        //                    .then(function(oStat){
+        //                        should.exist(oStat);
+        //                        should.exist(oStat.api_requests);
+        //                        should.exist(oStat.api_requests.day);
+        //                        oStat.api_requests.day.nTotal.should.equal(nTestSize)
+        //                        oStat.api_requests.day.first().get('nCount').should.equal(1);
+        //                    })
+        //                    .then(null,function(err){throw err})
+        //                    .done(callback);
+        //            }
+        //            // Lookup again using API
+        //            ,function(callback) {
+        //                Base.requestP('get','http://localhost:'+nPort+'/metric/api_requests',{nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{day:true}}})
+        //                    .then(function(hStat){
+        //                        should.exist(hStat);
+        //                        should.exist(hStat.api_requests);
+        //                        should.exist(hStat.api_requests.day);
+        //                        should.exist(hStat.api_requests.day.nCount);
+        //                        hStat.api_requests.day.nTotal.should.equal(nTestSize);
+        //                        hStat.api_requests.day.aObjects[0].nCount.should.equal(1);
+        //                    })
+        //                    .then(null,function(err){throw err})
+        //                    .done(callback);
+        //            }
+        //        ],done);
+        //    }
+        //},
+        db_filtered:{
+            beforeEach:function(done) {
                 async.series([
-                    function(cb){
-                        Collection.lookupAll({sClass:'Follow'},function(err,cColl){
+                    function(callback) {
+                        Metric.flush(callback);
+                    }
+                    ,function(callback) {
+                        // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
+                        Config.init(null,function(err){
                             if (err)
-                                cb(err);
-                            else
-                                cColl.delete(cb);
-                        });
-                    }
-                    ,function(cb){
-                        Collection.lookupAll({sClass:'User'},function(err,cColl){
-                            if (err)
-                                cb(err);
-                            else
-                                cColl.delete(cb);
-                        });
-                    }
-                ],done);
-            }
-            ,getPageOne:function(done){
-
-                async.series([
-                    // Let's get half of the items in the collection.
-                    function(cb){
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
-                    }
-                    // nTotal will be the whole collection regardless of paging options.
-                    ,function(cb){
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.sSource.should.equal('MySql');
-                        user.follows.nTotal.should.equal(nTestSize);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                    // Do it again, but this time look in Redis
-                    ,function(cb){
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'Redis'}},cb);
-                    }
-                    ,function(cb){
-                        // nTotal will be the whole collection regardless of paging options.
-                        if (!Config.Redis.hOpts.default.bSkip) user.follows.sSource.should.equal('Redis');
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.nTotal.should.equal(nTestSize);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                ],done);
-            }
-            ,getCollectionInTwoPages:function(done){
-                async.series([
-                    function(cb){
-                        // Let's get half of the items in the collection.
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
-                    }
-                    ,function(cb){
-                        user.follows.sSource.should.equal('MySql');
-                        cb();
-                    }
-                    ,function(cb){
-                        // Now, let's get the next half.
-                        user.loadExtras({follows:{nSize:(nTestSize/2),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(cb){
-                        if (Config.Redis.hOpts.default.bSkip)
-                            user.follows.sSource.should.equal('MySql');
-                        else
-                            user.follows.sSource.should.equal('Redis');
-                        (user.follows.nNextID===undefined).should.be.ok;
-                        // We should now have the second half of our list.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                ],done);
-            }
-            ,getCollectionInFivePages:function(done){
-
-                async.waterfall([
-                    function(cb){
-                        // Let's get first 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5)}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal((nTestSize-1));
-                        user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
-                        // Let's get second 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
-                        // Let's get third 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
-                        // Let's get fourth 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));
-                        // Let's get fifth 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        user.follows.last().get('rank').should.equal(0);
-                        (user.follows.nNextID===undefined).should.be.ok;
-                        // We should now have the second half of our list.
-                        user.follows.nCount.should.equal((nTestSize/5));
-                        cb();
-                    }
-                ],done);
-            }
-            ,getPageOneMySql:function(done){
-
-                async.waterfall([
-                    function(cb){
-                        // Let's get half of the items in the collection.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/2)}},cb);
-                    }
-                    ,function(o,cb){
-                        // nTotal will be the whole collection regardless of paging options.
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.nTotal.should.equal(nTestSize);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        // The first item in the list should have an rank of nTestSize-1.
-                        user.follows.first().get('rank').should.equal((nTestSize-1));
-                        // And the last should have (nTestSize/2)
-                        user.follows.last().get('rank').should.equal((nTestSize/2));
-
-                        cb();
-                    }
-                ],done);
-            }
-            ,getCollectionInTwoPagesMySql:function(done){
-
-                async.waterfall([
-                    function(cb){
-                        // Let's get half of the items in the collection.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/2)}},cb);
-                    }
-                    ,function(o,cb){
-                        // The first item in the list should have an rank of nTestSize-1.
-                        user.follows.first().get('rank').should.equal((nTestSize-1));
-                        // And the last should have (nTestSize/2)
-                        user.follows.last().get('rank').should.equal((nTestSize/2));
-
-                        // Now, let's get the next half.
-                        user.loadExtras({
-                            sSource:'MySql',
-                            follows:{
-                                nSize:(nTestSize/2),
-                                nFirstID:user.follows.nNextID
+                                callback(err);
+                            else {
+                                var exp_app = express();
+                                server = exp_app.listen(nPort);
+                                exp_app.use(bodyParser.json({limit: '1mb'}))
+                                exp_app.use(bodyParser.urlencoded({extended:true}))
+                                exp_app.use(Middleware.apiParser);
+                                callback();
                             }
-                        },cb);
-                    }
-                    ,function(o,cb){
-                        (user.follows.nNextID===undefined).should.be.ok;
-
-                        // The first item in the list should have an rank of (nTestSize/2)-1.
-                        user.follows.first().get('rank').should.equal(((nTestSize/2)-1));
-                        // And the last should have (nTestSize/2)
-                        user.follows.last().get('rank').should.equal(0);
-                        // We should now have the second half of our list.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                ],done);
-            }
-            ,getCollectionInFivePagesMySql:function(done){
-
-                async.waterfall([
-                    function(cb){
-                        // Let's get first 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5)}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal((nTestSize-1));
-                        user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
-                        // Let's get second 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
-                        // Let's get third 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
-                        // Let's get fourth 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));
-                        // Let's get fifth 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        user.follows.last().get('rank').should.equal(0);
-                        (user.follows.nNextID===undefined).should.be.ok;
-                        // We should now have the second half of our list.
-                        user.follows.nCount.should.equal((nTestSize/5));
-                        cb();
-                    }
-                ],done);
-            }
-            ,deleteRecordAndPageOne:function(done) {
-                async.series([
-                    function(cb) {
-                        Base.lookup({sClass:'User',hQuery:{email:'testfollower1@test.com'},hExtras:{followed:true}},function(err,user){
-                            if (err || !user || !user.getKey())
-                                cb(err||'User not found.');
-                            else
-                                user.followed.delete(cb);
                         });
                     }
-                    // Let's get half of the items in the collection.
-                    ,function(cb){
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
+                ],done);
+            }
+            ,afterEach:function(done) {
+                async.series([
+                    function(callback) {
+                        Config.MySql.execute('DELETE FROM UserTbl WHERE name = ?',[dNow.getTime()],callback);
                     }
-                    // nTotal will be the whole collection regardless of paging options.
-                    ,function(cb){
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.sSource.should.equal('MySql');
-                        user.follows.nTotal.should.equal(nTestSize-1);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                    // Do it again, but this time look in Redis
-                    ,function(cb){
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'Redis'}},cb);
-                    }
-                    ,function(cb){
-                        // nTotal will be the whole collection regardless of paging options.
-                        if (!Config.Redis.hOpts.default.bSkip) user.follows.sSource.should.equal('Redis');
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.nTotal.should.equal(nTestSize-1);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
+                    ,function(callback) {
+                        if (server)
+                            server.close();
+                        callback();
                     }
                 ],done);
             }
+            ,apiByMonth:function(done){
+                var dStart = moment.utc().subtract(nTestSize,'months').startOf('month');
+                var dEnd = dStart.clone();
+                async.series([
+                    // Create the user accounts with which we'll make hits.
+                    function(callback) {
+                        var q = [];
+                        for (var n = 0; n <= nTestSize; n++) {
+                            q.push(dEnd.clone());
+                            if (n < nTestSize) dEnd.add(1,'month');
+                        }
+                        dEnd.subtract(1,'day');
+                        async.forEachOf(q,function(dDate,ind,cb) {
+                            Metric.track({aFilters:['clientA'],sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
+                        },callback);
+                    }
+                    // Process the stats.
+                    ,function(callback) {
+                        Metric.process({dStart:dStart,dEnd:dEnd,sFilter:'clientA',sGrain:'month'},callback);
+                    }
+                    // Look up the stats.
+                    ,function(callback) {
+                        console.log(dStart.toString(),dEnd.toString());
+                        Metric.lookupP({sName:'api_requests',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+                            .then(function(oStat){
+                                should.exist(oStat);
+                                should.exist(oStat.api_requests);
+                                should.exist(oStat.api_requests.month);
+                                console.log(oStat.api_requests.month);
+                                oStat.api_requests.month.nTotal.should.equal(nTestSize);
+                                oStat.api_requests.month.first().get('nCount').should.equal(1);
+                            })
+                            .then(null,function(err){throw err})
+                            .done(callback);
+                    }
+                    // Lookup again using API
+                    ,function(callback) {
+                        Base.requestP('get','http://localhost:'+nPort+'/metric/api_requests',{sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+                            .then(function(hStat){
+                                should.exist(hStat);
+                                should.exist(hStat.api_requests);
+                                should.exist(hStat.api_requests.month);
+                                should.exist(hStat.api_requests.month.nCount);
+                                hStat.api_requests.month.nTotal.should.equal(nTestSize);
+                                hStat.api_requests.month.aObjects[0].nCount.should.equal(1);
+                            })
+                            .then(null,function(err){throw err})
+                            .done(callback);
+                    }
+                ],done);
+            }
+            // ,apiByMonthTwoFilters:function(done){
+            //     var dStart = moment.utc().subtract(nTestSize,'months').startOf('month');
+            //     var dEnd = dStart.clone();
+            //     async.series([
+            //         // Create the user accounts with which we'll make hits.
+            //         function(callback) {
+            //             var q = [];
+            //             for (var n = 0; n <= nTestSize; n++) {
+            //                 q.push(dEnd.clone());
+            //                 if (n < nTestSize) dEnd.add(1,'month');
+            //             }
+            //             async.forEachOf(q,function(dDate,ind,cb) {
+            //                 Metric.track({aFilters:['clientA','clientB'],sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
+            //             },callback);
+            //         }
+            //         // Process clientA's stats.
+            //         ,function(callback) {
+            //             Metric.process({dStart:dStart,dEnd:dEnd,sFilter:'clientA',sGrain:'month'},callback);
+            //         }
+            //         // Look up the stats.
+            //         ,function(callback) {
+            //             Metric.lookupP({sName:'api_requests',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+            //                 .then(function(oStat){
+            //                     should.exist(oStat);
+            //                     should.exist(oStat.api_requests);
+            //                     should.exist(oStat.api_requests.month);
+            //                     oStat.api_requests.month.nTotal.should.equal(nTestSize)
+            //                     oStat.api_requests.month.first().get('nCount').should.equal(1);
+            //                 })
+            //                 .then(null,function(err){throw err})
+            //                 .done(callback);
+            //         }
+            //         // Lookup again using API
+            //         ,function(callback) {
+            //             Base.requestP('get','http://localhost:'+nPort+'/metric/api_requests',{sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+            //                 .then(function(hStat){
+            //                     should.exist(hStat);
+            //                     should.exist(hStat.api_requests);
+            //                     should.exist(hStat.api_requests.month);
+            //                     should.exist(hStat.api_requests.month.nCount);
+            //                     hStat.api_requests.month.nTotal.should.equal(nTestSize);
+            //                     hStat.api_requests.month.aObjects[0].nCount.should.equal(1);
+            //                 })
+            //                 .then(null,function(err){throw err})
+            //                 .done(callback);
+            //         }
+            //         // process clientB's stats.
+            //         ,function(callback) {
+            //             Metric.process({dStart:dStart,dEnd:dEnd,sFilter:'clientB',sGrain:'month'},callback);
+            //         }
+            //         // Look up clientB's stats.
+            //         ,function(callback) {
+            //             Metric.lookupP({sName:'api_requests',sFilter:'clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+            //                 .then(function(oStat){
+            //                     should.exist(oStat);
+            //                     should.exist(oStat.api_requests);
+            //                     should.exist(oStat.api_requests.month);
+            //                     oStat.api_requests.month.nTotal.should.equal(nTestSize)
+            //                     oStat.api_requests.month.first().get('nCount').should.equal(1);
+            //                 })
+            //                 .then(null,function(err){throw err})
+            //                 .done(callback);
+            //         }
+            //         // Lookup clientB's stats again using API
+            //         ,function(callback) {
+            //             Base.requestP('get','http://localhost:'+nPort+'/metric/api_requests',{sFilter:'clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{api_requests:{month:true}}})
+            //                 .then(function(hStat){
+            //                     should.exist(hStat);
+            //                     should.exist(hStat.api_requests);
+            //                     should.exist(hStat.api_requests.month);
+            //                     should.exist(hStat.api_requests.month.nCount);
+            //                     hStat.api_requests.month.nTotal.should.equal(nTestSize);
+            //                     hStat.api_requests.month.aObjects[0].nCount.should.equal(1);
+            //                 })
+            //                 .then(null,function(err){throw err})
+            //                 .done(callback);
+            //         }
+            //     ],done);
+            // }
+            //    ,userByHour:function(done){
+            //        var dStart = moment.utc().subtract(nTestSize,'hours').startOf('hour');
+            //        var dEnd = dStart.clone();
+            //        var nTotal = 0;
+            //        async.series([
+            //            // Create the user accounts with which we'll make hits.
+            //            function(callback) {
+            //                var q = [];
+            //                for (var n = 0; n < nTestSize; n++) {
+            //                    var client = (n%2) ? 'clientA' : 'clientB';
+            //                    q.push({
+            //                        name:dNow.getTime()
+            //                        ,email:'testfollower'+n+'@test.com'
+            //                        ,created:dEnd.valueOf()
+            //                        ,client:client
+            //                    });
+            //                    if (n%2) nTotal++;
+            //                    if (n < (nTestSize-1)) dEnd.add(1,'hour');
+            //                }
+            //                async.forEachOf(q,function(hData,ind,cb) {
+            //                    var user = Base.lookup({sClass:'User',hData:hData});
+            //                    user.save(cb);
+            //                },callback);
+            //            }
+            //            // Process the stats.
+            //            ,function(callback) {
+            //                Metric.process({sFilter:'clientA',dStart:dStart,dEnd:dEnd,sGrain:'hour'},callback);
+            //            }
+            //            // Look up the stats.
+            //            ,function(callback) {
+            //                Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
+            //                    .then(function(oStat){
+            //                        // validate alltime
+            //                        should.exist(oStat);
+            //                        should.exist(oStat.new_users);
+            //                        should.exist(oStat.new_users.alltime);
+            //                        should.exist(oStat.new_users.alltime.get('nCount'));
+            //                        oStat.new_users.alltime.get('nCount').should.equal(nTotal);
+            //
+            //                        should.exist(oStat.new_users.hour);
+            //                        should.exist(oStat.new_users.hour.nTotal);
+            //                        oStat.new_users.hour.nTotal.should.equal(nTestSize);
+            //                        var n = 0;
+            //                        while (oStat.new_users.hour.next()) {
+            //                            if (n%2) oStat.new_users.hour.getItem().get('nCount').should.equal(1);
+            //                        }
+            //                    })
+            //                    .then(null,function(err){throw err})
+            //                    .done(callback);
+            //            }
+            //            // Lookup again using API
+            //            ,function(callback) {
+            //                Base.requestP('get','http://localhost:'+nPort+'/metric/user',{nMin:dStart.valueOf(),sFilter:'clientA',nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
+            //                    .then(function(hStat){
+            //                        // validate alltime
+            //                        should.exist(hStat);
+            //                        should.exist(hStat.new_users);
+            //                        should.exist(hStat.new_users.alltime);
+            //                        should.exist(hStat.new_users.alltime.nCount);
+            //                        hStat.new_users.alltime.nCount.should.equal(nTotal);
+            //
+            //                        // validate hour stats
+            //                        should.exist(hStat.new_users.hour);
+            //                        should.exist(hStat.new_users.hour.nTotal);
+            //                        should.exist(hStat.new_users.hour.aObjects);
+            //                        hStat.new_users.hour.nTotal.should.equal(nTestSize);
+            //                        var n = 0;
+            //                        hStat.new_users.hour.aObjects.forEach(function(item) {
+            //                            if (n%2) item.nCount.should.equal(1);
+            //                        });
+            //                    })
+            //                    .then(null,function(err){throw err})
+            //                    .done(callback);
+            //            }
+            //        ],done);
+            //    }
+            //    ,userAllGrains:function(done){
+            //        this.timeout(30000);
+            //
+            //        var dStart = moment.utc().subtract(1,'months').startOf('months');
+            //        var dEnd = moment.utc().startOf('day');
+            //        var nTotal = 0;
+            //        var nFiltered = 0;
+            //
+            //        async.series([
+            //            // Create the user accounts with which we'll make hits.
+            //            function(callback) {
+            //                var dDate = dStart.clone();
+            //                var q = [];
+            //                while (dDate <= dEnd) {
+            //                    var client = ((nTotal % 3)==0) ? 'clientA' : ((nTotal %2)==0) ? 'clientB' : 'clientC';
+            //                    q.push({
+            //                        name:dNow.getTime()
+            //                        ,email:'testfollower'+nTotal+'@test.com'
+            //                        ,created:dDate.valueOf()
+            //                        ,client:client
+            //                    });
+            //                    if ((nTotal % 3)==0 || (nTotal % 2)==0) nFiltered++;
+            //                    dDate.add(1,'hour');
+            //                    nTotal++;
+            //                }
+            //                async.forEachOfLimit(q,100,function(hData,ind,cb) {
+            //                    var user = Base.lookup({sClass:'User',hData:hData});
+            //                    user.save(cb);
+            //                },callback);
+            //            }
+            //            // Process the stats.
+            //            ,function(callback) {
+            //                console.log(dStart.toString()+' -> '+dEnd.toString());
+            //                Metric.process({sFilter:'clientA,clientB',dStart:dStart,dEnd:dEnd},callback);
+            //            }
+            //            // Look up the stats.
+            //            ,function(callback) {
+            //                Metric.lookupP({sClass:'User',sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
+            //                    .then(function(oStat){
+            //                        should.exist(oStat);
+            //                        should.exist(oStat.new_users);
+            //                        should.exist(oStat.new_users.alltime);
+            //                        should.exist(oStat.new_users.alltime.get('nCount'));
+            //                        oStat.new_users.alltime.get('nCount').should.equal(nFiltered);
+            //
+            //                    })
+            //                    .then(null,function(err){throw err})
+            //                    .done(callback);
+            //            }
+            //            // Lookup again using API
+            //            ,function(callback) {
+            //                Base.requestP('get','http://localhost:'+nPort+'/metric/user',{sFilter:'clientA,clientB',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
+            //                    .then(function(hStat){
+            //                        // validate alltime
+            //                        should.exist(hStat);
+            //                        should.exist(hStat.new_users);
+            //                        should.exist(hStat.new_users.alltime);
+            //                        should.exist(hStat.new_users.alltime.nCount);
+            //                        hStat.new_users.alltime.nCount.should.equal(nFiltered);
+            //
+            //                        // validate hour stats
+            //                        should.exist(hStat.new_users.hour);
+            //                        should.exist(hStat.new_users.hour.nTotal);
+            //                        should.exist(hStat.new_users.hour.aObjects);
+            //                        hStat.new_users.hour.nTotal.should.equal(nTotal);
+            //
+            //                        hStat.new_users.hour.aObjects.forEach(function(item) {
+            //                            if ((nTotal % 3)==0 || (nTotal % 2)==0)  item.nCount.should.equal(1);
+            //                        });
+            //                    })
+            //                    .then(null,function(err){throw err})
+            //                    .done(callback);
+            //            }
+            //        ],done);
+            //    }
         }
     }
 };

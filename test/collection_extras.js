@@ -169,7 +169,7 @@ module.exports = {
                             user.follows.sSource.should.equal('MySql');
                         else
                             user.follows.sSource.should.equal('Redis');
-                        async.forEachLimit(user.follows.aObjects,1,function(follow,callback) {
+                        async.forEachOfLimit(user.follows.aObjects,1,function(follow,ind,callback) {
                             if ((follow instanceof Base)===false)
                                 follow = Base.lookup({sClass:'Follow',hData:follow});
                             follow.delete(callback);

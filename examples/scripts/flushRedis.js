@@ -12,7 +12,7 @@ var deleteKeys = function(oClient,fnCallback) {
         if (!aKeys.length) {
             fnCallback();
         } else
-            async.forEachLimit(aKeys,20,function(sKey,callback){
+            async.forEachOfLimit(aKeys,20,function(sKey,ind,callback){
                 console.log(sKey);
                 console.log(sKey.match(/nSeedID/));
                 if (!sKey.match(/nSeedID/)) {

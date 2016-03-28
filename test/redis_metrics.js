@@ -78,7 +78,7 @@ module.exports = {
         //                    q.push(dEnd.clone());
         //                    if (n < (nTestSize-1)) dEnd.add(1,'month');
         //                }
-        //                async.forEach(q,function(dDate,cb) {
+        //                async.forEachOf(q,function(dDate,ind,cb) {
         //                    Metric.track({sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
         //                },callback);
         //            }
@@ -126,7 +126,7 @@ module.exports = {
         //                    q.push(dEnd.clone());
         //                    if (n < (nTestSize-1)) dEnd.add(1,'day');
         //                }
-        //                async.forEach(q,function(dDate,cb) {
+        //                async.forEachOf(q,function(dDate,ind,cb) {
         //                    Metric.track({sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
         //                },callback);
         //            }
@@ -213,7 +213,8 @@ module.exports = {
                             q.push(dEnd.clone());
                             if (n < nTestSize) dEnd.add(1,'month');
                         }
-                        async.forEach(q,function(dDate,cb) {
+                        dEnd.subtract(1,'day');
+                        async.forEachOf(q,function(dDate,ind,cb) {
                             Metric.track({aFilters:['clientA'],sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
                         },callback);
                     }
@@ -261,7 +262,8 @@ module.exports = {
                             q.push(dEnd.clone());
                             if (n < nTestSize) dEnd.add(1,'month');
                         }
-                        async.forEach(q,function(dDate,cb) {
+                        dEnd.subtract(1,'day');
+                        async.forEachOf(q,function(dDate,ind,cb) {
                             Metric.track({aFilters:['clientA','clientB'],sMetric:'api_requests',dDate:dDate,Params:'/'},cb);
                         },callback);
                     }
@@ -348,7 +350,7 @@ module.exports = {
             //                    if (n%2) nTotal++;
             //                    if (n < (nTestSize-1)) dEnd.add(1,'hour');
             //                }
-            //                async.forEach(q,function(hData,cb) {
+            //                async.forEachOf(q,function(hData,ind,cb) {
             //                    var user = Base.lookup({sClass:'User',hData:hData});
             //                    user.save(cb);
             //                },callback);
@@ -430,7 +432,7 @@ module.exports = {
             //                    dDate.add(1,'hour');
             //                    nTotal++;
             //                }
-            //                async.forEachLimit(q,100,function(hData,cb) {
+            //                async.forEachOfLimit(q,100,function(hData,ind,cb) {
             //                    var user = Base.lookup({sClass:'User',hData:hData});
             //                    user.save(cb);
             //                },callback);

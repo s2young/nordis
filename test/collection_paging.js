@@ -12,7 +12,7 @@ var async       = require('async'),
  * NOTE: nTestSize must be both divisible by two and five (i.e. use 10, 20, 30, etc as test size).
  *
  */
-var nTestSize = 1000;
+var nTestSize = 100;
 var user;
 
 module.exports = {

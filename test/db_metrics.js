@@ -410,7 +410,6 @@ module.exports = {
                     }
                     // Process the stats.
                     ,function(callback) {
-                        console.log(dStart.toString()+' -> '+dEnd.toString());
                         Metric.process({dStart:dStart,dEnd:dEnd},callback);
                     }
                     // Look up the stats.
@@ -445,9 +444,6 @@ module.exports = {
                                 hStat.new_users.hour.nTotal.should.equal(nTotal);
 
                                 hStat.new_users.hour.aObjects.forEach(function(item) {
-                                    if (!item.nCount)
-                                        console.log(moment.utc(item.date).toString());
-
                                     item.nCount.should.equal(1);
                                 });
                             })
@@ -575,7 +571,7 @@ module.exports = {
                             if (n%2) nTotal++;
                             if (n < (nTestSize-1)) dEnd.add(1,'year');
                         }
-                        console.log('nTotal:'+nTotal);
+
                         async.forEachOf(q,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
                             user.save(cb);
@@ -700,15 +696,18 @@ module.exports = {
                     function(callback) {
                         var q = [];
                         for (var n = 0; n < nTestSize; n++) {
-                            var client = (n%2) ? 'clientA' : 'clientB';
+                            var client = 'clientB';
+                            if (n%2) {
+                                client = 'clientA';
+                                nTotal++;
+                            }
                             q.push({
                                 name:dNow.getTime()
                                 ,email:'testfollower'+n+'@test.com'
                                 ,created:dEnd.valueOf()
                                 ,client:client
                             });
-                            if (n%2) nTotal++;
-                            if (n < (nTestSize-1)) dEnd.add(1,'hour');
+                            if (n < nTestSize) dEnd.add(1,'hour');
                         }
                         dEnd.subtract(1,'minute');
 
@@ -721,6 +720,9 @@ module.exports = {
                     ,function(callback) {
                         Metric.process({sFilter:'clientA',dStart:dStart,dEnd:dEnd,sGrain:'hour'},callback);
                     }
+                    ,function(callback) {
+                        Metric.process({sFilter:'clientB',dStart:dStart,dEnd:dEnd,sGrain:'hour'},callback);
+                    }
                     // Look up the stats.
                     ,function(callback) {
                         Metric.lookupP({sClass:'User',sFilter:'clientA',nMin:dStart.valueOf(),nMax:dEnd.valueOf(),hMetrics:{new_users:{alltime:true,hour:true}}})
@@ -731,10 +733,9 @@ module.exports = {
                                 should.exist(oStat.new_users.alltime);
                                 should.exist(oStat.new_users.alltime.get('nCount'));
                                 oStat.new_users.alltime.get('nCount').should.equal(nTotal);
-
                                 should.exist(oStat.new_users.hour);
                                 should.exist(oStat.new_users.hour.nTotal);
-                                oStat.new_users.hour.nTotal.should.equal(nTestSize);
+                                oStat.new_users.hour.nTotal.should.equal(nTotal);
                                 var n = 0;
                                 while (oStat.new_users.hour.next()) {
                                     if (n%2) oStat.new_users.hour.getItem().get('nCount').should.equal(1);
@@ -753,13 +754,11 @@ module.exports = {
                                 should.exist(hStat.new_users.alltime);
                                 should.exist(hStat.new_users.alltime.nCount);
                                 hStat.new_users.alltime.nCount.should.equal(nTotal);
-
-                                console.log(hStat.new_users.hour.aObjects);
                                 // validate hour stats
                                 should.exist(hStat.new_users.hour);
                                 should.exist(hStat.new_users.hour.nTotal);
                                 should.exist(hStat.new_users.hour.aObjects);
-                                hStat.new_users.hour.nTotal.should.equal(nTestSize);
+                                hStat.new_users.hour.nTotal.should.equal(nTotal);
                                 var n = 0;
                                 hStat.new_users.hour.aObjects.forEach(function(item) {
                                     if (n%2) item.nCount.should.equal(1);
@@ -784,18 +783,24 @@ module.exports = {
                         var dDate = dStart.clone();
                         var q = [];
                         while (dDate <= dEnd) {
-                            var client = ((nTotal % 3)==0) ? 'clientA' : ((nTotal %2)==0) ? 'clientB' : 'clientC';
+                            var client = 'clientC';
+                            if (!(nTotal % 3)) {
+                                client = 'clientA';
+                                nFiltered++;
+                            } else if (!(nTotal %2)) {
+                                client = 'clientB';
+                                nFiltered++;
+                            }
                             q.push({
                                 name:dNow.getTime()
                                 ,email:'testfollower'+nTotal+'@test.com'
                                 ,created:dDate.valueOf()
                                 ,client:client
                             });
-                            if ((nTotal % 3)==0 || (nTotal % 2)==0) nFiltered++;
                             dDate.add(1,'hour');
                             nTotal++;
                         }
-                        dEnd.subtract(1,'minute');
+                        //dEnd.subtract(1,'minute');
 
                         async.forEachOfLimit(q,100,function(hData,ind,cb) {
                             var user = Base.lookup({sClass:'User',hData:hData});
@@ -815,7 +820,6 @@ module.exports = {
                                 should.exist(oStat.new_users.alltime);
                                 should.exist(oStat.new_users.alltime.get('nCount'));
                                 oStat.new_users.alltime.get('nCount').should.equal(nFiltered);
-
                             })
                             .then(null,function(err){throw err})
                             .done(callback);
@@ -835,7 +839,7 @@ module.exports = {
                                 should.exist(hStat.new_users.hour);
                                 should.exist(hStat.new_users.hour.nTotal);
                                 should.exist(hStat.new_users.hour.aObjects);
-                                hStat.new_users.hour.nTotal.should.equal(nTotal);
+                                hStat.new_users.hour.nTotal.should.equal(nFiltered);
 
                                 hStat.new_users.hour.aObjects.forEach(function(item) {
                                     if ((nTotal % 3)==0 || (nTotal % 2)==0)  item.nCount.should.equal(1);

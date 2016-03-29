@@ -1,4 +1,5 @@
 var async       = require('async'),
+    should      = require('should'),
     Base        = require('./../lib/Base'),
     Collection  = require('./../lib/Collection'),
     Config      = require('./../lib/AppConfig');

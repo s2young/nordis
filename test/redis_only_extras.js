@@ -19,28 +19,6 @@ module.exports = {
             ,afterEach:function(done) {
                 user.delete(done);
             }
-            ,trackPoints:function(done){
-
-                var nStart = new Date().getTime();
-                var setStuff = function(n,cb) {
-                    user.setExtra('points',1,function(err){
-                        cb(err);
-                    });
-                };
-                var q = async.queue(setStuff,1);
-                q.drain = function(){
-                    var nTotalTime = (new Date().getTime() - nStart);
-                    user.loadExtras({points:true},function(err){
-                        user.points.should.equal(nTestSize);
-                        Config.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per increment;');
-                        done(err);
-                    });
-                };
-
-                for (var n = 0; n < nTestSize; n++) {
-                    q.push(n);
-                }
-            }
             ,lookupUserAndExtras:function(done){
 
                 var nStart = new Date().getTime();

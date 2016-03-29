@@ -11,7 +11,6 @@ module.exports.hSettings = {
     global: {
         sConfVersion:'1.0.2'
         ,sLogLevel:'info'
-        ,bTraceMode:false
         ,hOptions:{
             MySql:{
                 default:{

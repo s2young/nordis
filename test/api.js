@@ -74,14 +74,12 @@ module.exports = {
                     Collection.lookupAll({sClass:'User'},cb);
                 }
                 ,function(users,cb) {
-                    console.log('users.delete');
                     users.delete(cb);
                 }
                 ,function(ignore,cb){
                     Collection.lookupAll({sClass:'Follow'},cb);
                 }
                 ,function(follows,cb) {
-                    console.log('follows.delete');
                     follows.delete(cb);
                 }
                 ,function(ignore,cb){

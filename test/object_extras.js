@@ -52,11 +52,11 @@ module.exports = {
                         callback();
                     }
                     ,function(callback) {
-                        user.loadExtras({referring_user:{sSource:'Redis'}},callback);
-                    }
-                    ,function(callback) {
-                        if (!Config.Redis.hOpts.default.bSkip) user.referring_user.sSource.should.equal('Redis');
-                        callback();
+                        Base.lookup({sClass:'User',hQuery:{email:'test@test.com'},hExtras:{referring_user:true}},function(err,res){
+                            user = res;
+                            if (!Config.Redis.hOpts.default.bSkip) user.referring_user.sSource.should.equal('Redis');
+                            callback();
+                        });
                     }
                 ],done)
             }

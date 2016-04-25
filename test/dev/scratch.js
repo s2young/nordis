@@ -1,355 +1,168 @@
-var async       = require('async'),
+var express     = require('express'),
+    request     = require('request'),
+    async       = require('async'),
     should      = require('should'),
     Base        = require('./../../lib/Base'),
     Collection  = require('./../../lib/Collection'),
+    Middleware  = require('./../../lib/Utils/Middleware'),
     Config      = require('./../../lib/AppConfig');
 
-/**
- * This test creates a user and n follows (defined by nTestSize). Then, each test shows how to get a subset of those
- * follows in a paged collection. The test shows how to retrieve a collection from Redis (the framework's default) as
- * well as how to specify that the collection come from MySql only.
- *
- * NOTE: nTestSize must be both divisible by two and five (i.e. use 10, 20, 30, etc as test size).
- *
- */
-var nTestSize = 100;
+var nTestSize = 10;
+var nPort = 2002; // Port on which to run api instance during test.
+var server;
 var user;
 
 module.exports = {
-    collection:{
-        paging:{
-            before:function(done) {
-                this.timeout(30000);
-                if (nTestSize < 5 || nTestSize%2 || nTestSize%2)
-                    Config.error('nTestSize must be at least 5 and be divisble by 2 and 5.');
-                else
-                    async.series([
-                        function(cb){
-                            Collection.lookupAll({sClass:'Follow'},function(err,cColl){
-                                if (err)
-                                    cb(err);
-                                else
-                                    cColl.delete(cb);
-                            });
-                        }
-                        ,function(cb){
-                            Collection.lookupAll({sClass:'User'},function(err,cColl){
-                                if (err)
-                                    cb(err);
-                                else
-                                    cColl.delete(cb);
-                            });
-                        }
-                        ,function(cb) {
-                            user = Base.lookup({sClass:'User'});
-                            user.set('name','TestUser');
-                            user.set('email','test@test.com');
-                            user.save(cb);
-                        }
-                        ,function(cb) {
-                            // Create n follower records  (n = nTestSize);
-                            var createFollower = function(n,callback) {
-                                // Create follow between newly created user and first user, as well as with previously created user.
-                                var follower_user;
-                                async.waterfall([
-                                    function(cb) {
-                                        follower_user = Base.lookup({sClass:'User'});
-                                        follower_user.set('name','TestFollower '+n);
-                                        follower_user.set('email','testfollower'+n+'@test.com');
-                                        follower_user.save(cb);
-                                    }
-                                    ,function(follower_user,cb) {
-                                        var follow = Base.lookup({sClass:'Follow'});
-                                        follow.set('followed_id',user.getKey());
-                                        follow.set('follower_id',follower_user.getKey());
-                                        // Store rank as an inverted number to show that we can sort by rank instead of id.
-                                        follow.set('rank',nTestSize-n);
-                                        follow.save(cb);
-                                    }
-                                    ,function(follower,cb) {
-                                        user.setExtra('follows',follower,cb);
-                                    }
-                                ],callback);
+    api:{
+        before:function(done) {
 
-                            };
-                            var q = async.queue(createFollower,1000);
-                            q.drain = cb;
+            async.series([
+                // Create a user we'll look up via an api call.
+                function(cb){
+                    user = Base.lookup({sClass:'User'});
+                    user.set('name','TestUser');
+                    user.set('email','test@test.com');
+                    user.save(cb);
+                }
+                ,function(cb) {
+                    // Create n follower records  (n = nTestSize);
+                    var q = [];
+                    for (var n = 0; n < nTestSize; n++) {
+                        q.push(n);
+                    }
+                    async.forEachOfLimit(q,100,function(n,ind,callback){
 
-                            for (var n = 1; n <= nTestSize; n++) {
-                                q.push(n);
-                            }
-                        }
-                    ],done);
-            }
-            ,after:function(done) {
-                this.timeout(30000);
-                async.series([
-                    function(cb){
-                        Collection.lookupAll({sClass:'Follow'},function(err,cColl){
+                        var follower_user = Base.lookup({sClass:'User'});
+                        follower_user.set('name','TestFollower '+n);
+                        follower_user.set('email','testfollower'+n+'@test.com');
+                        follower_user.save(function(err){
                             if (err)
-                                cb(err);
-                            else
-                                cColl.delete(cb);
-                        });
-                    }
-                    ,function(cb){
-                        Collection.lookupAll({sClass:'User'},function(err,cColl){
-                            if (err)
-                                cb(err);
-                            else
-                                cColl.delete(cb);
-                        });
-                    }
-                ],done);
-            }
-            ,getPageOne:function(done){
-
-                async.series([
-                    // Let's get half of the items in the collection.
-                    function(cb){
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
-                    }
-                    // nTotal will be the whole collection regardless of paging options.
-                    ,function(cb){
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.sSource.should.equal('MySql');
-                        user.follows.nTotal.should.equal(nTestSize);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                    // Do it again, but this time look in Redis
-                    ,function(cb){
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'Redis'}},cb);
-                    }
-                    ,function(cb){
-                        // nTotal will be the whole collection regardless of paging options.
-                        if (!Config.Redis.hOpts.default.bSkip) user.follows.sSource.should.equal('Redis');
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.nTotal.should.equal(nTestSize);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                ],done);
-            }
-            ,getCollectionInTwoPages:function(done){
-                async.series([
-                    function(cb){
-                        // Let's get half of the items in the collection.
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
-                    }
-                    ,function(cb){
-                        user.follows.sSource.should.equal('MySql');
-                        cb();
-                    }
-                    ,function(cb){
-                        // Now, let's get the next half.
-                        user.loadExtras({follows:{nSize:(nTestSize/2),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(cb){
-                        if (Config.Redis.hOpts.default.bSkip)
-                            user.follows.sSource.should.equal('MySql');
-                        else
-                            user.follows.sSource.should.equal('Redis');
-                        (user.follows.nNextID===undefined).should.be.ok;
-                        // We should now have the second half of our list.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                ],done);
-            }
-            ,getCollectionInFivePages:function(done){
-
-                async.waterfall([
-                    function(cb){
-                        // Let's get first 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5)}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal((nTestSize-1));
-                        user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
-                        // Let's get second 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
-                        // Let's get third 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
-                        // Let's get fourth 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));
-                        // Let's get fifth 20% of the items.
-                        user.loadExtras({follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        user.follows.last().get('rank').should.equal(0);
-                        (user.follows.nNextID===undefined).should.be.ok;
-                        // We should now have the second half of our list.
-                        user.follows.nCount.should.equal((nTestSize/5));
-                        cb();
-                    }
-                ],done);
-            }
-            ,getPageOneMySql:function(done){
-
-                async.waterfall([
-                    function(cb){
-                        // Let's get half of the items in the collection.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/2)}},cb);
-                    }
-                    ,function(o,cb){
-                        // nTotal will be the whole collection regardless of paging options.
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.nTotal.should.equal(nTestSize);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        // The first item in the list should have an rank of nTestSize-1.
-                        user.follows.first().get('rank').should.equal((nTestSize-1));
-                        // And the last should have (nTestSize/2)
-                        user.follows.last().get('rank').should.equal((nTestSize/2));
-
-                        cb();
-                    }
-                ],done);
-            }
-            ,getCollectionInTwoPagesMySql:function(done){
-
-                async.waterfall([
-                    function(cb){
-                        // Let's get half of the items in the collection.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/2)}},cb);
-                    }
-                    ,function(o,cb){
-                        // The first item in the list should have an rank of nTestSize-1.
-                        user.follows.first().get('rank').should.equal((nTestSize-1));
-                        // And the last should have (nTestSize/2)
-                        user.follows.last().get('rank').should.equal((nTestSize/2));
-
-                        // Now, let's get the next half.
-                        user.loadExtras({
-                            sSource:'MySql',
-                            follows:{
-                                nSize:(nTestSize/2),
-                                nFirstID:user.follows.nNextID
+                                callback(err);
+                            else {
+                                var follow = Base.lookup({sClass:'Follow'});
+                                follow.set('followed_id',user.getKey());
+                                follow.set('follower_id',follower_user.getKey());
+                                follow.set('rank',n);
+                                follow.save(function(err){
+                                    callback(err);
+                                });
                             }
-                        },cb);
-                    }
-                    ,function(o,cb){
-                        (user.follows.nNextID===undefined).should.be.ok;
-
-                        // The first item in the list should have an rank of (nTestSize/2)-1.
-                        user.follows.first().get('rank').should.equal(((nTestSize/2)-1));
-                        // And the last should have (nTestSize/2)
-                        user.follows.last().get('rank').should.equal(0);
-                        // We should now have the second half of our list.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                ],done);
-            }
-            ,getCollectionInFivePagesMySql:function(done){
-
-                async.waterfall([
-                    function(cb){
-                        // Let's get first 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5)}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-1)+' - '+(nTestSize-(nTestSize/5)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal((nTestSize-1));
-                        user.follows.last().get('rank').should.equal(nTestSize-(nTestSize/5));
-                        // Let's get second 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-(nTestSize/5)-1)+' - '+(nTestSize-((nTestSize/5)*2)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-(nTestSize/5)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*2));
-                        // Let's get third 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*2)-1)+' - '+(nTestSize-((nTestSize/5)*3)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*2)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*3));
-                        // Let's get fourth 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        //Config.log('Ranked items: '+(nTestSize-((nTestSize/5)*3)-1)+' - '+(nTestSize-((nTestSize/5)*4)));
-                        // Confirm paging is correct by testing the rank of the first and last items.
-                        user.follows.first().get('rank').should.equal(nTestSize-((nTestSize/5)*3)-1);
-                        user.follows.last().get('rank').should.equal(nTestSize-((nTestSize/5)*4));
-                        // Let's get fifth 20% of the items.
-                        user.loadExtras({sSource:'MySql',follows:{nSize:(nTestSize/5),nFirstID:user.follows.nNextID}},cb);
-                    }
-                    ,function(o,cb){
-                        user.follows.last().get('rank').should.equal(0);
-                        (user.follows.nNextID===undefined).should.be.ok;
-                        // We should now have the second half of our list.
-                        user.follows.nCount.should.equal((nTestSize/5));
-                        cb();
-                    }
-                ],done);
-            }
-            ,deleteRecordAndPageOne:function(done) {
-                async.series([
-                    function(cb) {
-                        Base.lookup({sClass:'User',hQuery:{email:'testfollower1@test.com'},hExtras:{followed:true}},function(err,user){
-                            if (err || !user || !user.getKey())
-                                cb(err||'User not found.');
-                            else
-                                user.followed.delete(cb);
                         });
-                    }
-                    // Let's get half of the items in the collection.
-                    ,function(cb){
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'MySql'}},cb);
-                    }
-                    // nTotal will be the whole collection regardless of paging options.
-                    ,function(cb){
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.sSource.should.equal('MySql');
-                        user.follows.nTotal.should.equal(nTestSize-1);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                    // Do it again, but this time look in Redis
-                    ,function(cb){
-                        user.loadExtras({follows:{nSize:(nTestSize/2),sSource:'Redis'}},cb);
-                    }
-                    ,function(cb){
-                        // nTotal will be the whole collection regardless of paging options.
-                        if (!Config.Redis.hOpts.default.bSkip) user.follows.sSource.should.equal('Redis');
-                        user.follows.nNextID.should.be.above(0);
-                        user.follows.nTotal.should.equal(nTestSize-1);
-                        // nCount will be the number of items in the current page.
-                        user.follows.nCount.should.equal((nTestSize/2));
-                        cb();
-                    }
-                ],done);
-            }
+
+                    },cb);
+                }
+                // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
+                ,function(cb) {
+                    Config.init(null,function(err){
+                        if (err)
+                            cb(err);
+                        else {
+                            var exp_app = express();
+                            server = exp_app.listen(nPort);
+                            exp_app.use(require('body-parser')());
+                            exp_app.use(Middleware.apiParser);
+                            cb();
+                        }
+                    });
+                }
+            ],done);
         }
+        ,after:function(done) {
+
+            async.waterfall([
+                function(cb) {
+                    Collection.lookupAll({sClass:'User'},cb);
+                }
+                ,function(users,cb) {
+                    users.delete(cb);
+                }
+                ,function(ignore,cb){
+                    Collection.lookupAll({sClass:'Follow'},cb);
+                }
+                ,function(follows,cb) {
+                    follows.delete(cb);
+                }
+                ,function(ignore,cb){
+                    if (server) server.close();
+                    cb(null,null);
+                }
+            ],done);
+        }
+        // ,lookupUser:function(done) {
+        //
+        //     Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey())
+        //         .then(function(hResult){
+        //             hResult.id.should.equal(user.getKey());
+        //         })
+        //         .then(null,function(err){throw err})
+        //         .done(done);
+        //
+        // }
+        ,lookupUserAndFollowers:function(done) {
+            this.timeout(10000);
+            console.log('http://localhost:'+nPort+'/user/'+user.getKey());
+            // This time, we'll request the user's follows collection along with the user him
+            Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey(),{
+                    hExtras:{
+                        follows:{
+                            hExtras:{
+                                follower_user:true // We'll get each follower user object on the follows collection.
+                            }
+                        }
+                    }
+                })
+                .then(function(hResult){
+                    hResult.id.should.equal(user.getKey());
+                    hResult.follows.nTotal.should.equal(nTestSize);
+                })
+                .then(null,function(err){throw err})
+                .done(done);
+
+        }
+        // ,changeUserName:function(done) {
+        //     // This test submits a save.json call on the existing user, changing his name.
+        //
+        //     var sNewName = 'Dummy';
+        //     Base.requestP('post','http://localhost:'+nPort+'/user/'+user.getKey(),{name:sNewName,email:'test@test.com'})
+        //         .then(function(hResult){
+        //             hResult.name.should.equal(sNewName);
+        //         })
+        //         .then(null,function(err){throw err})
+        //         .done(done);
+        //
+        // }
+        // ,badClassInRequest:function(done) {
+        //
+        //     Base.requestP('post','http://localhost:'+nPort+'/badclass',null)
+        //         .then(null,function(err){
+        //             err.should.equal('Malformed request.');
+        //         })
+        //         .done(done);
+        //
+        // }
+        // ,lookupUserByNumberID:function(done) {
+        //
+        //     Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey())
+        //         .then(function(hResult){
+        //             hResult.id.should.equal(user.getKey());
+        //         })
+        //         .then(null,function(err){throw err})
+        //         .done(done);
+        //
+        // }
+        // ,loadFollowersNatively:function(done) {
+        //
+        //     Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})
+        //         .then(function(hResult){
+        //             hResult.follows.nTotal.should.equal(nTestSize);
+        //             if (Config.Redis.hOpts.default.bSkip)
+        //                 hResult.follows.sSource.should.equal('MySql');
+        //             else
+        //                 hResult.follows.sSource.should.equal('Redis');
+        //         })
+        //         .then(null,function(err){throw err})
+        //         .done(done);
+        //
+        // }
     }
 };

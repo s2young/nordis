@@ -2,7 +2,7 @@
   "author": "Stuart Young",
   "name": "nordis",
   "description": "Framework for rapid nodejs application development using Redis and MySql.",
-  "version": "2.1.66",
+  "version": "2.1.67",
   "repository": {
     "type": "git",
     "url": "https://github.com/s2young/nordis.git"
@@ -12,7 +12,7 @@
     "npm": ">=1.2.x"
   },
   "dependencies": {
-    "async": "^2.0.0-rc.2",
+    "async": "^2.0.0-rc.3",
     "body-parser": "^1.8.0",
     "dot": "^1.0.2",
     "moment-timezone": "^0.4.0",

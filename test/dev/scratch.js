@@ -9,11 +9,6 @@ var nTestSize = 1;
 module.exports = {
     save:{
         before:function(done) {
-            Base.lookup({sClass:'Metric',hQuery:{nID:111339}},function(err,oRes){
-                console.error(err);
-                console.log(oRes);
-            });
-            
             var createUser = function(n,cback) {
                 var user = Base.lookup({sClass:'User'});
                 user.set('name','TestUser');

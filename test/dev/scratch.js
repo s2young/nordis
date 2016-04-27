@@ -1,168 +1,157 @@
-var express     = require('express'),
-    request     = require('request'),
-    async       = require('async'),
+var async       = require('async'),
     should      = require('should'),
     Base        = require('./../../lib/Base'),
     Collection  = require('./../../lib/Collection'),
-    Middleware  = require('./../../lib/Utils/Middleware'),
     Config      = require('./../../lib/AppConfig');
 
-var nTestSize = 10;
-var nPort = 2002; // Port on which to run api instance during test.
-var server;
-var user;
+var nTestSize = 1;
 
 module.exports = {
-    api:{
+    save:{
         before:function(done) {
-
-            async.series([
-                // Create a user we'll look up via an api call.
-                function(cb){
-                    user = Base.lookup({sClass:'User'});
-                    user.set('name','TestUser');
-                    user.set('email','test@test.com');
-                    user.save(cb);
-                }
-                ,function(cb) {
-                    // Create n follower records  (n = nTestSize);
-                    var q = [];
-                    for (var n = 0; n < nTestSize; n++) {
-                        q.push(n);
-                    }
-                    async.forEachOfLimit(q,100,function(n,ind,callback){
-
-                        var follower_user = Base.lookup({sClass:'User'});
-                        follower_user.set('name','TestFollower '+n);
-                        follower_user.set('email','testfollower'+n+'@test.com');
-                        follower_user.save(function(err){
-                            if (err)
-                                callback(err);
-                            else {
-                                var follow = Base.lookup({sClass:'Follow'});
-                                follow.set('followed_id',user.getKey());
-                                follow.set('follower_id',follower_user.getKey());
-                                follow.set('rank',n);
-                                follow.save(function(err){
-                                    callback(err);
-                                });
-                            }
-                        });
-
-                    },cb);
-                }
-                // Next, fire up a temporary api running on port 2002. This is all that's needed for a simple api with no permission implications.
-                ,function(cb) {
-                    Config.init(null,function(err){
+            Base.lookup({sClass:'Metric',hQuery:{nID:111339}},function(err,oRes){
+                console.error(err);
+                console.log(oRes);
+            });
+            
+            var createUser = function(n,cback) {
+                var user = Base.lookup({sClass:'User'});
+                user.set('name','TestUser');
+                user.set('email','test'+n+'@test.com');
+                user.save(cback);
+            };
+            var q = async.queue(createUser,10);
+            q.drain = done;
+            for (var n = 0; n < nTestSize; n++) {
+                q.push(n);
+            }
+        }
+        ,after:function(done) {
+            async.parallel([
+                function(cb) {
+                    Collection.lookup({sClass:'User',hQuery:{sWhere:'email LIKE \'%@test.com\''}},function(err,cColl){
                         if (err)
                             cb(err);
-                        else {
-                            var exp_app = express();
-                            server = exp_app.listen(nPort);
-                            exp_app.use(require('body-parser')());
-                            exp_app.use(Middleware.apiParser);
-                            cb();
-                        }
+                        else
+                            cColl.delete(cb);
+                    });
+                }
+                ,function(cb) {
+                    Collection.lookupAll({sClass:'Sale'},function(err,cColl){
+                        if (err)
+                            cb(err);
+                        else
+                            cColl.delete(cb);
                     });
                 }
             ],done);
         }
-        ,after:function(done) {
+        ,lookupViaRedis:function(done){
 
-            async.waterfall([
-                function(cb) {
-                    Collection.lookupAll({sClass:'User'},cb);
-                }
-                ,function(users,cb) {
-                    users.delete(cb);
-                }
-                ,function(ignore,cb){
-                    Collection.lookupAll({sClass:'Follow'},cb);
-                }
-                ,function(follows,cb) {
-                    follows.delete(cb);
-                }
-                ,function(ignore,cb){
-                    if (server) server.close();
-                    cb(null,null);
-                }
-            ],done);
-        }
-        // ,lookupUser:function(done) {
-        //
-        //     Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey())
-        //         .then(function(hResult){
-        //             hResult.id.should.equal(user.getKey());
-        //         })
-        //         .then(null,function(err){throw err})
-        //         .done(done);
-        //
-        // }
-        ,lookupUserAndFollowers:function(done) {
-            this.timeout(10000);
-            console.log('http://localhost:'+nPort+'/user/'+user.getKey());
-            // This time, we'll request the user's follows collection along with the user him
-            Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey(),{
-                    hExtras:{
-                        follows:{
-                            hExtras:{
-                                follower_user:true // We'll get each follower user object on the follows collection.
-                            }
-                        }
-                    }
-                })
-                .then(function(hResult){
-                    hResult.id.should.equal(user.getKey());
-                    hResult.follows.nTotal.should.equal(nTestSize);
-                })
-                .then(null,function(err){throw err})
-                .done(done);
+            var nTotalTime = 0;
+            var nTotalTime2 = 0;
+            var lookupUser = function(n,cb) {
+                var nStart = new Date().getTime();
+                Base.lookup({sClass:'User',hQuery:{email:'test'+n+'@test.com'}},function(err,user){
+                    nTotalTime += (new Date().getTime()-nStart);
+                    user.get('email').should.equal('test'+n+'@test.com');
 
+                    // Look up via primary key.
+                    var nStart2 = new Date().getTime();
+                    var hQuery = {};
+                    hQuery[Config.getClasses('User').sKeyProperty] = user.getKey();
+
+                    Base.lookup({sClass:'User',hQuery:hQuery},function(err,user2){
+                        nTotalTime2 += (new Date().getTime()-nStart2);
+                        user2.get('email').should.equal('test'+n+'@test.com');
+                        cb();
+                    });
+                });
+            };
+            var q = async.queue(lookupUser,10);
+            q.drain = function(err){
+                Config.log('Total time (Redis): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup via email;');
+                Config.log('Total time (Redis): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
+                done();
+            };
+
+            for (var n = 0; n < nTestSize; n++) {
+                q.push(n);
+            }
         }
-        // ,changeUserName:function(done) {
-        //     // This test submits a save.json call on the existing user, changing his name.
-        //
-        //     var sNewName = 'Dummy';
-        //     Base.requestP('post','http://localhost:'+nPort+'/user/'+user.getKey(),{name:sNewName,email:'test@test.com'})
-        //         .then(function(hResult){
-        //             hResult.name.should.equal(sNewName);
-        //         })
-        //         .then(null,function(err){throw err})
-        //         .done(done);
-        //
-        // }
-        // ,badClassInRequest:function(done) {
-        //
-        //     Base.requestP('post','http://localhost:'+nPort+'/badclass',null)
-        //         .then(null,function(err){
-        //             err.should.equal('Malformed request.');
-        //         })
-        //         .done(done);
-        //
-        // }
-        // ,lookupUserByNumberID:function(done) {
-        //
-        //     Base.requestP('get','http://localhost:'+nPort+'/user/'+user.getKey())
-        //         .then(function(hResult){
-        //             hResult.id.should.equal(user.getKey());
-        //         })
-        //         .then(null,function(err){throw err})
-        //         .done(done);
-        //
-        // }
-        // ,loadFollowersNatively:function(done) {
-        //
-        //     Base.lookupP({sClass:'User',hQuery:{id:user.getKey()},hExtras:{follows:true}})
-        //         .then(function(hResult){
-        //             hResult.follows.nTotal.should.equal(nTestSize);
-        //             if (Config.Redis.hOpts.default.bSkip)
-        //                 hResult.follows.sSource.should.equal('MySql');
-        //             else
-        //                 hResult.follows.sSource.should.equal('Redis');
-        //         })
-        //         .then(null,function(err){throw err})
-        //         .done(done);
-        //
-        // }
     }
+
+//    ,lookupViaMySql:function(test){
+//        test.expect((nTestSize*2));
+//
+//        var nTotalTime = 0;
+//        var nTotalTime2 = 0;
+//        var lookupUser = function(n,cb) {
+//            var nStart;
+//            async.waterfall([
+//                function(callback){
+//                    nStart = new Date().getTime();
+//                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:{email:'test'+n+'@test.com'}},callback);
+//                }
+//                ,function(user,callback){
+//                    nTotalTime += (new Date().getTime()-nStart);
+//                    test.equal(user.get('email'),'test'+n+'@test.com');
+//
+//                    nStart = new Date().getTime();
+//                    var hQuery = {};
+//                    hQuery[Config.getClasses('User').sKeyProperty] = user.getKey();
+//                    Base.lookup({sClass:'User',sSource:'MySql',hQuery:hQuery},callback);
+//                }
+//                ,function(user,callback) {
+//                    nTotalTime2 += (new Date().getTime()-nStart);
+//                    test.equal(user.get('email'),'test'+n+'@test.com');
+//                    callback();
+//                }
+//            ],cb);
+//        };
+//        var q = async.queue(lookupUser,10);
+//        q.drain = function(err){
+//            Config.log('Total time (MySql): '+nTotalTime+': '+(nTotalTime/nTestSize)+' ms per lookup;');
+//            Config.log('Total time (MySql): '+nTotalTime2+': '+(nTotalTime2/nTestSize)+' ms per lookup via primary key;');
+//            Config.wrapTest(err,test);
+//        };
+//
+//        for (var n = 0; n < nTestSize; n++) {
+//            q.push(n);
+//        }
+//    }
+//    ,lookupViaWhereClause:function(test) {
+//        test.expect(1);
+//        Base.lookup({sClass:'User',hQuery:{sWhere:'name=\'TestUser\' AND email=\'test0@test.com\''}},function(err,user){
+//            if (user) test.equal(user.get('email'),'test0@test.com');
+//            Config.wrapTest(err,test);
+//        });
+//    }
+//    ,classOverride:function(test){
+//        test.expect(2);
+//        Base.lookup({sClass:'User',hQuery:{sWhere:'name=\'TestUser\' AND email=\'test0@test.com\''}},function(err,user){
+//            if (user) test.equal(user.get('email'),'test0@test.com');
+//
+//            var sale = Base.lookup({sClass:'Sale'});
+//            sale.set('user_id',user.getKey());
+//            sale.set('amount',100.00);
+//            sale.save(function(err){
+//                test.equal(sale.bOverridden,true);
+//                Config.wrapTest(err,test);
+//            });
+//
+//        });
+//
+//    }
+//    ,requiredPropertyCheck:function(test){
+//        test.expect(1);
+//
+//        var user = Base.lookup({sClass:'User'});
+//        user.set('email','test@gmail.com');
+//        user.save(function(err){
+//            console.log(err);
+//            test.equals(err,'Must set required properties: name,email');
+//            Config.wrapTest(null,test);
+//        });
+//    }
 };

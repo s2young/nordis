@@ -12,10 +12,9 @@ Config.init(function(err){
         console.error(err);
     else {
 
-        Metric.track({sMetric:'api_requests',Params:'/'},function(err){
+        Base.lookup({sClass:'Metric',hQuery:{nID:111339}},function(err,oRes){
             console.error(err);
-
-            Config.exit();
+            console.log(oRes);
         });
 
     }

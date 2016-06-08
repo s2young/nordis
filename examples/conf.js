@@ -12,7 +12,12 @@ module.exports.hSettings = {
         sConfVersion:'1.0.2'
         ,sLogLevel:'info'
         ,hOptions:{
-            MySql:{
+            Mongo:{
+                default:{
+                    sUrl:'mongodb://127.0.0.1:27017/nordis'
+                }
+            }
+            ,MySql:{
                 default:{
                     sSchema:'nordis',
                     sHost:'localhost',
